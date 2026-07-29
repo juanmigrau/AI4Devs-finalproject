@@ -29,6 +29,9 @@ authentication:
       sdk: FirebaseAuth.createUserWithEmailAndPassword
     signOut:
       sdk: FirebaseAuth.signOut
+    sendPasswordResetEmail:
+      sdk: FirebaseAuth.sendPasswordResetEmail
+      usage: Diálogo "¿Olvidaste tu contraseña?" sobre SignInPage (LPT-25)
     authStateChanges:
       sdk: FirebaseAuth.authStateChanges
       usage: BLoC de sesión / navegación condicional
@@ -99,6 +102,26 @@ firestore:
               sdk: doc('games/{gameId}/rounds/{roundNumber}').set({ roundNumber, status: 'closed', ... })
             close:
               sdk: doc('games/{gameId}/rounds/{roundNumber}').update({ status: 'closed', closedAt: serverTimestamp, scoresDelta: ... })
+
+    hideGameForUser:
+      description: Oculta una partida del historial del usuario actual sin borrar el documento en Firestore.
+      persistence: local
+      driftTable: hidden_games
+      sdk: HiddenGamesLocalDatasource.hideGame(gameId)
+      notes:
+        - No escribe en games/{gameId}
+        - Usado para GameHistorySource.cloud y para cloudGameId tras borrado local sincronizado
+
+    favorites:
+      description: Lista local de jugadores favoritos para añadir rápido a partidas.
+      persistence: local
+      driftTable: favorites
+      schemaVersion: 7
+      sdk: FavoriteLocalDatasource / FavoriteRepository
+      notes:
+        - Local only; no Firestore en MVP
+        - Una fila por favorito (id, displayName, userId opcional, createdAt)
+        - Deduplicación por userId o displayName (case-insensitive) en FavoriteRepositoryImpl
 
 errors:
   mapping:

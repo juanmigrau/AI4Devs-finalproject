@@ -3,10 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
+import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i2;
 import 'package:la_pocha/features/game_setup/domain/usecases/cancel_game_usecase.dart'
-    as _i2;
+    as _i3;
+import 'package:la_pocha/features/round/domain/usecases/repeat_round_usecase.dart'
+    as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -24,16 +27,58 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeRound_0 extends _i1.SmartFake implements _i2.Round {
+  _FakeRound_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [CancelGameUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCancelGameUseCase extends _i1.Mock implements _i2.CancelGameUseCase {
+class MockCancelGameUseCase extends _i1.Mock implements _i3.CancelGameUseCase {
   @override
-  _i3.Future<void> call({required String? gameId}) =>
+  _i4.Future<void> call({required String? gameId}) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {#gameId: gameId}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
+}
+
+/// A class which mocks [RepeatRoundUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockRepeatRoundUseCase extends _i1.Mock
+    implements _i5.RepeatRoundUseCase {
+  @override
+  _i4.Future<_i2.Round> call({
+    required String? gameId,
+    required int? roundNumber,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {
+              #gameId: gameId,
+              #roundNumber: roundNumber,
+            }),
+            returnValue: _i4.Future<_i2.Round>.value(
+              _FakeRound_0(
+                this,
+                Invocation.method(#call, [], {
+                  #gameId: gameId,
+                  #roundNumber: roundNumber,
+                }),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i2.Round>.value(
+              _FakeRound_0(
+                this,
+                Invocation.method(#call, [], {
+                  #gameId: gameId,
+                  #roundNumber: roundNumber,
+                }),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.Round>);
 }

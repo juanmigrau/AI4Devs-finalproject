@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/round/domain/entities/round_result.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_event.dart';
@@ -14,10 +15,12 @@ class RoundResultPage extends StatelessWidget {
     super.key,
     required this.gameId,
     required this.roundNumber,
+    this.readOnly = false,
   });
 
   final String gameId;
   final int roundNumber;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +30,7 @@ class RoundResultPage extends StatelessWidget {
       child: _RoundResultView(
         gameId: gameId,
         roundNumber: roundNumber,
+        readOnly: readOnly,
       ),
     );
   }
@@ -36,10 +40,12 @@ class _RoundResultView extends StatelessWidget {
   const _RoundResultView({
     required this.gameId,
     required this.roundNumber,
+    required this.readOnly,
   });
 
   final String gameId;
   final int roundNumber;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +105,7 @@ class _RoundResultView extends StatelessWidget {
                           roundNumber: roundNumber,
                           result: result,
                           isAdvancing: state is RoundResultAdvancing,
+                          readOnly: readOnly,
                         ),
                       _ => const SizedBox.shrink(),
                     };
@@ -119,12 +126,14 @@ class _LoadedBody extends StatelessWidget {
     required this.roundNumber,
     required this.result,
     required this.isAdvancing,
+    required this.readOnly,
   });
 
   final String gameId;
   final int roundNumber;
   final RoundResult result;
   final bool isAdvancing;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +148,7 @@ class _LoadedBody extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: () {
                   context.go(
-                    '/games/$gameId/rounds/${roundNumber - 1}/result',
+                    '/games/$gameId/rounds/${roundNumber - 1}/result?readOnly=true',
                   );
                 },
                 icon: const Icon(Icons.arrow_back, size: 16),
@@ -150,38 +159,27 @@ class _LoadedBody extends StatelessWidget {
         Expanded(
           child: RankingList(entries: result.entries),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: FilledButton(
-            onPressed: isAdvancing
-                ? null
-                : () {
-                    if (result.isLastRound) {
-                      context.read<RoundResultBloc>().add(
-                            const FinishGameRequested(),
-                          );
-                    } else {
-                      context.read<RoundResultBloc>().add(
-                            const AdvanceToNextRoundRequested(),
-                          );
-                    }
-                  },
-            child: isAdvancing
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : Text(
-                    result.isLastRound
-                        ? 'Ver resultado final'
-                        : 'Siguiente ronda',
-                  ),
+        if (!readOnly)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: PrimaryButton(
+              label: result.isLastRound
+                  ? 'Ver resultado final'
+                  : 'Siguiente ronda',
+              isLoading: isAdvancing,
+              onPressed: () {
+                if (result.isLastRound) {
+                  context.read<RoundResultBloc>().add(
+                        const FinishGameRequested(),
+                      );
+                } else {
+                  context.read<RoundResultBloc>().add(
+                        const AdvanceToNextRoundRequested(),
+                      );
+                }
+              },
+            ),
           ),
-        ),
       ],
     );
   }

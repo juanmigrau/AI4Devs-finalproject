@@ -133,6 +133,15 @@ class MockAuthRepository extends _i1.Mock implements _i6.AuthRepository {
           as _i7.Future<void>);
 
   @override
+  _i7.Future<void> sendPasswordReset({required String? email}) =>
+      (super.noSuchMethod(
+            Invocation.method(#sendPasswordReset, [], {#email: email}),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<_i2.UserProfile?> getCurrentUser() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentUser, []),
@@ -261,6 +270,28 @@ class MockGameLocalDatasource extends _i1.Mock
                 this,
                 Invocation.method(#closeRoundAndUpdateScores, [], {
                   #closedRound: closedRound,
+                  #updatedPlayers: updatedPlayers,
+                }),
+              ),
+            ),
+          )
+          as _i7.Future<_i5.Round>);
+
+  @override
+  _i7.Future<_i5.Round> repeatRoundAndRevertScores({
+    required _i5.Round? resetRound,
+    required List<_i10.PlayerEmbed>? updatedPlayers,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#repeatRoundAndRevertScores, [], {
+              #resetRound: resetRound,
+              #updatedPlayers: updatedPlayers,
+            }),
+            returnValue: _i7.Future<_i5.Round>.value(
+              _FakeRound_3(
+                this,
+                Invocation.method(#repeatRoundAndRevertScores, [], {
+                  #resetRound: resetRound,
                   #updatedPlayers: updatedPlayers,
                 }),
               ),

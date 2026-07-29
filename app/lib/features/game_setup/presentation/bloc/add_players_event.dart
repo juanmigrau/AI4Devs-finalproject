@@ -16,18 +16,6 @@ class AddPlayersStarted extends AddPlayersEvent {
   List<Object?> get props => [gameId];
 }
 
-enum PlayerAddType { guest, registered, favorite }
-
-class PlayerAdded extends AddPlayersEvent {
-  const PlayerAdded({required this.name, required this.type});
-
-  final String name;
-  final PlayerAddType type;
-
-  @override
-  List<Object?> get props => [name, type];
-}
-
 class PlayerRemoved extends AddPlayersEvent {
   const PlayerRemoved({required this.playerId});
 
@@ -37,6 +25,62 @@ class PlayerRemoved extends AddPlayersEvent {
   List<Object?> get props => [playerId];
 }
 
-class ContinueRequested extends AddPlayersEvent {
-  const ContinueRequested();
+class FavoriteChipTapped extends AddPlayersEvent {
+  const FavoriteChipTapped({required this.favorite});
+
+  final FavoritePlayer favorite;
+
+  @override
+  List<Object?> get props => [favorite];
+}
+
+class PlayerFavoriteToggled extends AddPlayersEvent {
+  const PlayerFavoriteToggled({required this.playerId});
+
+  final String playerId;
+
+  @override
+  List<Object?> get props => [playerId];
+}
+
+class EditSlotActivated extends AddPlayersEvent {
+  const EditSlotActivated({required this.index});
+
+  final int index;
+
+  @override
+  List<Object?> get props => [index];
+}
+
+class EditSlotCancelled extends AddPlayersEvent {
+  const EditSlotCancelled();
+}
+
+class PlayerNameConfirmed extends AddPlayersEvent {
+  const PlayerNameConfirmed({required this.index, required this.name});
+
+  final int index;
+  final String name;
+
+  @override
+  List<Object?> get props => [index, name];
+}
+
+class PlayerEditActivated extends AddPlayersEvent {
+  const PlayerEditActivated({required this.playerId});
+
+  final String playerId;
+
+  @override
+  List<Object?> get props => [playerId];
+}
+
+class PlayerNameUpdated extends AddPlayersEvent {
+  const PlayerNameUpdated({required this.playerId, required this.newName});
+
+  final String playerId;
+  final String newName;
+
+  @override
+  List<Object?> get props => [playerId, newName];
 }

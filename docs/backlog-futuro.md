@@ -68,3 +68,22 @@ Tras estas tres ideas, se decidió simplificar la pantalla Home al máximo:
 sin tarjetas secundarias de estadísticas ni de jugadores. Solo cabecera,
 acceso a cuenta, botón "Nueva partida" e historial. Coherente con la
 persona Carlos del PRD (interfaz clara, sin elementos sin función definida).
+
+------------------
+
+- **Búsqueda de usuarios registrados al añadir jugadores** (stub en
+  `search_player_stub.dart`, referenciado como TODO(LPT-19/LPT-21)).
+  Requiere query Firestore sobre colección `users` por `displayName`
+  con índice compuesto. Funcionalidad nueva no especificada en tickets
+  actuales.
+
+  --------------
+
+  - **Template de email de recuperación de contraseña en español y con
+  formato correcto.** Firebase Console → Authentication → Templates →
+  Password reset. Cambiar idioma a español, personalizar asunto y cuerpo
+  del email, y verificar que el dominio remitente
+  (<noreply@la-pocha-9d070.firebaseapp.com>) no activa filtros de spam.
+  Considerar configurar un dominio de remitente personalizado si el
+  proyecto pasa a producción real.
+  Detectado en pruebas 29/07/2026.

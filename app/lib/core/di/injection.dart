@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:la_pocha/core/config/debug_config_notifier.dart';
 import 'package:la_pocha/core/database/app_database.dart';
 import 'package:la_pocha/features/game_setup/data/datasources/game_local_datasource.dart';
 import 'package:la_pocha/features/game_setup/data/datasources/round_local_datasource.dart';
@@ -9,6 +11,15 @@ import 'package:la_pocha/features/game_setup/data/repositories/round_repository_
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/round_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/services/dealer_rotation_service.dart';
+import 'package:la_pocha/features/game_setup/domain/services/game_cloner_service.dart';
+import 'package:la_pocha/features/favorites/data/datasources/favorite_local_datasource.dart';
+import 'package:la_pocha/features/favorites/data/repositories/favorite_repository_impl.dart';
+import 'package:la_pocha/features/favorites/domain/repositories/favorite_repository.dart';
+import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase.dart';
+import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
+import 'package:la_pocha/features/favorites/domain/usecases/remove_favorite_usecase.dart';
+import 'package:la_pocha/features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/add_player_from_favorite_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/cancel_game_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/create_game_draft_usecase.dart';
@@ -18,6 +29,7 @@ import 'package:la_pocha/features/game_setup/domain/usecases/remove_player_useca
 import 'package:la_pocha/features/game_setup/domain/usecases/reorder_players_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/set_first_dealer_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/start_game_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/update_player_name_usecase.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/add_players_bloc.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/cancel_game_cubit.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/create_game_bloc.dart';
@@ -31,6 +43,7 @@ import 'package:la_pocha/features/round/domain/usecases/advance_to_next_round_us
 import 'package:la_pocha/features/round/domain/usecases/close_bidding_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/correct_bids_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/close_round_usecase.dart';
+import 'package:la_pocha/features/round/domain/usecases/repeat_round_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/finish_game_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_result_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
@@ -39,19 +52,30 @@ import 'package:la_pocha/features/round/domain/usecases/submit_bid_usecase.dart'
 import 'package:la_pocha/features/round/domain/usecases/submit_tricks_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_bloc.dart';
+import 'package:la_pocha/features/round/presentation/bloc/repeat_round_cubit.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_bloc.dart';
+import 'package:la_pocha/features/history/data/datasources/hidden_games_local_datasource.dart';
 import 'package:la_pocha/features/history/data/datasources/history_firestore_datasource.dart';
 import 'package:la_pocha/features/history/data/datasources/history_local_datasource.dart';
 import 'package:la_pocha/features/history/data/repositories/history_repository_impl.dart';
 import 'package:la_pocha/features/history/domain/repositories/history_repository.dart';
+import 'package:la_pocha/features/history/domain/services/game_detail_mapper.dart';
+import 'package:la_pocha/features/history/domain/usecases/delete_local_game_usecase.dart';
+import 'package:la_pocha/features/history/domain/usecases/get_game_detail_usecase.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart';
+import 'package:la_pocha/features/history/domain/usecases/hide_cloud_game_usecase.dart';
+import 'package:la_pocha/features/history/domain/usecases/repeat_game_usecase.dart';
+import 'package:la_pocha/features/history/presentation/bloc/delete_game_from_history_cubit.dart';
+import 'package:la_pocha/features/history/presentation/bloc/game_detail_bloc.dart';
 import 'package:la_pocha/features/history/presentation/bloc/history_list_bloc.dart';
+import 'package:la_pocha/features/history/presentation/bloc/repeat_game_cubit.dart';
 import 'package:la_pocha/features/auth/data/datasources/auth_firebase_datasource.dart';
 import 'package:la_pocha/features/auth/data/datasources/user_firestore_datasource.dart';
 import 'package:la_pocha/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart';
@@ -71,6 +95,10 @@ Future<void> configureDependencies() async {
   }
 
   getIt.registerLazySingleton<AppDatabase>(AppDatabase.defaults);
+
+  if (kDebugMode) {
+    getIt.registerLazySingleton<DebugConfigNotifier>(DebugConfigNotifier.new);
+  }
 
   getIt.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   getIt.registerLazySingleton<FirebaseFirestore>(
@@ -106,6 +134,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<GetCurrentUserUseCase>(
     () => GetCurrentUserUseCase(getIt<AuthRepository>()),
+  );
+
+  getIt.registerLazySingleton<SendPasswordResetUseCase>(
+    () => SendPasswordResetUseCase(getIt<AuthRepository>()),
   );
 
   getIt.registerLazySingleton<GameFirestoreDatasource>(
@@ -147,6 +179,7 @@ Future<void> configureDependencies() async {
       signIn: getIt<SignInUseCase>(),
       signUp: getIt<SignUpUseCase>(),
       signOut: getIt<SignOutUseCase>(),
+      sendPasswordReset: getIt<SendPasswordResetUseCase>(),
     ),
   );
 
@@ -190,18 +223,81 @@ Future<void> configureDependencies() async {
     () => const RankingService(),
   );
 
+  getIt.registerLazySingleton<GameDetailMapper>(
+    () => const GameDetailMapper(),
+  );
+
+  getIt.registerLazySingleton<HiddenGamesLocalDatasource>(
+    () => HiddenGamesLocalDatasource(getIt<AppDatabase>()),
+  );
+
+  getIt.registerLazySingleton<FavoriteLocalDatasource>(
+    () => FavoriteLocalDatasource(getIt<AppDatabase>()),
+  );
+
+  getIt.registerLazySingleton<FavoriteRepository>(
+    () => FavoriteRepositoryImpl(getIt<FavoriteLocalDatasource>()),
+  );
+
+  getIt.registerFactory<GetFavoritesUseCase>(
+    () => GetFavoritesUseCase(getIt<FavoriteRepository>()),
+  );
+
+  getIt.registerFactory<AddFavoriteUseCase>(
+    () => AddFavoriteUseCase(getIt<FavoriteRepository>()),
+  );
+
+  getIt.registerFactory<RemoveFavoriteUseCase>(
+    () => RemoveFavoriteUseCase(getIt<FavoriteRepository>()),
+  );
+
+  getIt.registerFactory<FavoritesBloc>(
+    () => FavoritesBloc(
+      getFavorites: getIt<GetFavoritesUseCase>(),
+      addFavorite: getIt<AddFavoriteUseCase>(),
+      removeFavorite: getIt<RemoveFavoriteUseCase>(),
+    ),
+  );
+
   getIt.registerLazySingleton<HistoryLocalDatasource>(
-    () => HistoryLocalDatasource(getIt<AppDatabase>()),
+    () => HistoryLocalDatasource(
+      getIt<AppDatabase>(),
+      getIt<GameLocalDatasource>(),
+      getIt<RoundLocalDatasource>(),
+    ),
   );
 
   getIt.registerLazySingleton<HistoryFirestoreDatasource>(
-    () => HistoryFirestoreDatasource(),
+    () => HistoryFirestoreDatasource(
+      getIt<FirebaseFirestore>(),
+      getIt<FirebaseAuth>(),
+    ),
   );
 
   getIt.registerLazySingleton<HistoryRepository>(
     () => HistoryRepositoryImpl(
       getIt<HistoryLocalDatasource>(),
       getIt<HistoryFirestoreDatasource>(),
+      getIt<HiddenGamesLocalDatasource>(),
+      getIt<GameRepository>(),
+    ),
+  );
+
+  getIt.registerFactory<DeleteLocalGameUseCase>(
+    () => DeleteLocalGameUseCase(
+      getIt<HistoryRepository>(),
+      getIt<GameRepository>(),
+    ),
+  );
+
+  getIt.registerFactory<HideCloudGameUseCase>(
+    () => HideCloudGameUseCase(getIt<HistoryRepository>()),
+  );
+
+  getIt.registerFactory<DeleteGameFromHistoryCubit>(
+    () => DeleteGameFromHistoryCubit(
+      deleteLocalGame: getIt<DeleteLocalGameUseCase>(),
+      hideCloudGame: getIt<HideCloudGameUseCase>(),
     ),
   );
 
@@ -209,11 +305,35 @@ Future<void> configureDependencies() async {
     () => GetGameHistoryUseCase(getIt<HistoryRepository>()),
   );
 
+  getIt.registerFactory<GetGameDetailUseCase>(
+    () => GetGameDetailUseCase(getIt<HistoryRepository>()),
+  );
+
+  getIt.registerFactory<GameClonerService>(
+    () => const GameClonerService(),
+  );
+
+  getIt.registerFactory<RepeatGameUseCase>(
+    () => RepeatGameUseCase(
+      getIt<GetGameDetailUseCase>(),
+      getIt<GameRepository>(),
+      getIt<GameClonerService>(),
+    ),
+  );
+
+  getIt.registerFactory<RepeatGameCubit>(
+    () => RepeatGameCubit(repeatGame: getIt<RepeatGameUseCase>()),
+  );
+
   getIt.registerFactory<HistoryListBloc>(
     () => HistoryListBloc(
       getGameHistory: getIt<GetGameHistoryUseCase>(),
       retryPendingUploads: getIt<RetryPendingUploadsUseCase>(),
     ),
+  );
+
+  getIt.registerFactory<GameDetailBloc>(
+    () => GameDetailBloc(getGameDetail: getIt<GetGameDetailUseCase>()),
   );
 
   getIt.registerFactory<LoadBiddingContextUseCase>(
@@ -264,6 +384,13 @@ Future<void> configureDependencies() async {
     ),
   );
 
+  getIt.registerFactory<RepeatRoundUseCase>(
+    () => RepeatRoundUseCase(
+      getIt<GameRepository>(),
+      getIt<RoundRepository>(),
+    ),
+  );
+
   getIt.registerFactory<GetRoundResultUseCase>(
     () => GetRoundResultUseCase(
       getIt<GameRepository>(),
@@ -287,7 +414,10 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerFactory<CreateGameDraftUseCase>(
-    () => CreateGameDraftUseCase(getIt<GameRepository>()),
+    () => CreateGameDraftUseCase(
+      getIt<GameRepository>(),
+      debugConfig: kDebugMode ? getIt<DebugConfigNotifier>() : null,
+    ),
   );
 
   getIt.registerFactory<GetGameByIdUseCase>(
@@ -298,8 +428,19 @@ Future<void> configureDependencies() async {
     () => AddPlayerUseCase(getIt<GameRepository>()),
   );
 
+  getIt.registerFactory<AddPlayerFromFavoriteUseCase>(
+    () => AddPlayerFromFavoriteUseCase(
+      getIt<GameRepository>(),
+      getIt<FavoriteRepository>(),
+    ),
+  );
+
   getIt.registerFactory<RemovePlayerUseCase>(
     () => RemovePlayerUseCase(getIt<GameRepository>()),
+  );
+
+  getIt.registerFactory<UpdatePlayerNameUseCase>(
+    () => UpdatePlayerNameUseCase(getIt<GameRepository>()),
   );
 
   getIt.registerFactory<ReorderPlayersUseCase>(
@@ -330,11 +471,20 @@ Future<void> configureDependencies() async {
     () => CancelGameCubit(cancelGame: getIt<CancelGameUseCase>()),
   );
 
+  getIt.registerFactory<RepeatRoundCubit>(
+    () => RepeatRoundCubit(repeatRound: getIt<RepeatRoundUseCase>()),
+  );
+
   getIt.registerFactory<AddPlayersBloc>(
     () => AddPlayersBloc(
       getGameById: getIt<GetGameByIdUseCase>(),
+      getFavorites: getIt<GetFavoritesUseCase>(),
       addPlayer: getIt<AddPlayerUseCase>(),
+      addPlayerFromFavorite: getIt<AddPlayerFromFavoriteUseCase>(),
       removePlayer: getIt<RemovePlayerUseCase>(),
+      updatePlayerName: getIt<UpdatePlayerNameUseCase>(),
+      addFavorite: getIt<AddFavoriteUseCase>(),
+      removeFavorite: getIt<RemoveFavoriteUseCase>(),
     ),
   );
 

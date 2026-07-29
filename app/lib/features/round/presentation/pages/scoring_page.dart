@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_state.dart';
@@ -59,6 +60,7 @@ class _ScoringView extends StatelessWidget {
                     roundNumber: roundNumber,
                     cardsInRound: cardsInRound,
                     subtitle: 'Bazas reales',
+                    repeatRoundNumber: roundNumber,
                   );
                 },
               ),
@@ -108,7 +110,9 @@ class _LoadedBody extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 onPressed: () {
-                  // TODO(LPT-14): navigate to previous round summary
+                  context.go(
+                    '/games/${state.round.gameId}/rounds/${state.round.roundNumber - 1}/result?readOnly=true',
+                  );
                 },
                 icon: const Icon(Icons.arrow_back, size: 16),
                 label: const Text('Ver ronda anterior'),
@@ -162,22 +166,14 @@ class _LoadedBody extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: FilledButton(
-            onPressed: state.canConfirm && !state.isClosing
+          child: PrimaryButton(
+            label: 'Confirmar bazas',
+            isLoading: state.isClosing,
+            onPressed: state.canConfirm
                 ? () => context.read<ScoringBloc>().add(
                       const CloseRoundRequested(),
                     )
                 : null,
-            child: state.isClosing
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Confirmar bazas'),
           ),
         ),
       ],

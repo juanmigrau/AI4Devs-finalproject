@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
+import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:la_pocha/features/auth/presentation/widgets/forgot_password_dialog.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -45,6 +48,16 @@ class _SignInPageState extends State<SignInPage> {
             SnackBar(content: Text(state.message)),
           );
         }
+        if (state is PasswordResetEmailSent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Te hemos enviado un email para restablecer tu contraseña. '
+                'Revisa tu bandeja de entrada.',
+              ),
+            ),
+          );
+        }
         if (state is Authenticated) {
           if (context.canPop()) {
             context.pop();
@@ -58,7 +71,10 @@ class _SignInPageState extends State<SignInPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Header(onBack: () => context.pop()),
+              PochaAppBar(
+                title: 'Iniciar sesión',
+                onBack: () => context.pop(),
+              ),
               Expanded(
                 child: BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
@@ -124,20 +140,21 @@ class _SignInPageState extends State<SignInPage> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            FilledButton(
-                              onPressed: isLoading ? null : _submit,
-                              child: isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Entrar'),
+                            PrimaryButton(
+                              label: 'Entrar',
+                              isLoading: isLoading,
+                              onPressed: _submit,
                             ),
                             const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => showForgotPasswordDialog(
+                                        context,
+                                        initialEmail: _emailController.text,
+                                      ),
+                              child: const Text('¿Olvidaste tu contraseña?'),
+                            ),
                             TextButton(
                               onPressed: isLoading
                                   ? null
@@ -153,43 +170,6 @@ class _SignInPageState extends State<SignInPage> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.primary,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: onBack,
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-            ),
-            Expanded(
-              child: Text(
-                'Iniciar sesión',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-          ],
         ),
       ),
     );

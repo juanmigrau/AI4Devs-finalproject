@@ -8,10 +8,14 @@ class GameHistoryTile extends StatelessWidget {
     super.key,
     required this.item,
     required this.onTap,
+    this.onRepeat,
+    this.onDelete,
   });
 
   final GameHistoryItem item;
   final VoidCallback onTap;
+  final VoidCallback? onRepeat;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +65,43 @@ class GameHistoryTile extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  SourceBadge(source: item.source),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SourceBadge(source: item.source),
+                      if (onRepeat != null || onDelete != null) ...[
+                        const SizedBox(width: 4),
+                        PopupMenuButton<String>(
+                          icon: Icon(
+                            Icons.more_vert,
+                            color: AppTheme.onSurfaceVariant,
+                          ),
+                          onSelected: (value) {
+                            if (value == 'repeat') {
+                              onRepeat!();
+                            } else if (value == 'delete') {
+                              onDelete!();
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            if (onRepeat != null)
+                              const PopupMenuItem(
+                                value: 'repeat',
+                                child: Text('Repetir partida'),
+                              ),
+                            if (onDelete != null)
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: Color(0xFFD9772E)),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
                   if (item.isSyncPending) ...[
                     const SizedBox(height: 8),
                     const _SyncPendingBadge(),
@@ -81,16 +121,17 @@ class _SyncPendingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFCEFE0),
+        color: colorScheme.tertiaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         'Pendiente',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: const Color(0xFFF4A259),
+              color: colorScheme.onTertiaryContainer,
               fontWeight: FontWeight.w600,
             ),
       ),

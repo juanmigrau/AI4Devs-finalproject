@@ -158,6 +158,8 @@ Jugadores **dentro de una partida concreta**, modelados como array embebido en `
 - Un mismo `userId` no debería aparecer dos veces en la misma partida (validar en use case + reglas).
 - `players.length` debe coincidir con `playerCount` antes de iniciar.
 
+**Clonación desde historial (LPT-8):** `RepeatGameUseCase` crea un nuevo borrador local (`status: setup`, nuevo `gameId`) copiando `playerCount`, `totalCards`, `maxCardsPerRound`, `roundSequence` y el roster embebido (`displayName`, `userId`, `isGuest`, `seatOrder`) con `totalScore` en 0. No copia rondas `closed`, `firstDealerPlayerId`, fechas de partida ni metadatos de sync. Para partidas en nube, lee `players[]` del documento `games/{gameId}` (no subcolección).
+
 ---
 
 ## 6. Subcolección `rounds`
@@ -218,6 +220,7 @@ Una **ronda** (mano) dentro de la partida: apuestas, bazas, puntuación parcial,
 - Orden de apuestas: jugador siguiente al repartidor en `seatOrder` primero; repartidor último.
 - Transición de estado al cerrar apuestas: `bidding` → `playing`.
 - Transición al cerrar bazas: `playing` → `closed`; se persisten `tricks`, `scoresDelta` y `closedAt`.
+- **Repetir ronda actual (LPT-13):** acción de recuperación solo sobre la ronda en curso (`status` `bidding` o `playing`). Operación atómica local (`RepeatRoundUseCase`): limpia `bids`, `tricks` y `scoresDelta` de la ronda actual, revierte en `players.totalScore` el `scoresDelta` si existía, restablece `status` a `bidding` manteniendo `dealerPlayerId` y `cardsInRound`. Las rondas `closed` permanecen inmutables.
 - **Reglas de puntuación por ronda** (calculadas al cerrar, ver LPT-11):
   - Si `tricks[playerId] == bids[playerId]`: `scoresDelta = 10 + (5 × tricks)`.
   - Si difieren: `scoresDelta = -5 × |bids[playerId] - tricks[playerId]|`.
@@ -322,6 +325,36 @@ Detalle de reglas en implementación; este documento solo fija intención.
 
 ## 12. Historial
 
+### 12.1 Ocultado de historial (LPT-17)
+
+El historial combina partidas **locales** (Drift) y **en nube** (Firestore). La eliminación desde la app del usuario sigue dos caminos:
+
+| Origen | Acción en dispositivo | Efecto remoto |
+|--------|----------------------|---------------|
+| `GameHistorySource.local` | Borrado físico en Drift (`games` + `rounds` en cascada) | Ninguno, salvo que la partida tuviera `cloudGameId` sincronizado |
+| `GameHistorySource.cloud` | Solo ocultación local | **Nunca** se borra `games/{gameId}` en Firestore |
+
+**Partidas locales sincronizadas** (`cloudGameId != null`): se borra la fila local y se registra el `cloudGameId` como oculto para que no reaparezca al sincronizar.
+
+**Implementación MVP de `hiddenGameIds`:** tabla Drift local `hidden_games` (`gameId TEXT PRIMARY KEY`, schema v6). No se persiste en `users/{uid}` en Firestore en esta fase.
+
+### 12.2 Favoritos locales (LPT-18)
+
+Los jugadores favoritos se guardan **solo en el dispositivo** (Drift). No hay colección Firestore en el MVP.
+
+**Tabla Drift `favorites`** (schema v7, una fila por favorito):
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `id` | TEXT | sí | Clave primaria (UUID) |
+| `displayName` | TEXT | sí | Nombre mostrado en listas y al añadir a partida |
+| `userId` | TEXT | no | `null` = invitado; valor = usuario registrado vinculado |
+| `createdAt` | DATETIME | sí | Fecha de alta del favorito |
+
+**Deduplicación en dominio:** no permitir dos favoritos con el mismo `userId` ni con el mismo `displayName` (comparación case-insensitive).
+
 | Fecha | Cambio |
 |-------|--------|
+| 2026-07-13 | LPT-18: favoritos locales en Drift (`favorites`, schema v7); sin Firestore en MVP |
+| 2026-07-13 | LPT-17: borrado local vs ocultación de partidas en nube; tabla `hidden_games` |
 | 2026-06-03 | Reescritura: dominio La Pocha (users, games, players, rounds) en terminología Firestore; eliminado modelo LTI/relacional |

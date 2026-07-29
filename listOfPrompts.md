@@ -1930,3 +1930,595 @@ lo dispara un listener global de `GameSyncBloc`, no el `BlocListener` de
   final sin crash.
 
 --------------------------
+
+Lee el ticket LPT-16 de Jira con acli, revisa docs/design.md
+para referencia visual, e impleméntalo siguiendo las convenciones
+en .cursor/rules/. Usa modo Plan antes de ejecutar.
+
+-----------
+
+Lee el ticket LPT-13 de Jira con acli e impleméntalo siguiendo
+las convenciones en .cursor/rules/.
+
+Nota importante: el botón "Repetir ronda" debe integrarse en el
+menú de tres puntos ya existente en las pantallas del ciclo de
+ronda (patrón establecido en LPT-9 y LPT-24 — misma cabecera
+con opciones "Cancelar partida" y ahora también "Repetir ronda").
+No crear un botón flotante independiente.
+
+Usa modo Plan antes de ejecutar.
+
+---------------
+
+Lee el ticket LPT-17 de Jira con acli e impleméntalo siguiendo
+las convenciones en .cursor/rules/.
+
+Nota importante: la eliminación tiene dos comportamientos distintos
+según el origen de la partida:
+
+- Partida local: borrado físico en Drift (cascade Game + Rounds)
+- Partida en nube: ocultación local via hiddenGameIds[], NO borrar
+  el documento en Firestore (otros participantes deben seguir
+  viéndola)
+
+El botón "Eliminar" debe estar disponible tanto en el listado
+(LPT-15, swipe o menú) como en el detalle (LPT-16).
+Usa modo Plan antes de ejecutar.
+
+-----------
+
+Lee el ticket LPT-18 de Jira con acli e impleméntalo siguiendo
+las convenciones en .cursor/rules/.
+
+Nota importante: LPT-6 ya tiene un stub de favoritos
+(favorites_list_stub.dart) con un TODO explícito referenciando
+LPT-18. Localiza ese stub y sustitúyelo por la implementación
+real usando FavoriteRepository — no crear una ruta paralela nueva.
+
+La tabla favorites no existe todavía en Drift (AppDatabase).
+Créala como parte de este ticket en
+lib/core/database/tables/favorites_table.dart con los campos:
+id (text PK), displayName (text), userId (text nullable),
+createdAt (datetime). Registra en AppDatabase y regenera
+con build_runner.
+
+Usa modo Plan antes de ejecutar.
+
+-----------------
+
+Lee el ticket LPT-8 de Jira con acli e impleméntalo siguiendo
+las convenciones en .cursor/rules/.
+
+CORRECCIÓN: el ticket menciona leer players desde subcolección
+Firestore (games/{gameId}/players). El modelo correcto usa
+players[] EMBEBIDO en el documento games — no hay subcolección
+players. Al leer una partida en nube para repetirla, leer el
+array players[] directamente del documento games/{gameId}.
+
+Notas adicionales:
+
+- El botón "Repetir partida" debe estar disponible en el listado
+  (LPT-15) y en el detalle (LPT-16), que ya existen. Intégralo
+  en ambas pantallas.
+- Al crear el borrador de la nueva partida, usa status 'setup'
+  (no 'lobby' como indica el ticket — ver ADR en readme.md).
+- RepeatGameUseCase debe reutilizar GameClonerService para copiar
+  la configuración sin scores ni rondas jugadas.
+- La navegación tras confirmar va a /games/{newGameId}/players
+  (LPT-6, ya implementado).
+
+Usa modo Plan antes de ejecutar.
+
+
+--------------
+
+Resuelve los siguientes TODOs pendientes en el proyecto:
+
+GRUPO 1 — Navegación a ronda anterior (bidding_page.dart,
+play_page.dart, scoring_page.dart):
+Los tres ficheros tienen un TODO(LPT-14) en la línea ~129/112:
+"navigate to previous round summary".
+
+Implementa la navegación de solo lectura a la ronda anterior:
+
+- Solo visible a partir de la ronda 2 (roundNumber > 1)
+- Navega a una vista de solo lectura del resultado de la ronda
+  anterior (roundNumber - 1), ya cerrada (status == closed)
+- Usa la pantalla de resultado de ronda existente (round_result_page
+  o similar de LPT-14) en modo solo lectura, sin botón
+  "Siguiente ronda" ni ninguna acción que modifique datos
+- El enlace debe ser discreto, tipo "‹ Ver ronda anterior",
+  justo debajo de la cabecera verde (patrón ya definido en
+  docs/design.md y wireframes)
+
+GRUPO 2 — Fusión local+nube en historial
+(history_firestore_datasource.dart líneas 14 y 17):
+
+- TODO(LPT-19): añadir filtro por sesión Firebase activa para
+  consultar games donde el usuario es hostId o está en
+  participantIds (query ya definida en LPT-20/LPT-21)
+- TODO(LPT-20): deduplicar por cloudGameId al fusionar
+  historial local y nube, para que una partida subida no
+  aparezca duplicada (local + nube)
+
+Para el Grupo 2: LPT-19 y LPT-20 ya están implementados.
+Localiza el código existente de sincronización y completa
+la fusión en HistoryFirestoreDatasource usando los patrones
+ya establecidos en GameSyncRepositoryImpl.
+
+NO toques search_player_stub.dart — ese TODO requiere
+funcionalidad nueva de búsqueda de usuarios registrados
+que queda fuera del alcance actual.
+
+flutter analyze sin errores tras los cambios.
+
+--------------------
+
+FASE 1 — ANÁLISIS (no toques nada todavía):
+
+Analiza todas las pantallas del proyecto en lib/features/
+y lib/core/ e identifica los componentes de UI que se
+repiten en 3 o más pantallas. Para cada componente
+repetido, lista:
+
+- Nombre del componente/widget
+- Ficheros donde aparece
+- Parámetros que varían entre usos
+- Parámetros que son siempre iguales (candidatos a defaults)
+
+Busca específicamente:
+
+1. AppBar — ¿cómo está implementada en cada pantalla?
+   ¿Tienen todas el mismo estilo o varían?
+2. Cabecera verde extendida del ciclo de ronda —
+   ¿está duplicada o ya es un widget compartido?
+3. Botón primario de ancho completo — ¿hay un widget
+   compartido o cada pantalla lo implementa inline?
+4. Filas de jugador (PlayerListTile o similar) — ¿existe
+   ya como widget reutilizable o está duplicado?
+5. Banner de advertencia/aviso (ámbar) — ¿hay un widget
+   compartido o está duplicado?
+6. Avatar circular con inicial — ¿widget compartido o
+   duplicado?
+
+Muéstrame el resultado del análisis en formato tabla:
+| Componente | Aparece en | Compartido? | Acción |
+antes de proponer ningún cambio.
+
+-----------------------
+
+
+Rediseña completamente add_players_page.dart y sus widgets
+asociados siguiendo el diseño validado en Claude Design
+(capturas en el historial de conversación).
+
+USA los componentes atómicos ya disponibles en core/widgets/:
+
+- PochaAppBar (no implementes cabecera nueva)
+- PlayerInitialAvatar (no implementes avatar nuevo)
+- PrimaryButton (no implementes botón nuevo)
+- WarningBanner si necesitas algún aviso
+
+═══════════════════════════════════════
+
+1. APPBAR
+═══════════════════════════════════════
+
+PochaAppBar(
+  title: 'Añadir jugadores',
+  subtitle: '${players.length} de $playerCount añadidos',
+  actions: [
+    IconButton(
+      icon: Icon(Icons.search),
+      onPressed: // abrir search_player_stub (ya existe)
+    ),
+    // menú tres puntos: "Cancelar partida"
+    // usa CancelGameCubit ya implementado en LPT-24
+  ],
+  onBack: // mostrar diálogo de confirmación:
+  // "¿Descartar esta partida? Se perderá la configuración."
+  // Al confirmar: DeleteGameUseCase + navigate to Home
+  showBackConfirmation: true,
+  backConfirmationMessage:
+    '¿Descartar esta partida? Se perderá la configuración actual.',
+)
+
+═══════════════════════════════════════
+2. CHIP GRID DE FAVORITOS
+═══════════════════════════════════════
+
+Sección con label "FAVORITOS" en texto pequeño mayúsculas
+(labelSmall, onSurfaceVariant).
+
+Wrap de FilterChip con los favoritos de FavoriteRepository.
+
+COMPORTAMIENTO REACTIVO CRÍTICO — gestionar en AddPlayersBloc:
+
+- Un chip solo es visible si ese favorito NO está ya
+  añadido a la partida (ocultar, no deshabilitar)
+- Al tocar un chip: AddPlayerUseCase con los datos del
+  favorito, chip desaparece inmediatamente
+- Si no hay chips visibles (todos añadidos o lista vacía):
+  texto pequeño gris:
+  "Añade jugadores frecuentes con ⭐"
+
+═══════════════════════════════════════
+3. LISTA DE JUGADORES
+═══════════════════════════════════════
+
+Label "JUGADORES EN LA PARTIDA" (misma tipografía que
+"FAVORITOS").
+
+Container con fondo Colors.white / colorScheme.surface,
+BorderRadius.circular(12), que agrupa TODAS las filas.
+Divider fino entre filas.
+
+FILA DE JUGADOR AÑADIDO (en reposo, ~56dp):
+
+- PlayerInitialAvatar(name: player.displayName,
+    colorIndex: player.seatOrder, radius: 16)
+- Column: displayName (bodyMedium bold) +
+  "Jugador registrado" o "Invitado" (labelSmall, gris)
+- Trailing Row:
+  - IconButton estrella ⭐/☆ (24dp, color ámbar si favorito,
+    onSurfaceVariant si no)
+  - IconButton Icons.close (24dp, color onSurfaceVariant)
+
+COMPORTAMIENTO ESTRELLA (REACTIVO en AddPlayersBloc):
+
+- Al pulsar ☆ vacía:
+  - AddFavoriteUseCase(player) → estrella rellena ⭐
+  - Chip de ese jugador desaparece del grid
+- Al pulsar ⭐ rellena:
+  - RemoveFavoriteUseCase(player) → estrella vacía ☆
+  - Chip de ese jugador reaparece en el grid
+- Determinar si un jugador es favorito: comparar
+  player.userId (si registrado) o player.displayName
+  (si invitado) contra la lista de FavoriteRepository
+
+COMPORTAMIENTO ✕:
+
+- RemovePlayerUseCase(player.id)
+- Si ese jugador era favorito → su chip reaparece en grid
+- El slot vuelve a estado vacío
+
+SLOT VACÍO (~56dp):
+
+- Icono Icons.add_circle_outline en color onSurfaceVariant
+- Texto "Añadir jugador" en labelMedium gris
+- InkWell que activa el modo edición inline en ese slot
+
+FILA EN EDICIÓN INLINE (al tocar slot vacío):
+
+- TextField con hint "Nombre del jugador"
+  underline en color primary, autofocus: true
+- IconButton Icons.check_circle en color primary
+  a la derecha para confirmar
+- Al confirmar con nombre no vacío y no duplicado:
+  AddPlayerUseCase(PlayerEmbed(
+    displayName: name, isGuest: true, userId: null))
+- Solo un slot en modo edición a la vez
+- Al pulsar fuera o back del teclado: cancelar edición,
+  volver a slot vacío (no añadir jugador)
+
+═══════════════════════════════════════
+4. BLOQUE DE ESTADO DEL BLOC
+═══════════════════════════════════════
+
+AddPlayersBloc debe gestionar en UN ÚNICO estado:
+
+- players: List<PlayerEmbed> (jugadores de la partida)
+- favorites: List<FavoritePlayer> (de FavoriteRepository)
+- activeEditIndex: int? (slot en modo edición, null = ninguno)
+- isLoading: bool
+
+Nuevos eventos necesarios:
+
+- FavoriteChipTapped(FavoritePlayer favorite)
+- PlayerFavoriteToggled(String playerId)
+- EditSlotActivated(int index)
+- EditSlotCancelled()
+- PlayerNameConfirmed(int index, String name)
+
+Reutilizar use cases existentes:
+
+- AddPlayerUseCase, RemovePlayerUseCase (LPT-6)
+- AddFavoriteUseCase, RemoveFavoriteUseCase (LPT-18)
+- FavoriteRepository para cargar favorites al iniciar
+
+═══════════════════════════════════════
+5. BOTÓN INFERIOR FIJO
+═══════════════════════════════════════
+
+PrimaryButton(
+  label: players.length == playerCount
+    ? 'Continuar'
+    : 'Faltan ${playerCount - players.length} jugadores',
+  onPressed: players.length == playerCount
+    ? () => context.go('/games/$gameId/setup')
+    : null, // null = deshabilitado automáticamente
+)
+
+═══════════════════════════════════════
+6. LAYOUT GENERAL
+═══════════════════════════════════════
+
+Scaffold
+└── Column
+    ├── PochaAppBar(...)
+    └── Expanded
+        └── SingleChildScrollView (fallback si no cabe)
+            └── Padding(16)
+                └── Column
+                    ├── // sección FAVORITOS
+                    ├── SizedBox(height: 16)
+                    └── // sección JUGADORES EN LA PARTIDA
+
+Sin scroll si el contenido cabe — para partidas de 4
+jugadores debe caber sin scroll en pantallas de 390px.
+Para 7-8 jugadores, SingleChildScrollView como fallback.
+
+═══════════════════════════════════════
+7. DEFINICIÓN DE HECHO
+═══════════════════════════════════════
+
+- [ ] Chip desaparece al añadir favorito a la partida
+- [ ] Chip reaparece al eliminar jugador favorito
+- [ ] Estrella toggle actualiza FavoriteRepository y grid
+      en la misma acción sin reload
+- [ ] Edición inline sin diálogo intermedio
+- [ ] ✕ elimina jugador y reactiva chip si era favorito
+- [ ] Botón deshabilitado hasta completar todos los slots
+- [ ] Volver atrás muestra confirmación de descarte
+- [ ] flutter analyze sin errores
+
+Usa modo Plan antes de ejecutar. Es un rediseño completo
+— el plan debe listar todos los ficheros afectados.
+
+--------------
+
+Aplica las siguientes correcciones a add_players_page.dart
+y a PochaAppBar en core/widgets/pocha_app_bar.dart:
+
+CORRECCIÓN 1 — PochaAppBar (afecta a todas las pantallas):
+
+a) Eliminar el BorderRadius de la cabecera verde — usar
+   un Container sin radius (edge-to-edge) para que encaje
+   correctamente con la status bar del dispositivo.
+   Cambio en pocha_app_bar.dart: eliminar borderRadius del
+   Container exterior.
+
+b) Reducir tipografía del título:
+
+- Compact (default): headlineSmall → titleLarge
+- Expanded: headlineMedium → headlineSmall
+   Esto afecta a todas las pantallas que usan PochaAppBar
+   — verificar que ningún título se corta tras el cambio.
+
+CORRECCIÓN 2 — Título de add_players_page:
+
+Cambiar el título de PochaAppBar de 'Añadir jugadores'
+a 'Jugadores' — más corto y suficientemente descriptivo
+dado que el subtitle ya dice 'X de N añadidos'.
+
+CORRECCIÓN 3 — Edición inline de jugador ya añadido:
+
+Al tocar una fila de jugador ya añadido (no un slot vacío),
+activar el modo edición inline con el nombre actual
+pre-rellenado:
+
+- El mismo estado de edición que ya existe
+  (activeEditIndex en AddPlayersBloc), pero aplicado
+  a filas de jugador existentes, no solo a slots vacíos.
+- El TextField se pre-rellena con player.displayName.
+- Al confirmar con un nombre distinto al actual:
+  UpdatePlayerNameUseCase(playerId, newName) o equivalente
+  — si no existe el use case, actualizar directamente
+  el PlayerEmbed en GameRepository.
+- Al confirmar con el mismo nombre: no hacer nada,
+  salir del modo edición.
+- Al cancelar (pulsar fuera o back del teclado):
+  restaurar el nombre original sin cambios.
+- La estrella y el ✕ no deben ser visibles mientras
+  la fila está en modo edición — solo el TextField
+  y el botón de confirmar ✓.
+
+NUEVO EVENTO en AddPlayersBloc:
+
+- PlayerEditActivated(String playerId) — activa edición
+  en fila de jugador existente con nombre pre-rellenado
+- PlayerNameUpdated(String playerId, String newName)
+  — confirma el cambio de nombre
+
+VERIFICACIÓN:
+
+- flutter analyze sin errores
+- PochaAppBar sin BorderRadius en ninguna pantalla
+- Títulos visibles sin truncar en todas las pantallas
+  que usan PochaAppBar
+- Al tocar fila de jugador: TextField con nombre actual
+- Al confirmar: nombre actualizado en la lista
+- Al cancelar: nombre original restaurado
+
+Usa modo Plan antes de ejecutar.
+
+-------------------
+
+Añade un panel de debug en home_page.dart visible SOLO
+cuando kDebugMode == true.
+
+El panel debe aparecer en la parte inferior de la pantalla
+de Home, claramente diferenciado del contenido real de la
+app (por ejemplo, con fondo amarillo claro o un borde
+discontinuo, y un label "⚙️ DEBUG" en la esquina).
+
+CONTENIDO DEL PANEL:
+
+1. Row con Switch + label "Modo partida corta"
+   - Switch vinculado a kShortGameMode de
+     app/lib/core/config/debug_config.dart
+   - Al activar: kShortGameMode = true
+   - Al desactivar: kShortGameMode = false
+   - El cambio debe aplicarse en tiempo real sin
+     necesidad de hot restart
+
+2. TextField editable con la secuencia de rondas
+   - Solo visible/editable cuando el Switch está activo
+   - Valor inicial: kShortRoundSequence formateado
+     como texto "1,4,8,8,4,1"
+   - Al editar y confirmar (teclado done / botón aplicar):
+     parsear el texto como List<int> y actualizar
+     kShortRoundSequence en runtime
+   - Validación básica: solo números separados por comas,
+     mínimo 1 valor, máximo 22 valores
+   - Si el formato es inválido: borde rojo + mensaje
+     "Formato inválido. Usa números separados por comas."
+
+IMPLEMENTACIÓN:
+
+Dado que kShortGameMode y kShortRoundSequence son const
+en debug_config.dart (no modificables en runtime),
+necesitas un mecanismo alternativo para el estado en
+runtime. Usa un ValueNotifier o un DebugConfigNotifier
+en core/config/:
+
+```dart
+// app/lib/core/config/debug_config_notifier.dart
+class DebugConfigNotifier extends ChangeNotifier {
+  bool shortGameMode = false;
+  List<int> shortRoundSequence = [1, 4, 8, 8, 4, 1];
+  
+  void toggleShortGameMode(bool value) {
+    shortGameMode = value;
+    notifyListeners();
+  }
+  
+  void updateSequence(List<int> sequence) {
+    shortRoundSequence = sequence;
+    notifyListeners();
+  }
+}
+```
+
+Registra DebugConfigNotifier como singleton en core/di/
+junto al resto de dependencias.
+
+Modifica RoundSequenceBuilder para que en kDebugMode
+lea de DebugConfigNotifier en vez de las constantes:
+
+- Si debugConfigNotifier.shortGameMode == true:
+  devolver debugConfigNotifier.shortRoundSequence
+- Si false: comportamiento normal (secuencia real del PRD)
+
+ASPECTO VISUAL DEL PANEL:
+
+- Container con color: Colors.amber.withOpacity(0.15)
+- Border: Border.all(color: Colors.amber, width: 1)
+- BorderRadius.circular(8)
+- Padding: 12
+- Label "⚙️ MODO DEBUG" en labelSmall bold ámbar
+- Solo visible con kDebugMode (envuelto en
+  if (kDebugMode) ... en el build method)
+
+VERIFICACIÓN:
+
+- En release (flutter build apk --release): el panel
+  NO aparece (kDebugMode = false en release)
+- En debug: el Switch activa/desactiva la secuencia
+  corta sin hot restart
+- Al cambiar la secuencia y empezar una partida nueva,
+  se usan las rondas configuradas en el panel
+- flutter analyze sin errores
+
+No uses modo Plan para este cambio — es autónomo
+y no toca ficheros críticos del flujo de partida.
+
+-----------------
+
+Corrige los siguientes dos bugs detectados en dispositivo:
+
+═══════════════════════════════════════
+BUG 1 — Panel de debug: campo de secuencia no visible
+═══════════════════════════════════════
+
+En home_page.dart, el TextField de secuencia de rondas
+no aparece cuando el Switch de "Modo partida corta"
+está activado.
+
+Diagnóstico probable: el widget que muestra el TextField
+no está escuchando los cambios de DebugConfigNotifier,
+o hay un problema de condicional que impide renderizarlo.
+
+Fix:
+
+- Localiza el panel de debug en home_page.dart
+- Verifica que el TextField está envuelto en un
+  AnimatedSwitcher o Visibility/if condicional que
+  depende de debugConfigNotifier.shortGameMode
+- Si usa ValueListenableBuilder o ListenableBuilder,
+  verifica que el listener cubre tanto el Switch como
+  el TextField (no solo uno de los dos)
+- El TextField debe ser visible inmediatamente al
+  activar el Switch, sin necesidad de hot restart
+- Ejemplo de estructura correcta:
+
+  ListenableBuilder(
+    listenable: debugConfigNotifier,
+    builder: (context, _) => Column(
+      children: [
+        Row(children: [Switch(...), Text(...)]),
+        if (debugConfigNotifier.shortGameMode)
+          TextField(...), // solo si shortGameMode activo
+      ],
+    ),
+  )
+
+═══════════════════════════════════════
+BUG 2 — Pantalla en blanco tras cancelar partida
+desde Jugadores
+═══════════════════════════════════════
+
+Al pulsar volver atrás en add_players_page, confirmar
+el diálogo de descarte, la app navega a Home pero la
+pantalla aparece vacía — solo se ve la AppBar.
+
+Diagnóstico probable: al eliminar el Game borrador
+de Drift (DeleteGameUseCase o CancelGameUseCase) y
+navegar a Home, el BLoC de Home intenta recargar
+el estado pero recibe un error o un estado vacío
+que no renderiza el contenido.
+
+Causas posibles:
+A) La navegación usa context.pop() en vez de
+   context.go('/') — si hay varias rutas apiladas,
+   pop puede llevar a una pantalla intermedia vacía
+B) HomeBloc emite un estado de error silencioso
+   al intentar cargar partidas tras el borrado
+C) El widget de Home no maneja correctamente el
+   estado de "sin partidas" y muestra un Container
+   vacío en vez del empty state
+
+Fix:
+
+- Verifica que tras confirmar el descarte la
+  navegación usa context.go('/') o equivalente
+  en go_router (no context.pop() ni Navigator.pop())
+- En HomeBloc: verifica que tras recargar el
+  historial con 0 partidas emite un estado
+  HomeLoaded(games: []) y no HomeError
+- En home_page.dart: verifica que el estado
+  HomeLoaded con lista vacía renderiza el empty
+  state correcto ("Sin partidas recientes"), no
+  un Container/SizedBox vacío
+
+VERIFICACIÓN:
+
+- Activar Switch en panel debug → TextField aparece
+- Desactivar Switch → TextField desaparece
+- Cancelar partida desde Jugadores → Home se ve
+  completo con empty state o historial según corresponda
+- flutter analyze sin errores
+
+No uses modo Plan — son fixes puntuales.
+
+----------------

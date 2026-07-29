@@ -9,6 +9,8 @@ import 'package:la_pocha/features/auth/domain/entities/user_profile.dart'
     as _i2;
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart'
     as _i3;
+import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart'
+    as _i8;
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart'
     as _i5;
 import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart'
@@ -126,6 +128,15 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
           as _i4.Future<void>);
 
   @override
+  _i4.Future<void> sendPasswordReset({required String? email}) =>
+      (super.noSuchMethod(
+            Invocation.method(#sendPasswordReset, [], {#email: email}),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
   _i4.Future<_i2.UserProfile?> getCurrentUser() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentUser, []),
@@ -216,6 +227,21 @@ class MockSignOutUseCase extends _i1.Mock implements _i7.SignOutUseCase {
   _i4.Future<void> call() =>
       (super.noSuchMethod(
             Invocation.method(#call, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+}
+
+/// A class which mocks [SendPasswordResetUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSendPasswordResetUseCase extends _i1.Mock
+    implements _i8.SendPasswordResetUseCase {
+  @override
+  _i4.Future<void> call({required String? email}) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {#email: email}),
             returnValue: _i4.Future<void>.value(),
             returnValueForMissingStub: _i4.Future<void>.value(),
           )

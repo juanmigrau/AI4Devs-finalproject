@@ -13,7 +13,9 @@ import 'package:la_pocha/features/round/presentation/pages/play_page.dart';
 import 'package:la_pocha/features/round/presentation/pages/game_final_result_page.dart';
 import 'package:la_pocha/features/round/presentation/pages/round_result_page.dart';
 import 'package:la_pocha/features/round/presentation/pages/scoring_page.dart';
-import 'package:la_pocha/features/history/presentation/pages/game_history_detail_placeholder_page.dart';
+import 'package:la_pocha/features/favorites/presentation/pages/favorites_page.dart';
+import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
+import 'package:la_pocha/features/history/presentation/pages/game_detail_page.dart';
 import 'package:la_pocha/features/history/presentation/pages/history_list_page.dart';
 
 GoRouter createAppRouter({
@@ -51,6 +53,10 @@ GoRouter createAppRouter({
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesPage(),
       ),
       GoRoute(
         path: '/games/new',
@@ -91,10 +97,15 @@ GoRouter createAppRouter({
       ),
       GoRoute(
         path: '/games/:gameId/rounds/:roundNumber/result',
-        builder: (context, state) => RoundResultPage(
-          gameId: state.pathParameters['gameId']!,
-          roundNumber: int.parse(state.pathParameters['roundNumber']!),
-        ),
+        builder: (context, state) {
+          final readOnly = state.uri.queryParameters['readOnly'] == 'true';
+
+          return RoundResultPage(
+            gameId: state.pathParameters['gameId']!,
+            roundNumber: int.parse(state.pathParameters['roundNumber']!),
+            readOnly: readOnly,
+          );
+        },
       ),
       GoRoute(
         path: '/games/:gameId/final',
@@ -108,9 +119,18 @@ GoRouter createAppRouter({
       ),
       GoRoute(
         path: '/history/:gameId',
-        builder: (context, state) => GameHistoryDetailPlaceholderPage(
-          gameId: state.pathParameters['gameId']!,
-        ),
+        builder: (context, state) {
+          final sourceName = state.uri.queryParameters['source'];
+          final source = GameHistorySource.values.firstWhere(
+            (value) => value.name == sourceName,
+            orElse: () => GameHistorySource.local,
+          );
+
+          return GameDetailPage(
+            gameId: state.pathParameters['gameId']!,
+            source: source,
+          );
+        },
       ),
     ],
   );

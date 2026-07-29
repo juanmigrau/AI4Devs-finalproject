@@ -1577,16 +1577,497 @@ class RoundsCompanion extends UpdateCompanion<RoundEntry> {
   }
 }
 
+class $HiddenGamesTable extends HiddenGames
+    with TableInfo<$HiddenGamesTable, HiddenGameEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HiddenGamesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _gameIdMeta = const VerificationMeta('gameId');
+  @override
+  late final GeneratedColumn<String> gameId = GeneratedColumn<String>(
+    'game_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [gameId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'hidden_games';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HiddenGameEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('game_id')) {
+      context.handle(
+        _gameIdMeta,
+        gameId.isAcceptableOrUnknown(data['game_id']!, _gameIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gameIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {gameId};
+  @override
+  HiddenGameEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HiddenGameEntry(
+      gameId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}game_id'],
+      )!,
+    );
+  }
+
+  @override
+  $HiddenGamesTable createAlias(String alias) {
+    return $HiddenGamesTable(attachedDatabase, alias);
+  }
+}
+
+class HiddenGameEntry extends DataClass implements Insertable<HiddenGameEntry> {
+  final String gameId;
+  const HiddenGameEntry({required this.gameId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['game_id'] = Variable<String>(gameId);
+    return map;
+  }
+
+  HiddenGamesCompanion toCompanion(bool nullToAbsent) {
+    return HiddenGamesCompanion(gameId: Value(gameId));
+  }
+
+  factory HiddenGameEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HiddenGameEntry(gameId: serializer.fromJson<String>(json['gameId']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'gameId': serializer.toJson<String>(gameId)};
+  }
+
+  HiddenGameEntry copyWith({String? gameId}) =>
+      HiddenGameEntry(gameId: gameId ?? this.gameId);
+  HiddenGameEntry copyWithCompanion(HiddenGamesCompanion data) {
+    return HiddenGameEntry(
+      gameId: data.gameId.present ? data.gameId.value : this.gameId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HiddenGameEntry(')
+          ..write('gameId: $gameId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => gameId.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HiddenGameEntry && other.gameId == this.gameId);
+}
+
+class HiddenGamesCompanion extends UpdateCompanion<HiddenGameEntry> {
+  final Value<String> gameId;
+  final Value<int> rowid;
+  const HiddenGamesCompanion({
+    this.gameId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HiddenGamesCompanion.insert({
+    required String gameId,
+    this.rowid = const Value.absent(),
+  }) : gameId = Value(gameId);
+  static Insertable<HiddenGameEntry> custom({
+    Expression<String>? gameId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (gameId != null) 'game_id': gameId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HiddenGamesCompanion copyWith({Value<String>? gameId, Value<int>? rowid}) {
+    return HiddenGamesCompanion(
+      gameId: gameId ?? this.gameId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (gameId.present) {
+      map['game_id'] = Variable<String>(gameId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HiddenGamesCompanion(')
+          ..write('gameId: $gameId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FavoritesTable extends Favorites
+    with TableInfo<$FavoritesTable, FavoriteEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FavoritesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, displayName, userId, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'favorites';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FavoriteEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FavoriteEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FavoriteEntry(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FavoritesTable createAlias(String alias) {
+    return $FavoritesTable(attachedDatabase, alias);
+  }
+}
+
+class FavoriteEntry extends DataClass implements Insertable<FavoriteEntry> {
+  final String id;
+  final String displayName;
+  final String? userId;
+  final DateTime createdAt;
+  const FavoriteEntry({
+    required this.id,
+    required this.displayName,
+    this.userId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['display_name'] = Variable<String>(displayName);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FavoritesCompanion toCompanion(bool nullToAbsent) {
+    return FavoritesCompanion(
+      id: Value(id),
+      displayName: Value(displayName),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FavoriteEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FavoriteEntry(
+      id: serializer.fromJson<String>(json['id']),
+      displayName: serializer.fromJson<String>(json['displayName']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'displayName': serializer.toJson<String>(displayName),
+      'userId': serializer.toJson<String?>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FavoriteEntry copyWith({
+    String? id,
+    String? displayName,
+    Value<String?> userId = const Value.absent(),
+    DateTime? createdAt,
+  }) => FavoriteEntry(
+    id: id ?? this.id,
+    displayName: displayName ?? this.displayName,
+    userId: userId.present ? userId.value : this.userId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FavoriteEntry copyWithCompanion(FavoritesCompanion data) {
+    return FavoriteEntry(
+      id: data.id.present ? data.id.value : this.id,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoriteEntry(')
+          ..write('id: $id, ')
+          ..write('displayName: $displayName, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, displayName, userId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FavoriteEntry &&
+          other.id == this.id &&
+          other.displayName == this.displayName &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt);
+}
+
+class FavoritesCompanion extends UpdateCompanion<FavoriteEntry> {
+  final Value<String> id;
+  final Value<String> displayName;
+  final Value<String?> userId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const FavoritesCompanion({
+    this.id = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FavoritesCompanion.insert({
+    required String id,
+    required String displayName,
+    this.userId = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       displayName = Value(displayName),
+       createdAt = Value(createdAt);
+  static Insertable<FavoriteEntry> custom({
+    Expression<String>? id,
+    Expression<String>? displayName,
+    Expression<String>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (displayName != null) 'display_name': displayName,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FavoritesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? displayName,
+    Value<String?>? userId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return FavoritesCompanion(
+      id: id ?? this.id,
+      displayName: displayName ?? this.displayName,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FavoritesCompanion(')
+          ..write('id: $id, ')
+          ..write('displayName: $displayName, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $GamesTable games = $GamesTable(this);
   late final $RoundsTable rounds = $RoundsTable(this);
+  late final $HiddenGamesTable hiddenGames = $HiddenGamesTable(this);
+  late final $FavoritesTable favorites = $FavoritesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [games, rounds];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    games,
+    rounds,
+    hiddenGames,
+    favorites,
+  ];
 }
 
 typedef $$GamesTableCreateCompanionBuilder =
@@ -2318,6 +2799,301 @@ typedef $$RoundsTableProcessedTableManager =
       RoundEntry,
       PrefetchHooks Function()
     >;
+typedef $$HiddenGamesTableCreateCompanionBuilder =
+    HiddenGamesCompanion Function({required String gameId, Value<int> rowid});
+typedef $$HiddenGamesTableUpdateCompanionBuilder =
+    HiddenGamesCompanion Function({Value<String> gameId, Value<int> rowid});
+
+class $$HiddenGamesTableFilterComposer
+    extends Composer<_$AppDatabase, $HiddenGamesTable> {
+  $$HiddenGamesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get gameId => $composableBuilder(
+    column: $table.gameId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HiddenGamesTableOrderingComposer
+    extends Composer<_$AppDatabase, $HiddenGamesTable> {
+  $$HiddenGamesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get gameId => $composableBuilder(
+    column: $table.gameId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HiddenGamesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HiddenGamesTable> {
+  $$HiddenGamesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get gameId =>
+      $composableBuilder(column: $table.gameId, builder: (column) => column);
+}
+
+class $$HiddenGamesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HiddenGamesTable,
+          HiddenGameEntry,
+          $$HiddenGamesTableFilterComposer,
+          $$HiddenGamesTableOrderingComposer,
+          $$HiddenGamesTableAnnotationComposer,
+          $$HiddenGamesTableCreateCompanionBuilder,
+          $$HiddenGamesTableUpdateCompanionBuilder,
+          (
+            HiddenGameEntry,
+            BaseReferences<_$AppDatabase, $HiddenGamesTable, HiddenGameEntry>,
+          ),
+          HiddenGameEntry,
+          PrefetchHooks Function()
+        > {
+  $$HiddenGamesTableTableManager(_$AppDatabase db, $HiddenGamesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HiddenGamesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HiddenGamesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HiddenGamesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> gameId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HiddenGamesCompanion(gameId: gameId, rowid: rowid),
+          createCompanionCallback:
+              ({
+                required String gameId,
+                Value<int> rowid = const Value.absent(),
+              }) => HiddenGamesCompanion.insert(gameId: gameId, rowid: rowid),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HiddenGamesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HiddenGamesTable,
+      HiddenGameEntry,
+      $$HiddenGamesTableFilterComposer,
+      $$HiddenGamesTableOrderingComposer,
+      $$HiddenGamesTableAnnotationComposer,
+      $$HiddenGamesTableCreateCompanionBuilder,
+      $$HiddenGamesTableUpdateCompanionBuilder,
+      (
+        HiddenGameEntry,
+        BaseReferences<_$AppDatabase, $HiddenGamesTable, HiddenGameEntry>,
+      ),
+      HiddenGameEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$FavoritesTableCreateCompanionBuilder =
+    FavoritesCompanion Function({
+      required String id,
+      required String displayName,
+      Value<String?> userId,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$FavoritesTableUpdateCompanionBuilder =
+    FavoritesCompanion Function({
+      Value<String> id,
+      Value<String> displayName,
+      Value<String?> userId,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$FavoritesTableFilterComposer
+    extends Composer<_$AppDatabase, $FavoritesTable> {
+  $$FavoritesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FavoritesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FavoritesTable> {
+  $$FavoritesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FavoritesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FavoritesTable> {
+  $$FavoritesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FavoritesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FavoritesTable,
+          FavoriteEntry,
+          $$FavoritesTableFilterComposer,
+          $$FavoritesTableOrderingComposer,
+          $$FavoritesTableAnnotationComposer,
+          $$FavoritesTableCreateCompanionBuilder,
+          $$FavoritesTableUpdateCompanionBuilder,
+          (
+            FavoriteEntry,
+            BaseReferences<_$AppDatabase, $FavoritesTable, FavoriteEntry>,
+          ),
+          FavoriteEntry,
+          PrefetchHooks Function()
+        > {
+  $$FavoritesTableTableManager(_$AppDatabase db, $FavoritesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FavoritesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FavoritesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FavoritesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> displayName = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FavoritesCompanion(
+                id: id,
+                displayName: displayName,
+                userId: userId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String displayName,
+                Value<String?> userId = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FavoritesCompanion.insert(
+                id: id,
+                displayName: displayName,
+                userId: userId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FavoritesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FavoritesTable,
+      FavoriteEntry,
+      $$FavoritesTableFilterComposer,
+      $$FavoritesTableOrderingComposer,
+      $$FavoritesTableAnnotationComposer,
+      $$FavoritesTableCreateCompanionBuilder,
+      $$FavoritesTableUpdateCompanionBuilder,
+      (
+        FavoriteEntry,
+        BaseReferences<_$AppDatabase, $FavoritesTable, FavoriteEntry>,
+      ),
+      FavoriteEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2326,4 +3102,8 @@ class $AppDatabaseManager {
       $$GamesTableTableManager(_db, _db.games);
   $$RoundsTableTableManager get rounds =>
       $$RoundsTableTableManager(_db, _db.rounds);
+  $$HiddenGamesTableTableManager get hiddenGames =>
+      $$HiddenGamesTableTableManager(_db, _db.hiddenGames);
+  $$FavoritesTableTableManager get favorites =>
+      $$FavoritesTableTableManager(_db, _db.favorites);
 }
