@@ -1650,7 +1650,7 @@ y prompts.md completo de Entrega 2.
 
 ### Pull Request 3 — Entrega Final
 
-**URL:** [se añadirá tras crear la PR]
+**URL:** <https://github.com/juanmigrau/AI4Devs-finalproject/pull/3>
 
 **Descripción:** Tickets Should-Have (LPT-8, 13, 16, 17, 18, 25),
 refactor Atomic Design (PochaAppBar, PrimaryButton,

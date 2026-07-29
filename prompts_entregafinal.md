@@ -1324,7 +1324,7 @@ E2E manual en Samsung A26 y Xiaomi Mi A1.
 
 ### Pull Request 3 — Entrega Final: Funcionalidad completa y polish
 
-**URL:** [pendiente de crear]
+**URL:** https://github.com/juanmigrau/AI4Devs-finalproject/pull/3
 
 **Descripción:** Tickets Should-Have, refactor de Atomic Design,
 rediseño de componentes con Claude Design, herramienta de debug
