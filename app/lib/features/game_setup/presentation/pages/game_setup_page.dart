@@ -6,7 +6,6 @@ import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/game_setup_bloc.dart';
-import 'package:la_pocha/features/game_setup/presentation/widgets/game_overflow_menu.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/random_dealer_button.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/reorderable_player_list.dart';
 
@@ -20,15 +19,13 @@ class GameSetupPage extends StatelessWidget {
     return BlocProvider(
       create: (_) =>
           getIt<GameSetupBloc>()..add(GameSetupStarted(gameId: gameId)),
-      child: _GameSetupView(gameId: gameId),
+      child: const _GameSetupView(),
     );
   }
 }
 
 class _GameSetupView extends StatelessWidget {
-  const _GameSetupView({required this.gameId});
-
-  final String gameId;
+  const _GameSetupView();
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +46,6 @@ class _GameSetupView extends StatelessWidget {
                 title: 'Orden de mesa',
                 subtitle: 'Arrastra para reordenar',
                 onBack: () => context.pop(),
-                actions: [GameOverflowMenu(gameId: gameId)],
               ),
               Expanded(
                 child: BlocBuilder<GameSetupBloc, GameSetupState>(

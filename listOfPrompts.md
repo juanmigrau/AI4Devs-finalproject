@@ -2522,3 +2522,36 @@ VERIFICACIÓN:
 No uses modo Plan — son fixes puntuales.
 
 ----------------
+#################################
+
+Añade WakeLock a la app para mantener la pantalla encendida
+durante el ciclo de ronda activo.
+
+1. Añade la dependencia en pubspec.yaml:
+   wakelock_plus: ^1.3.4 (o la versión estable más reciente)
+
+2. Activa WakelockPlus.enable() al entrar en las siguientes
+   páginas (en initState o didChangeDependencies):
+   - bidding_page.dart
+   - play_page.dart
+   - scoring_page.dart
+   - round_result_page.dart
+
+3. Desactiva WakelockPlus.disable() en el dispose() de
+   cada una de esas páginas.
+
+4. Asegúrate de que WakelockPlus.disable() también se llama
+   en game_final_result_page.dart (initState) para garantizar
+   que al llegar al resultado final la pantalla vuelve al
+   comportamiento normal del sistema.
+
+No es necesario tocar AndroidManifest.xml — wakelock_plus
+gestiona los permisos automáticamente en Android e iOS.
+
+flutter pub get tras añadir la dependencia.
+flutter analyze sin errores.
+No uses modo Plan — es un cambio quirúrgico y aislado.
+
+---
+
+

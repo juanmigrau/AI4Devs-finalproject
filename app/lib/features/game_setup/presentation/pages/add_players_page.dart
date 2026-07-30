@@ -8,7 +8,6 @@ import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/add_players_bloc.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/cancel_game_cubit.dart';
-import 'package:la_pocha/features/game_setup/presentation/widgets/cancel_game_dialog.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/favorites_chip_section.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/players_roster_section.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/search_player_stub.dart';
@@ -109,7 +108,6 @@ class _AddPlayersView extends StatelessWidget {
                         },
                         icon: const Icon(Icons.search, color: Colors.white),
                       ),
-                      _CancelMenuAction(gameId: gameId),
                     ],
                   ),
                   Expanded(
@@ -230,40 +228,5 @@ class _AddPlayersView extends StatelessWidget {
     return player.userId == null &&
         favorite.userId == null &&
         player.displayName.toLowerCase() == favorite.displayName.toLowerCase();
-  }
-}
-
-class _CancelMenuAction extends StatelessWidget {
-  const _CancelMenuAction({required this.gameId});
-
-  final String gameId;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert, color: Colors.white),
-      onSelected: (value) async {
-        if (value != 'cancel') {
-          return;
-        }
-        final confirmed = await showCancelGameDialog(context);
-        if (!confirmed) {
-          return;
-        }
-        if (!context.mounted) {
-          return;
-        }
-        await context.read<CancelGameCubit>().cancel(gameId);
-      },
-      itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 'cancel',
-          child: Text(
-            'Cancelar partida',
-            style: TextStyle(color: Color(0xFFD9772E)),
-          ),
-        ),
-      ],
-    );
   }
 }
