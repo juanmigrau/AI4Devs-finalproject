@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/home/presentation/widgets/debug_config_panel.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,9 +17,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final GlobalKey<DebugConfigPanelState> _debugPanelKey =
       GlobalKey<DebugConfigPanelState>();
+  late final Future<PackageInfo> _packageInfoFuture =
+      PackageInfo.fromPlatform();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -83,6 +88,30 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             if (kDebugMode) DebugConfigPanel(key: _debugPanelKey),
+            FutureBuilder<PackageInfo>(
+              future: _packageInfoFuture,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const SizedBox.shrink();
+                }
+                final info = snapshot.data!;
+                final versionLabel = kDebugMode
+                    ? 'v${info.version}+${info.buildNumber} (debug)'
+                    : 'v${info.version}';
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    versionLabel,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.4,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
