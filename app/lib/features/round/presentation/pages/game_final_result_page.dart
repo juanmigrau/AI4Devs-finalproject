@@ -10,6 +10,7 @@ import 'package:la_pocha/features/game_setup/domain/repositories/round_repositor
 import 'package:la_pocha/features/round/domain/entities/ranking_entry.dart';
 import 'package:la_pocha/features/round/domain/services/ranking_service.dart';
 import 'package:la_pocha/features/round/presentation/widgets/ranking_list.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class GameFinalResultPage extends StatefulWidget {
   const GameFinalResultPage({super.key, required this.gameId});
@@ -26,6 +27,7 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
   @override
   void initState() {
     super.initState();
+    WakelockPlus.disable();
     _loadFuture = _loadFinalResult();
   }
 

@@ -9,8 +9,9 @@ import 'package:la_pocha/features/round/presentation/widgets/correct_bids_dialog
 import 'package:la_pocha/features/round/presentation/widgets/player_play_card.dart';
 import 'package:la_pocha/features/round/presentation/widgets/round_header.dart';
 import 'package:la_pocha/features/round/presentation/widgets/tricks_balance_banner.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
-class PlayPage extends StatelessWidget {
+class PlayPage extends StatefulWidget {
   const PlayPage({
     super.key,
     required this.gameId,
@@ -21,11 +22,34 @@ class PlayPage extends StatelessWidget {
   final int roundNumber;
 
   @override
+  State<PlayPage> createState() => _PlayPageState();
+}
+
+class _PlayPageState extends State<PlayPage> {
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable();
+  }
+
+  @override
+  void dispose() {
+    WakelockPlus.disable();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<PlayStateBloc>()
-        ..add(PlayStateStarted(gameId: gameId, roundNumber: roundNumber)),
-      child: _PlayView(gameId: gameId, roundNumber: roundNumber),
+        ..add(PlayStateStarted(
+          gameId: widget.gameId,
+          roundNumber: widget.roundNumber,
+        )),
+      child: _PlayView(
+        gameId: widget.gameId,
+        roundNumber: widget.roundNumber,
+      ),
     );
   }
 }

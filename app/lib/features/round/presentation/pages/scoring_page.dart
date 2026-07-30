@@ -9,8 +9,9 @@ import 'package:la_pocha/features/round/presentation/bloc/scoring_state.dart';
 import 'package:la_pocha/features/round/presentation/widgets/round_header.dart';
 import 'package:la_pocha/features/round/presentation/widgets/scoring_player_row.dart';
 import 'package:la_pocha/features/round/presentation/widgets/tricks_sum_indicator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
-class ScoringPage extends StatelessWidget {
+class ScoringPage extends StatefulWidget {
   const ScoringPage({
     super.key,
     required this.gameId,
@@ -21,11 +22,34 @@ class ScoringPage extends StatelessWidget {
   final int roundNumber;
 
   @override
+  State<ScoringPage> createState() => _ScoringPageState();
+}
+
+class _ScoringPageState extends State<ScoringPage> {
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable();
+  }
+
+  @override
+  void dispose() {
+    WakelockPlus.disable();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<ScoringBloc>()
-        ..add(ScoringStarted(gameId: gameId, roundNumber: roundNumber)),
-      child: _ScoringView(gameId: gameId, roundNumber: roundNumber),
+        ..add(ScoringStarted(
+          gameId: widget.gameId,
+          roundNumber: widget.roundNumber,
+        )),
+      child: _ScoringView(
+        gameId: widget.gameId,
+        roundNumber: widget.roundNumber,
+      ),
     );
   }
 }

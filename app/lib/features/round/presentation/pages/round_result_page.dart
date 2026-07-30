@@ -9,8 +9,9 @@ import 'package:la_pocha/features/round/presentation/bloc/round_result_event.dar
 import 'package:la_pocha/features/round/presentation/bloc/round_result_state.dart';
 import 'package:la_pocha/features/round/presentation/widgets/ranking_list.dart';
 import 'package:la_pocha/features/round/presentation/widgets/round_header.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
-class RoundResultPage extends StatelessWidget {
+class RoundResultPage extends StatefulWidget {
   const RoundResultPage({
     super.key,
     required this.gameId,
@@ -23,14 +24,34 @@ class RoundResultPage extends StatelessWidget {
   final bool readOnly;
 
   @override
+  State<RoundResultPage> createState() => _RoundResultPageState();
+}
+
+class _RoundResultPageState extends State<RoundResultPage> {
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable();
+  }
+
+  @override
+  void dispose() {
+    WakelockPlus.disable();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<RoundResultBloc>()
-        ..add(RoundResultStarted(gameId: gameId, roundNumber: roundNumber)),
+        ..add(RoundResultStarted(
+          gameId: widget.gameId,
+          roundNumber: widget.roundNumber,
+        )),
       child: _RoundResultView(
-        gameId: gameId,
-        roundNumber: roundNumber,
-        readOnly: readOnly,
+        gameId: widget.gameId,
+        roundNumber: widget.roundNumber,
+        readOnly: widget.readOnly,
       ),
     );
   }

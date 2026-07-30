@@ -10,8 +10,9 @@ import 'package:la_pocha/features/round/presentation/bloc/bidding_state.dart';
 import 'package:la_pocha/features/round/presentation/widgets/bidding_player_row.dart';
 import 'package:la_pocha/features/round/presentation/widgets/round_header.dart';
 import 'package:la_pocha/features/round/presentation/widgets/tricks_balance_indicator.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
-class BiddingPage extends StatelessWidget {
+class BiddingPage extends StatefulWidget {
   const BiddingPage({
     super.key,
     required this.gameId,
@@ -22,11 +23,34 @@ class BiddingPage extends StatelessWidget {
   final int roundNumber;
 
   @override
+  State<BiddingPage> createState() => _BiddingPageState();
+}
+
+class _BiddingPageState extends State<BiddingPage> {
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable();
+  }
+
+  @override
+  void dispose() {
+    WakelockPlus.disable();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<BiddingBloc>()
-        ..add(BiddingStarted(gameId: gameId, roundNumber: roundNumber)),
-      child: _BiddingView(gameId: gameId, roundNumber: roundNumber),
+        ..add(BiddingStarted(
+          gameId: widget.gameId,
+          roundNumber: widget.roundNumber,
+        )),
+      child: _BiddingView(
+        gameId: widget.gameId,
+        roundNumber: widget.roundNumber,
+      ),
     );
   }
 }
