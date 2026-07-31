@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart';
@@ -49,7 +50,7 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
         ),
       );
     } catch (error) {
-      emit(ScoringFailure(message: error.toString()));
+      emit(ScoringFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -102,7 +103,7 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
       emit(
         current.copyWith(
           isClosing: false,
-          validationMessage: () => error.toString(),
+          validationMessage: () => mapExceptionToUserMessage(error),
         ),
       );
     }

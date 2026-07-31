@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_item.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart';
 import 'package:la_pocha/features/sync/domain/usecases/retry_pending_uploads_usecase.dart';
@@ -76,7 +77,7 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
       }
       emit(HistoryListLoaded(items: items));
     } catch (error) {
-      emit(HistoryListFailure(message: error.toString()));
+      emit(HistoryListFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

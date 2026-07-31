@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/domain/usecases/delete_local_game_usecase.dart';
 import 'package:la_pocha/features/history/domain/usecases/hide_cloud_game_usecase.dart';
@@ -27,7 +28,7 @@ class DeleteGameFromHistoryCubit extends Cubit<DeleteGameFromHistoryState> {
       }
       emit(DeleteGameFromHistorySuccess(gameId: gameId));
     } catch (error) {
-      emit(DeleteGameFromHistoryFailure(message: error.toString()));
+      emit(DeleteGameFromHistoryFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

@@ -69,7 +69,19 @@ class AuthFirebaseDatasource {
       'invalid-email' =>
         const InvalidCredentialsFailure(),
       'network-request-failed' => const NetworkUnavailableFailure(),
-      _ => UnknownAuthFailure(error.message ?? 'Ha ocurrido un error inesperado'),
+      'too-many-requests' => const UnknownAuthFailure(
+          'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+        ),
+      'user-disabled' => const UnknownAuthFailure(
+          'Esta cuenta está deshabilitada.',
+        ),
+      'weak-password' => const ValidationFailure(
+          'La contraseña es demasiado débil. Elige una más segura.',
+        ),
+      'operation-not-allowed' => const UnknownAuthFailure(
+          'Esta forma de acceso no está disponible ahora mismo.',
+        ),
+      _ => const UnknownAuthFailure(),
     };
   }
 
@@ -79,7 +91,13 @@ class AuthFirebaseDatasource {
       'invalid-email' =>
         const ValidationFailure('Introduce un email válido'),
       'network-request-failed' => const NetworkUnavailableFailure(),
-      _ => UnknownAuthFailure(error.message ?? 'Ha ocurrido un error inesperado'),
+      'too-many-requests' => const UnknownAuthFailure(
+          'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+        ),
+      'user-disabled' => const UnknownAuthFailure(
+          'Esta cuenta está deshabilitada.',
+        ),
+      _ => const UnknownAuthFailure(),
     };
   }
 }

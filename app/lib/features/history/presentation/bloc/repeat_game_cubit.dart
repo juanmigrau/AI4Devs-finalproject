@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/domain/usecases/repeat_game_usecase.dart';
 
@@ -22,7 +23,7 @@ class RepeatGameCubit extends Cubit<RepeatGameState> {
       );
       emit(RepeatGameSuccess(newGameId: newGameId));
     } catch (error) {
-      emit(RepeatGameFailure(message: error.toString()));
+      emit(RepeatGameFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

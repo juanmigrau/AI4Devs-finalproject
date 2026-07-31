@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/get_game_by_id_usecase.dart';
@@ -66,7 +67,7 @@ class GameSetupBloc extends Bloc<GameSetupEvent, GameSetupState> {
         ),
       );
     } catch (error) {
-      emit(GameSetupFailure(message: error.toString()));
+      emit(GameSetupFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -149,7 +150,7 @@ class GameSetupBloc extends Bloc<GameSetupEvent, GameSetupState> {
       );
     } catch (error) {
       emit(current.copyWith(isStarting: false));
-      emit(GameSetupFailure(message: error.toString()));
+      emit(GameSetupFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

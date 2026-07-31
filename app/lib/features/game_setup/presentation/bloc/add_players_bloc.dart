@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
@@ -70,7 +71,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      emit(AddPlayersFailure(message: error.toString()));
+      emit(AddPlayersFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -103,7 +104,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -153,7 +154,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -190,7 +191,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -261,7 +262,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -332,7 +333,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: error.toString()));
+      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
     }
   }
 

@@ -59,7 +59,7 @@ void main() {
       isA<RepeatRoundFailure>().having(
         (s) => s.message,
         'message',
-        contains('Closed rounds cannot be repeated'),
+        'No se puede repetir una ronda ya cerrada.',
       ),
     ],
   );

@@ -43,8 +43,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return profile.toEntity();
     } on AuthFailure {
       rethrow;
-    } catch (error) {
-      throw UnknownAuthFailure(error.toString());
+    } catch (_) {
+      throw const UnknownAuthFailure();
     }
   }
 
@@ -76,8 +76,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return profile.toEntity();
     } on AuthFailure {
       rethrow;
-    } catch (error) {
-      throw UnknownAuthFailure(error.toString());
+    } catch (_) {
+      throw const UnknownAuthFailure();
     }
   }
 
@@ -90,8 +90,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await _authDatasource.sendPasswordResetEmail(email);
     } on AuthFailure {
       rethrow;
-    } catch (error) {
-      throw UnknownAuthFailure(error.toString());
+    } catch (_) {
+      throw const UnknownAuthFailure();
     }
   }
 

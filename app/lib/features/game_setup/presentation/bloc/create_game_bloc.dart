@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/create_game_draft_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/value_objects/game_deck_config.dart';
 
@@ -42,7 +43,7 @@ class CreateGameBloc extends Bloc<CreateGameEvent, CreateGameState> {
       emit(CreateGameSuccess(gameId: game.id));
     } catch (error) {
       emit(CreateGameFailure(
-        message: error.toString(),
+        message: mapExceptionToUserMessage(error),
         playerCount: currentPreview.playerCount,
         totalCards: currentPreview.totalCards,
         maxCardsPerRound: currentPreview.maxCardsPerRound,

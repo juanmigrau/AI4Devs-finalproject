@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/warning_banner.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
@@ -77,7 +78,9 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Text(snapshot.error.toString()),
+                  child: Text(
+                    mapExceptionToUserMessage(snapshot.error!),
+                  ),
                 ),
               );
             }

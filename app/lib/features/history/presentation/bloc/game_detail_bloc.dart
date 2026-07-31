@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/history/domain/entities/game_detail.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_detail_usecase.dart';
@@ -28,7 +29,7 @@ class GameDetailBloc extends Bloc<GameDetailEvent, GameDetailState> {
       );
       emit(GameDetailLoaded(detail: detail));
     } catch (error) {
-      emit(GameDetailFailure(message: error.toString()));
+      emit(GameDetailFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

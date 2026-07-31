@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/cancel_game_usecase.dart';
 
 part 'cancel_game_state.dart';
@@ -15,7 +16,7 @@ class CancelGameCubit extends Cubit<CancelGameState> {
       await _cancelGame(gameId: gameId);
       emit(const CancelGameSuccess());
     } catch (error) {
-      emit(CancelGameFailure(message: error.toString()));
+      emit(CancelGameFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

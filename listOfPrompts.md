@@ -2554,4 +2554,62 @@ No uses modo Plan — es un cambio quirúrgico y aislado.
 
 ---
 
+Audita y corrige todos los mensajes de error y feedback
+que aparecen al usuario en inglés.
+
+PASO 1 — Auditoría (sin cambios):
+Busca en todo el proyecto (lib/) los siguientes patrones
+que generan mensajes visibles al usuario:
+
+- SnackBar( con texto en inglés
+- ScaffoldMessenger.showSnackBar con texto en inglés
+- throw ArgumentError( / throw Exception( / throw Failure(
+  cuyos mensajes puedan llegar a la UI
+- .message o .toString() de excepciones mostrados
+  directamente en widgets
+- Strings en inglés en archivos *_state.dart que se
+  renderizan en la UI
+- errorMessage, failureMessage, o campos similares
+  con texto en inglés
+
+Muéstrame una tabla con:
+| Fichero | Línea | Mensaje actual | Tipo (excepción/snackbar/state) |
+
+PASO 2 — Fix tras revisar la tabla:
+Para cada mensaje encontrado:
+
+A) Excepciones de dominio que llegan a la UI
+   (como "Invalid argument(s): Player limit reached"):
+
+- En la capa presentation/bloc: capturar la excepción
+     y mapearla a un mensaje en español humanizado
+- NUNCA mostrar el toString() de una excepción
+     directamente al usuario
+- Ejemplo:
+     ANTES: e.toString() → "Invalid argument(s): Player limit reached"
+     DESPUÉS: "No puedes añadir más jugadores. El límite para esta
+               partida es de $playerCount jugadores."
+
+B) SnackBars o textos de estado en inglés:
+
+- Traducir directamente al español
+- Tono amable y sin tecnicismos
+
+C) Mensajes de Firebase Auth (ya implementados en LPT-19/25):
+
+- Verificar que están correctamente mapeados al español
+- Si alguno se escapó, traducirlo
+
+CRITERIOS para los mensajes en español:
+
+- Sin prefijos técnicos ("Error:", "Exception:", "Invalid argument(s):")
+- Mensaje descriptivo de lo que pasó y qué puede hacer el usuario
+- Tono amable, primera persona cuando aplique
+- Máximo 2 líneas en una SnackBar
+
+flutter analyze sin errores.
+Usa modo Plan — puede afectar a múltiples ficheros.
+
+
+---
 

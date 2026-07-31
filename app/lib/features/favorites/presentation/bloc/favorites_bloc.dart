@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
@@ -66,7 +67,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
         );
       }
     } catch (error) {
-      emit(FavoritesFailure(message: error.toString()));
+      emit(FavoritesFailure(message: mapExceptionToUserMessage(error)));
       if (current is FavoritesLoaded) {
         emit(FavoritesLoaded(favorites: current.favorites));
       } else if (current is FavoritesEmpty) {
@@ -113,7 +114,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
       }
       emit(FavoritesLoaded(favorites: favorites));
     } catch (error) {
-      emit(FavoritesFailure(message: error.toString()));
+      emit(FavoritesFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

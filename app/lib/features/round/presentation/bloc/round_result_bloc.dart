@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/round/domain/usecases/advance_to_next_round_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/finish_game_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_result_usecase.dart';
@@ -32,7 +33,7 @@ class RoundResultBloc extends Bloc<RoundResultEvent, RoundResultState> {
       );
       emit(RoundResultLoaded(result: result));
     } catch (error) {
-      emit(RoundResultFailure(message: error.toString()));
+      emit(RoundResultFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -58,7 +59,7 @@ class RoundResultBloc extends Bloc<RoundResultEvent, RoundResultState> {
         ),
       );
     } catch (error) {
-      emit(RoundResultFailure(message: error.toString()));
+      emit(RoundResultFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -79,7 +80,7 @@ class RoundResultBloc extends Bloc<RoundResultEvent, RoundResultState> {
       );
       emit(RoundResultNavigateToFinal(gameId: current.result.game.id));
     } catch (error) {
-      emit(RoundResultFailure(message: error.toString()));
+      emit(RoundResultFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

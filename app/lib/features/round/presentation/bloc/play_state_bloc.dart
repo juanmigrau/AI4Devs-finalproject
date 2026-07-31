@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/round/domain/usecases/correct_bids_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_event.dart';
@@ -27,7 +28,7 @@ class PlayStateBloc extends Bloc<PlayStateEvent, PlayStateBlocState> {
       );
       emit(PlayStateLoaded(playState: playState));
     } catch (error) {
-      emit(PlayStateFailure(message: error.toString()));
+      emit(PlayStateFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -71,7 +72,7 @@ class PlayStateBloc extends Bloc<PlayStateEvent, PlayStateBlocState> {
       );
       emit(PlayStateLoaded(playState: refreshed));
     } catch (error) {
-      emit(PlayStateFailure(message: error.toString()));
+      emit(PlayStateFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

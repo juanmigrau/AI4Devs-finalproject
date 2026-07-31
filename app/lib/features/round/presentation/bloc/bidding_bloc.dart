@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart';
 import 'package:la_pocha/features/round/domain/services/dealer_restriction_validator.dart';
@@ -47,7 +48,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
         ),
       );
     } catch (error) {
-      emit(BiddingFailure(message: error.toString()));
+      emit(BiddingFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 
@@ -102,7 +103,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
       emit(
         current.copyWith(
           isSubmitting: false,
-          validationMessage: () => error.toString(),
+          validationMessage: () => mapExceptionToUserMessage(error),
         ),
       );
     }
@@ -133,7 +134,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
       emit(
         current.copyWith(
           isClosing: false,
-          validationMessage: () => error.toString(),
+          validationMessage: () => mapExceptionToUserMessage(error),
         ),
       );
     }

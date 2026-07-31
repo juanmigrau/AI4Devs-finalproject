@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/round/domain/usecases/repeat_round_usecase.dart';
 
 part 'repeat_round_state.dart';
@@ -18,7 +19,7 @@ class RepeatRoundCubit extends Cubit<RepeatRoundState> {
       await _repeatRound(gameId: gameId, roundNumber: roundNumber);
       emit(RepeatRoundSuccess(gameId: gameId, roundNumber: roundNumber));
     } catch (error) {
-      emit(RepeatRoundFailure(message: error.toString()));
+      emit(RepeatRoundFailure(message: mapExceptionToUserMessage(error)));
     }
   }
 }

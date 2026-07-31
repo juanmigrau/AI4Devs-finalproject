@@ -148,7 +148,7 @@ void main() {
     ),
     expect: () => [
       const GameDetailLoading(),
-      const GameDetailFailure(message: 'Bad state: Game not found'),
+      const GameDetailFailure(message: 'No encontramos esa partida.'),
     ],
   );
 }

@@ -139,7 +139,7 @@ void main() {
       isA<PlayStateFailure>().having(
         (s) => s.message,
         'message',
-        contains('playing status'),
+        'Esta ronda no está en fase de juego.',
       ),
     ],
   );
