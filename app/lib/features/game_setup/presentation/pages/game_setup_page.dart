@@ -19,13 +19,15 @@ class GameSetupPage extends StatelessWidget {
     return BlocProvider(
       create: (_) =>
           getIt<GameSetupBloc>()..add(GameSetupStarted(gameId: gameId)),
-      child: const _GameSetupView(),
+      child: _GameSetupView(gameId: gameId),
     );
   }
 }
 
 class _GameSetupView extends StatelessWidget {
-  const _GameSetupView();
+  const _GameSetupView({required this.gameId});
+
+  final String gameId;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,7 @@ class _GameSetupView extends StatelessWidget {
               PochaAppBar(
                 title: 'Orden de mesa',
                 subtitle: 'Arrastra para reordenar',
-                onBack: () => context.pop(),
+                onBack: () => context.go('/games/$gameId/players'),
               ),
               Expanded(
                 child: BlocBuilder<GameSetupBloc, GameSetupState>(
@@ -98,11 +100,29 @@ class _LoadedBody extends StatelessWidget {
   final bool isStarting;
   final bool isComplete;
 
+  String get _dealerName {
+    for (final player in players) {
+      if (player.id == firstDealerPlayerId) {
+        return player.displayName;
+      }
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Reparte: $_dealerName',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+          ),
+        ),
         Expanded(
           child: ReorderablePlayerList(
             players: players,
@@ -134,7 +154,8 @@ class _LoadedBody extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: PrimaryButton(
-            label: '▶ Empezar partida',
+            label: 'Empezar partida',
+            icon: Icons.play_arrow,
             isLoading: isStarting,
             onPressed: isComplete
                 ? () => context

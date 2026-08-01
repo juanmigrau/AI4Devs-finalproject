@@ -7,7 +7,6 @@ import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/add_players_bloc.dart';
-import 'package:la_pocha/features/game_setup/presentation/bloc/cancel_game_cubit.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/favorites_chip_section.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/players_roster_section.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/search_player_stub.dart';
@@ -19,15 +18,9 @@ class AddPlayersPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => getIt<AddPlayersBloc>()..add(AddPlayersStarted(gameId: gameId)),
-        ),
-        BlocProvider(
-          create: (_) => getIt<CancelGameCubit>(),
-        ),
-      ],
+    return BlocProvider(
+      create: (_) =>
+          getIt<AddPlayersBloc>()..add(AddPlayersStarted(gameId: gameId)),
       child: _AddPlayersView(gameId: gameId),
     );
   }
@@ -40,29 +33,14 @@ class _AddPlayersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<CancelGameCubit, CancelGameState>(
-          listener: (context, state) {
-            if (state is CancelGameSuccess) {
-              context.go('/');
-            } else if (state is CancelGameFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
-            }
-          },
-        ),
-        BlocListener<AddPlayersBloc, AddPlayersState>(
-          listener: (context, state) {
-            if (state is AddPlayersLoaded && state.errorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage!)),
-              );
-            }
-          },
-        ),
-      ],
+    return BlocListener<AddPlayersBloc, AddPlayersState>(
+      listener: (context, state) {
+        if (state is AddPlayersLoaded && state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage!)),
+          );
+        }
+      },
       child: Scaffold(
         body: SafeArea(
           child: BlocBuilder<AddPlayersBloc, AddPlayersState>(
@@ -91,11 +69,9 @@ class _AddPlayersView extends StatelessWidget {
                 children: [
                   PochaAppBar(
                     title: 'Jugadores',
-                    subtitle: '${state.players.length} de ${state.playerCount} añadidos',
-                    showBackConfirmation: true,
-                    backConfirmationMessage:
-                        '¿Descartar esta partida? Se perderá la configuración actual.',
-                    onBack: () => context.read<CancelGameCubit>().cancel(gameId),
+                    subtitle:
+                        '${state.players.length} de ${state.playerCount} añadidos',
+                    onBack: () => context.go('/games/new'),
                     actions: [
                       IconButton(
                         onPressed: () {
@@ -150,7 +126,10 @@ class _AddPlayersView extends StatelessWidget {
                               },
                               onEmptySlotNameConfirmed: (index, name) {
                                 context.read<AddPlayersBloc>().add(
-                                      PlayerNameConfirmed(index: index, name: name),
+                                      PlayerNameConfirmed(
+                                        index: index,
+                                        name: name,
+                                      ),
                                     );
                               },
                               onPlayerNameUpdated: (playerId, name) {
@@ -203,7 +182,10 @@ class _AddPlayersView extends StatelessWidget {
         .toList();
   }
 
-  bool _playersContainsFavorite(List<PlayerEmbed> players, FavoritePlayer favorite) {
+  bool _playersContainsFavorite(
+    List<PlayerEmbed> players,
+    FavoritePlayer favorite,
+  ) {
     for (final player in players) {
       if (_isFavoriteMatch(player, favorite)) {
         return true;

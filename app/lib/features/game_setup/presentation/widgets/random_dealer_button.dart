@@ -14,7 +14,7 @@ class RandomDealerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
+    return OutlinedButton.icon(
       onPressed: isEnabled ? onPressed : null,
       style: OutlinedButton.styleFrom(
         foregroundColor: _amber,
@@ -28,7 +28,8 @@ class RandomDealerButton extends StatelessWidget {
           fontSize: 16,
         ),
       ),
-      child: const Text('🎲 Repartidor aleatorio'),
+      icon: const Icon(Icons.shuffle),
+      label: const Text('Repartidor aleatorio'),
     );
   }
 }
