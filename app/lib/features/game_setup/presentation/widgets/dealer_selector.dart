@@ -13,19 +13,15 @@ class DealerSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Tooltip(
-        message: 'Designar repartidor',
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(
-            Icons.style,
-            size: 28,
-            color: isSelected ? AppTheme.primary : AppTheme.onSurfaceVariant,
-          ),
-        ),
+    return IconButton(
+      onPressed: onTap,
+      tooltip: 'Designar repartidor',
+      constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+      padding: EdgeInsets.zero,
+      iconSize: isSelected ? 28 : 24,
+      icon: Icon(
+        isSelected ? Icons.style : Icons.style_outlined,
+        color: isSelected ? AppTheme.primary : AppTheme.onSurfaceVariant,
       ),
     );
   }

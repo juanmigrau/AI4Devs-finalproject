@@ -20,6 +20,8 @@ class ReorderablePlayerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dividerColor = Theme.of(context).dividerColor;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -38,19 +40,24 @@ class ReorderablePlayerList extends StatelessWidget {
             final isDealer = player.id == firstDealerPlayerId;
             final isLast = index == players.length - 1;
 
-            return Column(
+            return SizedBox(
               key: ValueKey(player.id),
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _PlayerRow(
+              height: 52,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: isLast
+                      ? null
+                      : Border(
+                          bottom: BorderSide(color: dividerColor, width: 1),
+                        ),
+                ),
+                child: _PlayerRow(
                   player: player,
                   index: index,
                   isDealer: isDealer,
                   onDealerSelected: () => onDealerSelected(player.id),
                 ),
-                if (!isLast)
-                  const Divider(height: 1, thickness: 1),
-              ],
+              ),
             );
           },
         ),
@@ -74,58 +81,55 @@ class _PlayerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: [
-            ReorderableDragStartListener(
-              index: index,
-              child: const Padding(
-                padding: EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.drag_handle,
-                  color: AppTheme.onSurfaceVariant,
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          ReorderableDragStartListener(
+            index: index,
+            child: const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: Icon(
+                Icons.drag_handle,
+                color: AppTheme.onSurfaceVariant,
               ),
             ),
-            Container(
-              width: 24,
-              height: 24,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                '${player.seatOrder}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppTheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
+          ),
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 8),
-            PlayerInitialAvatar(
-              name: player.displayName,
-              colorIndex: index,
-              radius: 16,
+            child: Text(
+              '${player.seatOrder}',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                player.displayName,
-                style: Theme.of(context).textTheme.bodyMedium,
-                overflow: TextOverflow.ellipsis,
-              ),
+          ),
+          const SizedBox(width: 8),
+          PlayerInitialAvatar(
+            name: player.displayName,
+            colorIndex: index,
+            radius: 16,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              player.displayName,
+              style: Theme.of(context).textTheme.bodyMedium,
+              overflow: TextOverflow.ellipsis,
             ),
-            DealerSelector(
-              isSelected: isDealer,
-              onTap: onDealerSelected,
-            ),
-          ],
-        ),
+          ),
+          DealerSelector(
+            isSelected: isDealer,
+            onTap: onDealerSelected,
+          ),
+        ],
       ),
     );
   }
