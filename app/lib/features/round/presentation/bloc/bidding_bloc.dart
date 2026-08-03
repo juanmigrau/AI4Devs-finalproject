@@ -169,11 +169,6 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
     final canConfirmBid =
         currentPlayerId != null && isDraftInRange && !isForbidden;
 
-    final validationMessage = isForbidden
-        ? 'El repartidor no puede apostar $draftBid porque la suma '
-              'igualaría ${round.cardsInRound} bazas'
-        : null;
-
     final canClose = _validator.canClose(
       cardsInRound: round.cardsInRound,
       bids: round.bids,
@@ -191,7 +186,6 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
       forbiddenBid: forbiddenBid,
       canConfirmBid: canConfirmBid,
       canClose: canClose,
-      validationMessage: validationMessage,
     );
   }
 }

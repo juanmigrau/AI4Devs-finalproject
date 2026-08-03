@@ -174,8 +174,6 @@ void main() {
       forbiddenBid: 1,
       canConfirmBid: false,
       canClose: false,
-      validationMessage:
-          'El repartidor no puede apostar 1 porque la suma igualaría 4 bazas',
     ),
     act: (bloc) => bloc.add(const BidConfirmed()),
     expect: () => [],

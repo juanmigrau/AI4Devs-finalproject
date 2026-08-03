@@ -39,96 +39,86 @@ class BiddingPlayerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final opacity = status == BiddingPlayerRowStatus.pending ? 0.5 : 1.0;
+    final textTheme = Theme.of(context).textTheme;
+    final isPending = status == BiddingPlayerRowStatus.pending;
+    final isActive = status == BiddingPlayerRowStatus.active;
+    final opacity = isPending ? 0.4 : 1.0;
 
     return Opacity(
       opacity: opacity,
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: status == BiddingPlayerRowStatus.active
-              ? const BorderSide(color: AppTheme.primary, width: 2)
-              : BorderSide.none,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: isActive ? 12 : 8,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: isActive ? 56 : 36,
+              child: Row(
                 children: [
                   PlayerInitialAvatar(
                     name: player.displayName,
                     colorIndex: index,
+                    radius: 16,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                player.displayName,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
+                        Flexible(
+                          child: Text(
+                            player.displayName,
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight:
+                                  isActive ? FontWeight.bold : FontWeight.normal,
                             ),
-                            if (isDealer)
-                              const Icon(
-                                Icons.style,
-                                color: AppTheme.onSurfaceVariant,
-                                size: 18,
-                              ),
-                          ],
-                        ),
-                        if (status == BiddingPlayerRowStatus.active)
-                          Text(
-                            'TURNO DE APUESTAS',
-                            style:
-                                Theme.of(context).textTheme.labelSmall?.copyWith(
-                                      color: AppTheme.onSurfaceVariant,
-                                      letterSpacing: 1.1,
-                                    ),
+                            overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        if (isDealer) ...[
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.style,
+                            color: AppTheme.onSurfaceVariant,
+                            size: 18,
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   if (status == BiddingPlayerRowStatus.completed)
                     CircleAvatar(
-                      radius: 18,
+                      radius: 14,
                       backgroundColor: const Color(0xFFD7ECE0),
                       child: Text(
                         '$bid',
                         style: const TextStyle(
                           color: AppTheme.primary,
                           fontWeight: FontWeight.bold,
+                          fontSize: 13,
                         ),
                       ),
                     ),
+                  if (isActive)
+                    BidInputStepper(
+                      value: draftBid,
+                      min: 0,
+                      max: cardsInRound,
+                      onChanged: onBidChanged ?? (_) {},
+                      onConfirm: onBidConfirmed ?? () {},
+                      canConfirm: canConfirmBid,
+                      isSubmitting: isSubmitting,
+                    ),
                 ],
               ),
-              if (status == BiddingPlayerRowStatus.active) ...[
-                const SizedBox(height: 12),
-                BidInputStepper(
-                  value: draftBid,
-                  min: 0,
-                  max: cardsInRound,
-                  onChanged: onBidChanged ?? (_) {},
-                  onConfirm: onBidConfirmed ?? () {},
-                  canConfirm: canConfirmBid,
-                  isSubmitting: isSubmitting,
-                ),
-                if (isDealer && forbiddenBid != null) ...[
-                  const SizedBox(height: 12),
-                  ForbiddenBidWarning(forbiddenBid: forbiddenBid!),
-                ],
-              ],
+            ),
+            if (isActive && isDealer && forbiddenBid != null) ...[
+              const SizedBox(height: 4),
+              ForbiddenBidWarning(forbiddenBid: forbiddenBid!),
             ],
-          ),
+          ],
         ),
       ),
     );

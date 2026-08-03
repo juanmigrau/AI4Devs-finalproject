@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/card_count_label.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/game_overflow_menu.dart';
 
 class RoundHeader extends StatelessWidget {
@@ -12,6 +13,7 @@ class RoundHeader extends StatelessWidget {
     required this.subtitle,
     this.dealerName,
     this.repeatRoundNumber,
+    this.onBack,
   });
 
   final String gameId;
@@ -20,12 +22,13 @@ class RoundHeader extends StatelessWidget {
   final String subtitle;
   final String? dealerName;
   final int? repeatRoundNumber;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
     final title = cardsInRound == null
         ? 'Ronda $roundNumber'
-        : 'Ronda $roundNumber · $cardsInRound cartas';
+        : 'Ronda $roundNumber · ${cardCountLabel(cardsInRound!)}';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
@@ -38,7 +41,7 @@ class RoundHeader extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              onPressed: () => context.pop(),
+              onPressed: onBack ?? () => context.pop(),
               icon: const Icon(Icons.arrow_back, color: Colors.white),
             ),
             Expanded(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:la_pocha/core/config/debug_config_notifier.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/card_count_label.dart';
 
 class GameConfigPreview extends StatelessWidget {
   const GameConfigPreview({
@@ -33,13 +34,13 @@ class GameConfigPreview extends StatelessWidget {
                 _PreviewRow(
                   label: 'Cartas totales',
                   value: '$totalCards',
-                  suffix: 'cartas',
+                  suffix: cardCountSuffix(totalCards),
                 ),
                 const SizedBox(height: 16),
                 _PreviewRow(
                   label: 'Máx. por ronda',
                   value: '$maxCardsPerRound',
-                  suffix: 'cartas',
+                  suffix: cardCountSuffix(maxCardsPerRound),
                 ),
                 const SizedBox(height: 16),
                 _PreviewRow(

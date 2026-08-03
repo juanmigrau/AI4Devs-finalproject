@@ -103,6 +103,7 @@ class _RoundResultView extends StatelessWidget {
                     cardsInRound: cardsInRound,
                     subtitle: 'Resultado',
                     dealerName: dealerName,
+                    repeatRoundNumber: readOnly ? null : roundNumber,
                   );
                 },
               ),

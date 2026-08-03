@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/card_count_label.dart';
 import 'package:la_pocha/features/history/domain/entities/round_summary.dart';
 import 'package:la_pocha/features/history/presentation/widgets/round_detail_expansion.dart';
 import 'package:la_pocha/features/round/presentation/widgets/ranking_list.dart';
@@ -38,7 +39,7 @@ class RoundSummaryTile extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                '${round.cardsInRound} cartas',
+                cardCountLabel(round.cardsInRound),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppTheme.onSurfaceVariant,
                     ),
