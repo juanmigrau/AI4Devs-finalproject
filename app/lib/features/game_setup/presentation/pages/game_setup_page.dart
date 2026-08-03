@@ -136,22 +136,25 @@ class _LoadedBody extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ReorderablePlayerList(
-            players: players,
-            firstDealerPlayerId: firstDealerPlayerId,
-            onReorder: (oldIndex, newIndex) {
-              context.read<GameSetupBloc>().add(
-                    PlayersReordered(
-                      oldIndex: oldIndex,
-                      newIndex: newIndex,
-                    ),
-                  );
-            },
-            onDealerSelected: (playerId) {
-              context.read<GameSetupBloc>().add(
-                    FirstDealerSelected(playerId: playerId),
-                  );
-            },
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ReorderablePlayerList(
+              players: players,
+              firstDealerPlayerId: firstDealerPlayerId,
+              onReorder: (oldIndex, newIndex) {
+                context.read<GameSetupBloc>().add(
+                      PlayersReordered(
+                        oldIndex: oldIndex,
+                        newIndex: newIndex,
+                      ),
+                    );
+              },
+              onDealerSelected: (playerId) {
+                context.read<GameSetupBloc>().add(
+                      FirstDealerSelected(playerId: playerId),
+                    );
+              },
+            ),
           ),
         ),
         Padding(

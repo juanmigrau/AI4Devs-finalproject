@@ -23,7 +23,7 @@ class ReorderablePlayerList extends StatelessWidget {
     final dividerColor = Theme.of(context).dividerColor;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -31,6 +31,8 @@ class ReorderablePlayerList extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
           buildDefaultDragHandles: false,
           padding: EdgeInsets.zero,
           itemCount: players.length,
