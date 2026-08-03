@@ -2613,3 +2613,71 @@ Usa modo Plan — puede afectar a múltiples ficheros.
 
 ---
 
+Listo. Cambios aplicados:
+
+**Navegación**
+
+- Orden de mesa → `go('/games/$gameId/players')` sin diálogo
+- Añadir jugadores → `go('/games/new')` sin diálogo; eliminado `CancelGameCubit` de esa pantalla
+
+**Lista compacta**
+
+- Un solo contenedor blanco con `BorderRadius.circular(12)` y `Divider` entre filas
+- Filas de 52dp: drag handle, posición 24dp, avatar radius 16, nombre `bodyMedium`, icono cartas
+
+**Repartidor**
+
+- Eliminado badge `REPARTE`
+- `Icons.style` 28dp (primary / gris)
+- Línea «Reparte: [nombre]» bajo el AppBar, reactiva vía `BlocBuilder`
+
+**Botones**
+
+- `Icons.shuffle` + «Repartidor aleatorio»
+- `Icons.play_arrow` + «Empezar partida»
+
+`dart analyze` en los archivos tocados: sin issues.
+
+----
+
+Corrige el bug de SnackBar duplicada en add_players_page:
+
+PROBLEMA: al intentar añadir un jugador con nombre duplicado,
+aparece una SnackBar de error. Al corregir el nombre y
+confirmar de nuevo, aparecen dos SnackBars — la del error
+anterior (que no se limpió) y la del nuevo intento.
+
+CAUSA: el estado de error no se resetea tras mostrarse.
+El BlocListener reacciona al estado de error persistente
+más al nuevo estado emitido en el segundo intento.
+
+FIX en AddPlayersBloc:
+1. Tras emitir un estado de error (nombre duplicado,
+   nombre vacío, límite de jugadores), emitir
+   inmediatamente después un estado neutro que limpie
+   el error — por ejemplo AddPlayersReady (el estado
+   normal con la lista actual de jugadores) sin mensaje
+   de error.
+
+2. Alternativamente, si el estado usa un campo
+   errorMessage: String?, asegurarse de que ese campo
+   vuelve a null en el siguiente evento que procese
+   el BLoC, para que el BlocListener no lo procese
+   dos veces.
+
+3. En add_players_page.dart, el BlocListener que muestra
+   la SnackBar debe verificar que el mensaje de error
+   no es null/vacío antes de mostrarla, como salvaguarda
+   adicional.
+
+VERIFICACIÓN:
+- Añadir jugador con nombre duplicado → 1 sola SnackBar
+- Corregir nombre y confirmar → 0 SnackBars (éxito silencioso)
+  o 1 SnackBar de éxito si existe ese feedback
+- Añadir jugador válido desde cero → comportamiento normal
+- flutter analyze sin errores
+
+No uses modo Plan — es un fix puntual en BLoC y página.
+
+---
+

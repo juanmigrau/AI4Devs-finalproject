@@ -341,6 +341,117 @@ void main() {
   );
 
   blocTest<AddPlayersBloc, AddPlayersState>(
+    'emits empty-name error then clears it so SnackBar is one-shot',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: 0,
+      isLoading: false,
+    ),
+    act: (bloc) => bloc.add(const PlayerNameConfirmed(index: 0, name: '   ')),
+    expect: () => [
+      isA<AddPlayersLoaded>().having(
+        (s) => s.errorMessage,
+        'errorMessage',
+        'El nombre no puede estar vacío',
+      ),
+      isA<AddPlayersLoaded>().having(
+        (s) => s.errorMessage,
+        'errorMessage',
+        isNull,
+      ),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'emits duplicate-name error then clears it so SnackBar is one-shot',
+    build: buildBloc,
+    seed: () => AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [
+        PlayerEmbed(
+          id: 'p1',
+          displayName: 'Ana',
+          isGuest: true,
+          userId: null,
+          seatOrder: 0,
+          totalScore: 0,
+          joinedAt: DateTime(2026),
+        ),
+      ],
+      favorites: const [],
+      activeEditIndex: 1,
+      isLoading: false,
+    ),
+    setUp: () {
+      when(addPlayer(gameId: 'game-1', name: 'Ana')).thenThrow(
+        ArgumentError.value(
+          'Ana',
+          'name',
+          'Player name already exists in this game',
+        ),
+      );
+    },
+    act: (bloc) => bloc.add(const PlayerNameConfirmed(index: 1, name: 'Ana')),
+    expect: () => [
+      isA<AddPlayersLoaded>().having((s) => s.isLoading, 'loading', true),
+      isA<AddPlayersLoaded>()
+          .having(
+            (s) => s.errorMessage,
+            'errorMessage',
+            'Ya hay un jugador con ese nombre en esta partida.',
+          )
+          .having((s) => s.isLoading, 'isLoading', false),
+      isA<AddPlayersLoaded>()
+          .having((s) => s.errorMessage, 'errorMessage', isNull)
+          .having((s) => s.isLoading, 'isLoading', false),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'clears prior error before successful confirm so listener does not re-fire',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: 0,
+      isLoading: false,
+      errorMessage: 'Ya hay un jugador con ese nombre en esta partida.',
+    ),
+    setUp: () {
+      final player = PlayerEmbed(
+        id: 'p1',
+        displayName: 'Luis',
+        isGuest: true,
+        userId: null,
+        seatOrder: 0,
+        totalScore: 0,
+        joinedAt: DateTime(2026),
+      );
+      when(addPlayer(gameId: 'game-1', name: 'Luis')).thenAnswer(
+        (_) async => baseGame.copyWith(players: [player]),
+      );
+    },
+    act: (bloc) =>
+        bloc.add(const PlayerNameConfirmed(index: 0, name: 'Luis')),
+    expect: () => [
+      isA<AddPlayersLoaded>()
+          .having((s) => s.isLoading, 'loading', true)
+          .having((s) => s.errorMessage, 'errorMessage', isNull),
+      isA<AddPlayersLoaded>()
+          .having((s) => s.players.length, 'players', 1)
+          .having((s) => s.errorMessage, 'errorMessage', isNull)
+          .having((s) => s.isLoading, 'isLoading', false),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
     'activates inline edit for existing player',
     build: buildBloc,
     seed: () => AddPlayersLoaded(
@@ -404,6 +515,43 @@ void main() {
         ),
       );
     },
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'emits empty-name error on update then clears it',
+    build: buildBloc,
+    seed: () => AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [
+        PlayerEmbed(
+          id: 'p1',
+          displayName: 'Ana',
+          isGuest: true,
+          userId: null,
+          seatOrder: 0,
+          totalScore: 0,
+          joinedAt: DateTime(2026),
+        ),
+      ],
+      favorites: const [],
+      activeEditIndex: 0,
+      isLoading: false,
+    ),
+    act: (bloc) =>
+        bloc.add(const PlayerNameUpdated(playerId: 'p1', newName: '  ')),
+    expect: () => [
+      isA<AddPlayersLoaded>().having(
+        (s) => s.errorMessage,
+        'errorMessage',
+        'El nombre no puede estar vacío',
+      ),
+      isA<AddPlayersLoaded>().having(
+        (s) => s.errorMessage,
+        'errorMessage',
+        isNull,
+      ),
+    ],
   );
 
   blocTest<AddPlayersBloc, AddPlayersState>(

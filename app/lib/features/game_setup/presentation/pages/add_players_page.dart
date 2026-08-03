@@ -35,11 +35,16 @@ class _AddPlayersView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<AddPlayersBloc, AddPlayersState>(
       listener: (context, state) {
-        if (state is AddPlayersLoaded && state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage!)),
-          );
+        if (state is! AddPlayersLoaded) {
+          return;
         }
+        final errorMessage = state.errorMessage;
+        if (errorMessage == null || errorMessage.isEmpty) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
       },
       child: Scaffold(
         body: SafeArea(

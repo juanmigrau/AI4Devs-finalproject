@@ -87,7 +87,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     emit(
       current.copyWith(
         isLoading: true,
-        errorMessage: null,
+        clearError: true,
         clearActiveEditIndex: true,
       ),
     );
@@ -100,11 +100,15 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         current.copyWith(
           players: game.players,
           isLoading: false,
-          errorMessage: null,
+          clearError: true,
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
+      _emitTransientError(
+        emit,
+        current,
+        mapExceptionToUserMessage(error),
+      );
     }
   }
 
@@ -133,7 +137,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
       favorites: current.favorites,
     );
 
-    emit(current.copyWith(isLoading: true, errorMessage: null));
+    emit(current.copyWith(isLoading: true, clearError: true));
     try {
       final updatedFavorites = [...current.favorites];
       if (existingFavorite == null) {
@@ -150,11 +154,15 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         current.copyWith(
           favorites: updatedFavorites,
           isLoading: false,
-          errorMessage: null,
+          clearError: true,
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
+      _emitTransientError(
+        emit,
+        current,
+        mapExceptionToUserMessage(error),
+      );
     }
   }
 
@@ -170,7 +178,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     emit(
       current.copyWith(
         isLoading: true,
-        errorMessage: null,
+        clearError: true,
         clearActiveEditIndex: true,
       ),
     );
@@ -180,18 +188,22 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         playerId: event.playerId,
       );
       if (game == null) {
-        emit(current.copyWith(isLoading: false));
+        emit(current.copyWith(isLoading: false, clearError: true));
         return;
       }
       emit(
         current.copyWith(
           players: game.players,
           isLoading: false,
-          errorMessage: null,
+          clearError: true,
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
+      _emitTransientError(
+        emit,
+        current,
+        mapExceptionToUserMessage(error),
+      );
     }
   }
 
@@ -246,11 +258,15 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     }
     final trimmedName = event.name.trim();
     if (trimmedName.isEmpty) {
-      emit(current.copyWith(errorMessage: 'El nombre no puede estar vacío'));
+      _emitTransientError(
+        emit,
+        current,
+        'El nombre no puede estar vacío',
+      );
       return;
     }
 
-    emit(current.copyWith(isLoading: true, errorMessage: null));
+    emit(current.copyWith(isLoading: true, clearError: true));
     try {
       final game = await _addPlayer(gameId: current.gameId, name: trimmedName);
       emit(
@@ -258,11 +274,15 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
           players: game.players,
           isLoading: false,
           clearActiveEditIndex: true,
-          errorMessage: null,
+          clearError: true,
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
+      _emitTransientError(
+        emit,
+        current,
+        mapExceptionToUserMessage(error),
+      );
     }
   }
 
@@ -308,7 +328,11 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
 
     final trimmedName = event.newName.trim();
     if (trimmedName.isEmpty) {
-      emit(current.copyWith(errorMessage: 'El nombre no puede estar vacío'));
+      _emitTransientError(
+        emit,
+        current,
+        'El nombre no puede estar vacío',
+      );
       return;
     }
 
@@ -317,7 +341,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
       return;
     }
 
-    emit(current.copyWith(isLoading: true, errorMessage: null));
+    emit(current.copyWith(isLoading: true, clearError: true));
     try {
       final game = await _updatePlayerName(
         gameId: current.gameId,
@@ -329,12 +353,27 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
           players: game.players,
           isLoading: false,
           clearActiveEditIndex: true,
-          errorMessage: null,
+          clearError: true,
         ),
       );
     } catch (error) {
-      emit(current.copyWith(isLoading: false, errorMessage: mapExceptionToUserMessage(error)));
+      _emitTransientError(
+        emit,
+        current,
+        mapExceptionToUserMessage(error),
+      );
     }
+  }
+
+  /// Emits an error for the UI listener, then clears it so a later event
+  /// cannot re-trigger the same SnackBar from a stale [errorMessage].
+  void _emitTransientError(
+    Emitter<AddPlayersState> emit,
+    AddPlayersLoaded current,
+    String message,
+  ) {
+    emit(current.copyWith(isLoading: false, errorMessage: message));
+    emit(current.copyWith(isLoading: false, clearError: true));
   }
 
   FavoritePlayer? _findFavoriteForPlayer({
