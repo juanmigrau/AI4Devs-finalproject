@@ -22,52 +22,54 @@ class GameConfigPreview extends StatelessWidget {
         ? getIt<DebugConfigNotifier>()
         : null;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _PreviewRow(
-              label: 'Cartas totales',
-              value: '$totalCards',
-              suffix: 'cartas',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _PreviewRow(
+                  label: 'Cartas totales',
+                  value: '$totalCards',
+                  suffix: 'cartas',
+                ),
+                const SizedBox(height: 16),
+                _PreviewRow(
+                  label: 'Máx. por ronda',
+                  value: '$maxCardsPerRound',
+                  suffix: 'cartas',
+                ),
+                const SizedBox(height: 16),
+                _PreviewRow(
+                  label: 'Total de rondas',
+                  value: '$totalRounds',
+                  suffix: 'rondas',
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _PreviewRow(
-              label: 'Máx. por ronda',
-              value: '$maxCardsPerRound',
-              suffix: 'cartas',
-            ),
-            const SizedBox(height: 16),
-            if (debugConfig != null)
-              ListenableBuilder(
-                listenable: debugConfig,
-                builder: (context, _) {
-                  return _PreviewRow(
-                    label: 'Total de rondas',
-                    value: '$totalRounds',
-                    suffix: 'rondas',
-                    trailing: debugConfig.shortGameMode
-                        ? _debugBadge(context)
-                        : null,
-                  );
-                },
-              )
-            else
-              _PreviewRow(
-                label: 'Total de rondas',
-                value: '$totalRounds',
-                suffix: 'rondas',
-              ),
-          ],
+          ),
         ),
-      ),
+        if (debugConfig != null)
+          ListenableBuilder(
+            listenable: debugConfig,
+            builder: (context, _) {
+              if (!debugConfig.shortGameMode) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Center(child: _debugBadge(context)),
+              );
+            },
+          ),
+      ],
     );
   }
 
   Widget _debugBadge(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 8, bottom: 4),
       padding: const EdgeInsets.symmetric(
         horizontal: 8,
         vertical: 2,
@@ -92,13 +94,11 @@ class _PreviewRow extends StatelessWidget {
     required this.label,
     required this.value,
     required this.suffix,
-    this.trailing,
   });
 
   final String label;
   final String value;
   final String suffix;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +130,6 @@ class _PreviewRow extends StatelessWidget {
                 ),
           ),
         ),
-        ?trailing,
       ],
     );
   }
