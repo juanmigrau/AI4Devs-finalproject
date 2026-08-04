@@ -26,6 +26,7 @@ import 'package:la_pocha/features/game_setup/domain/usecases/create_game_draft_u
 import 'package:la_pocha/features/game_setup/domain/usecases/get_game_by_id_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/randomize_first_dealer_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/remove_player_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/revert_game_to_setup_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/reorder_players_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/set_first_dealer_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/start_game_usecase.dart';
@@ -168,9 +169,7 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerLazySingleton<GameSyncBloc>(
-    () => GameSyncBloc(
-      uploadFinishedGame: getIt<UploadFinishedGameUseCase>(),
-    ),
+    () => GameSyncBloc(uploadFinishedGame: getIt<UploadFinishedGameUseCase>()),
   );
 
   getIt.registerLazySingleton<AuthBloc>(
@@ -203,9 +202,7 @@ Future<void> configureDependencies() async {
     () => const DealerRotationService(),
   );
 
-  getIt.registerLazySingleton<BidOrderService>(
-    () => const BidOrderService(),
-  );
+  getIt.registerLazySingleton<BidOrderService>(() => const BidOrderService());
 
   getIt.registerLazySingleton<DealerRestrictionValidator>(
     () => const DealerRestrictionValidator(),
@@ -219,13 +216,9 @@ Future<void> configureDependencies() async {
     () => const TricksSumValidator(),
   );
 
-  getIt.registerLazySingleton<RankingService>(
-    () => const RankingService(),
-  );
+  getIt.registerLazySingleton<RankingService>(() => const RankingService());
 
-  getIt.registerLazySingleton<GameDetailMapper>(
-    () => const GameDetailMapper(),
-  );
+  getIt.registerLazySingleton<GameDetailMapper>(() => const GameDetailMapper());
 
   getIt.registerLazySingleton<HiddenGamesLocalDatasource>(
     () => HiddenGamesLocalDatasource(getIt<AppDatabase>()),
@@ -309,9 +302,7 @@ Future<void> configureDependencies() async {
     () => GetGameDetailUseCase(getIt<HistoryRepository>()),
   );
 
-  getIt.registerFactory<GameClonerService>(
-    () => const GameClonerService(),
-  );
+  getIt.registerFactory<GameClonerService>(() => const GameClonerService());
 
   getIt.registerFactory<RepeatGameUseCase>(
     () => RepeatGameUseCase(
@@ -385,10 +376,7 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerFactory<RepeatRoundUseCase>(
-    () => RepeatRoundUseCase(
-      getIt<GameRepository>(),
-      getIt<RoundRepository>(),
-    ),
+    () => RepeatRoundUseCase(getIt<GameRepository>(), getIt<RoundRepository>()),
   );
 
   getIt.registerFactory<GetRoundResultUseCase>(
@@ -407,10 +395,7 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerFactory<FinishGameUseCase>(
-    () => FinishGameUseCase(
-      getIt<GameRepository>(),
-      getIt<GameSyncBloc>(),
-    ),
+    () => FinishGameUseCase(getIt<GameRepository>(), getIt<GameSyncBloc>()),
   );
 
   getIt.registerFactory<CreateGameDraftUseCase>(
@@ -457,6 +442,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<StartGameUseCase>(
     () => StartGameUseCase(getIt<GameRepository>()),
+  );
+
+  getIt.registerFactory<RevertGameToSetupUseCase>(
+    () => RevertGameToSetupUseCase(getIt<GameRepository>()),
   );
 
   getIt.registerFactory<CancelGameUseCase>(

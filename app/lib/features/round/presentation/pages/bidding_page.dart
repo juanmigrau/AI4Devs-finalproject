@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/revert_game_to_setup_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_state.dart';
@@ -43,10 +44,12 @@ class _BiddingPageState extends State<BiddingPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<BiddingBloc>()
-        ..add(BiddingStarted(
-          gameId: widget.gameId,
-          roundNumber: widget.roundNumber,
-        )),
+        ..add(
+          BiddingStarted(
+            gameId: widget.gameId,
+            roundNumber: widget.roundNumber,
+          ),
+        ),
       child: _BiddingView(
         gameId: widget.gameId,
         roundNumber: widget.roundNumber,
@@ -61,8 +64,12 @@ class _BiddingView extends StatelessWidget {
   final String gameId;
   final int roundNumber;
 
-  void _onBack(BuildContext context) {
+  Future<void> _onBack(BuildContext context) async {
     if (roundNumber <= 1) {
+      await getIt<RevertGameToSetupUseCase>()(gameId);
+      if (!context.mounted) {
+        return;
+      }
       context.go('/games/$gameId/setup');
     } else {
       context.go(
@@ -76,49 +83,59 @@ class _BiddingView extends StatelessWidget {
     return BlocListener<BiddingBloc, BiddingState>(
       listener: (context, state) {
         if (state is BiddingNavigateToPlay) {
-          context.go(
-            '/games/${state.gameId}/rounds/${state.roundNumber}/play',
-          );
+          context.go('/games/${state.gameId}/rounds/${state.roundNumber}/play');
         }
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              BlocBuilder<BiddingBloc, BiddingState>(
-                builder: (context, state) {
-                  final cardsInRound =
-                      state is BiddingLoaded ? state.round.cardsInRound : null;
-                  return RoundHeader(
-                    gameId: gameId,
-                    roundNumber: roundNumber,
-                    cardsInRound: cardsInRound,
-                    subtitle: 'Apuestas',
-                    onBack: () => _onBack(context),
-                  );
-                },
-              ),
-              Expanded(
-                child: BlocBuilder<BiddingBloc, BiddingState>(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop) {
+            return;
+          }
+          await _onBack(context);
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                BlocBuilder<BiddingBloc, BiddingState>(
                   builder: (context, state) {
-                    return switch (state) {
-                      BiddingLoading() => const Center(
+                    final cardsInRound = state is BiddingLoaded
+                        ? state.round.cardsInRound
+                        : null;
+                    return RoundHeader(
+                      gameId: gameId,
+                      roundNumber: roundNumber,
+                      cardsInRound: cardsInRound,
+                      subtitle: 'Apuestas',
+                      onBack: () {
+                        _onBack(context);
+                      },
+                    );
+                  },
+                ),
+                Expanded(
+                  child: BlocBuilder<BiddingBloc, BiddingState>(
+                    builder: (context, state) {
+                      return switch (state) {
+                        BiddingLoading() => const Center(
                           child: CircularProgressIndicator(),
                         ),
-                      BiddingFailure(:final message) => Center(
+                        BiddingFailure(:final message) => Center(
                           child: Padding(
                             padding: const EdgeInsets.all(24),
                             child: Text(message),
                           ),
                         ),
-                      BiddingLoaded() => _LoadedBody(state: state),
-                      _ => const SizedBox.shrink(),
-                    };
-                  },
+                        BiddingLoaded() => _LoadedBody(state: state),
+                        _ => const SizedBox.shrink(),
+                      };
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -216,9 +233,9 @@ class _LoadedBodyState extends State<_LoadedBody> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             child: Text(
               state.validationMessage!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.error,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
             ),
           ),
         Expanded(
@@ -234,14 +251,17 @@ class _LoadedBodyState extends State<_LoadedBody> {
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
-                    for (var index = 0;
-                        index < state.biddingOrder.length;
-                        index++) ...[
+                    for (
+                      var index = 0;
+                      index < state.biddingOrder.length;
+                      index++
+                    ) ...[
                       if (index > 0)
                         Divider(
                           height: 1,
-                          color: colorScheme.outlineVariant
-                              .withValues(alpha: 0.6),
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       Builder(
                         builder: (context) {
@@ -263,22 +283,22 @@ class _LoadedBodyState extends State<_LoadedBody> {
                               cardsInRound: state.round.cardsInRound,
                               forbiddenBid:
                                   rowStatus == BiddingPlayerRowStatus.active
-                                      ? state.forbiddenBid
-                                      : null,
+                                  ? state.forbiddenBid
+                                  : null,
                               canConfirmBid: state.canConfirmBid,
                               isSubmitting: state.isSubmitting,
                               onBidChanged:
                                   rowStatus == BiddingPlayerRowStatus.active
-                                      ? (bid) => context
-                                          .read<BiddingBloc>()
-                                          .add(BidValueChanged(bid))
-                                      : null,
+                                  ? (bid) => context.read<BiddingBloc>().add(
+                                      BidValueChanged(bid),
+                                    )
+                                  : null,
                               onBidConfirmed:
                                   rowStatus == BiddingPlayerRowStatus.active
-                                      ? () => context
-                                          .read<BiddingBloc>()
-                                          .add(const BidConfirmed())
-                                      : null,
+                                  ? () => context.read<BiddingBloc>().add(
+                                      const BidConfirmed(),
+                                    )
+                                  : null,
                             ),
                           );
                         },
@@ -297,8 +317,8 @@ class _LoadedBodyState extends State<_LoadedBody> {
             isLoading: state.isClosing,
             onPressed: state.canClose
                 ? () => context.read<BiddingBloc>().add(
-                      const CloseBiddingRequested(),
-                    )
+                    const CloseBiddingRequested(),
+                  )
                 : null,
           ),
         ),

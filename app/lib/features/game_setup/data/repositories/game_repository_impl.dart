@@ -17,31 +17,26 @@ class GameRepositoryImpl implements GameRepository {
   Future<Game?> getGameById(String id) => _localDatasource.getGameById(id);
 
   @override
-  Future<Game> updateGamePlayers(
-    String gameId,
-    List<PlayerEmbed> players,
-  ) =>
+  Future<Game> updateGamePlayers(String gameId, List<PlayerEmbed> players) =>
       _localDatasource.updateGamePlayers(gameId, players);
 
   @override
   Future<Round> closeRoundAndUpdateScores({
     required Round closedRound,
     required List<PlayerEmbed> updatedPlayers,
-  }) =>
-      _localDatasource.closeRoundAndUpdateScores(
-        closedRound: closedRound,
-        updatedPlayers: updatedPlayers,
-      );
+  }) => _localDatasource.closeRoundAndUpdateScores(
+    closedRound: closedRound,
+    updatedPlayers: updatedPlayers,
+  );
 
   @override
   Future<Round> repeatRoundAndRevertScores({
     required Round resetRound,
     required List<PlayerEmbed> updatedPlayers,
-  }) =>
-      _localDatasource.repeatRoundAndRevertScores(
-        resetRound: resetRound,
-        updatedPlayers: updatedPlayers,
-      );
+  }) => _localDatasource.repeatRoundAndRevertScores(
+    resetRound: resetRound,
+    updatedPlayers: updatedPlayers,
+  );
 
   @override
   Future<StartGameResult> startGame({
@@ -49,35 +44,32 @@ class GameRepositoryImpl implements GameRepository {
     required List<PlayerEmbed> players,
     required String firstDealerPlayerId,
     required Round firstRound,
-  }) =>
-      _localDatasource.startGame(
-        gameId: gameId,
-        players: players,
-        firstDealerPlayerId: firstDealerPlayerId,
-        firstRound: firstRound,
-      );
+  }) => _localDatasource.startGame(
+    gameId: gameId,
+    players: players,
+    firstDealerPlayerId: firstDealerPlayerId,
+    firstRound: firstRound,
+  );
+
+  @override
+  Future<void> revertGameToSetup(String gameId) =>
+      _localDatasource.revertGameToSetup(gameId);
 
   @override
   Future<Round> advanceToNextRound({
     required Round nextRound,
     required int nextRoundNumber,
-  }) =>
-      _localDatasource.advanceToNextRound(
-        nextRound: nextRound,
-        nextRoundNumber: nextRoundNumber,
-      );
+  }) => _localDatasource.advanceToNextRound(
+    nextRound: nextRound,
+    nextRoundNumber: nextRoundNumber,
+  );
 
   @override
   Future<Game> finishGame({
     required String gameId,
     required DateTime finishedAt,
-  }) =>
-      _localDatasource.finishGame(
-        gameId: gameId,
-        finishedAt: finishedAt,
-      );
+  }) => _localDatasource.finishGame(gameId: gameId, finishedAt: finishedAt);
 
   @override
-  Future<void> deleteGame(String gameId) =>
-      _localDatasource.deleteGame(gameId);
+  Future<void> deleteGame(String gameId) => _localDatasource.deleteGame(gameId);
 }

@@ -17,6 +17,8 @@ abstract class GameRepository {
     required Round firstRound,
   });
 
+  Future<void> revertGameToSetup(String gameId);
+
   Future<Round> closeRoundAndUpdateScores({
     required Round closedRound,
     required List<PlayerEmbed> updatedPlayers,

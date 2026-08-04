@@ -9,7 +9,8 @@ import 'package:la_pocha/features/game_setup/domain/entities/start_game_result.d
 import 'package:uuid/uuid.dart';
 
 class GameLocalDatasource {
-  GameLocalDatasource(this._database, {Uuid? uuid}) : _uuid = uuid ?? const Uuid();
+  GameLocalDatasource(this._database, {Uuid? uuid})
+    : _uuid = uuid ?? const Uuid();
 
   final AppDatabase _database;
   final Uuid _uuid;
@@ -20,9 +21,9 @@ class GameLocalDatasource {
   }
 
   Future<Game?> getGameById(String id) async {
-    final entries = await (_database.select(_database.games)
-          ..where((table) => table.id.equals(id)))
-        .get();
+    final entries = await (_database.select(
+      _database.games,
+    )..where((table) => table.id.equals(id))).get();
     if (entries.isEmpty) {
       return null;
     }
@@ -33,13 +34,10 @@ class GameLocalDatasource {
     String gameId,
     List<PlayerEmbed> players,
   ) async {
-    await (_database.update(_database.games)
-          ..where((table) => table.id.equals(gameId)))
-        .write(
-      GamesCompanion(
-        players: Value(players),
-        updatedAt: Value(DateTime.now()),
-      ),
+    await (_database.update(
+      _database.games,
+    )..where((table) => table.id.equals(gameId))).write(
+      GamesCompanion(players: Value(players), updatedAt: Value(DateTime.now())),
     );
     return _readGameById(gameId);
   }
@@ -55,9 +53,9 @@ class GameLocalDatasource {
     final roundToInsert = firstRound.copyWith(id: roundId);
 
     await _database.transaction(() async {
-      await (_database.update(_database.games)
-            ..where((table) => table.id.equals(gameId)))
-          .write(
+      await (_database.update(
+        _database.games,
+      )..where((table) => table.id.equals(gameId))).write(
         GamesCompanion(
           status: const Value('in_progress'),
           players: Value(players),
@@ -68,9 +66,9 @@ class GameLocalDatasource {
         ),
       );
 
-      await _database.into(_database.rounds).insert(
-            RoundMapper.toCompanion(roundToInsert),
-          );
+      await _database
+          .into(_database.rounds)
+          .insert(RoundMapper.toCompanion(roundToInsert));
     });
 
     return StartGameResult(
@@ -80,23 +78,40 @@ class GameLocalDatasource {
     );
   }
 
+  Future<void> revertGameToSetup(String gameId) async {
+    await _database.transaction(() async {
+      await (_database.delete(
+        _database.rounds,
+      )..where((table) => table.gameId.equals(gameId))).go();
+
+      await (_database.update(
+        _database.games,
+      )..where((table) => table.id.equals(gameId))).write(
+        GamesCompanion(
+          status: const Value('setup'),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    });
+  }
+
   Future<Round> closeRoundAndUpdateScores({
     required Round closedRound,
     required List<PlayerEmbed> updatedPlayers,
   }) async {
     await _database.transaction(() async {
-      await (_database.update(_database.games)
-            ..where((table) => table.id.equals(closedRound.gameId)))
-          .write(
+      await (_database.update(
+        _database.games,
+      )..where((table) => table.id.equals(closedRound.gameId))).write(
         GamesCompanion(
           players: Value(updatedPlayers),
           updatedAt: Value(DateTime.now()),
         ),
       );
 
-      await _database.update(_database.rounds).replace(
-            RoundMapper.toCompanion(closedRound),
-          );
+      await _database
+          .update(_database.rounds)
+          .replace(RoundMapper.toCompanion(closedRound));
     });
 
     return _readRoundById(closedRound.id);
@@ -107,18 +122,18 @@ class GameLocalDatasource {
     required List<PlayerEmbed> updatedPlayers,
   }) async {
     await _database.transaction(() async {
-      await (_database.update(_database.games)
-            ..where((table) => table.id.equals(resetRound.gameId)))
-          .write(
+      await (_database.update(
+        _database.games,
+      )..where((table) => table.id.equals(resetRound.gameId))).write(
         GamesCompanion(
           players: Value(updatedPlayers),
           updatedAt: Value(DateTime.now()),
         ),
       );
 
-      await _database.update(_database.rounds).replace(
-            RoundMapper.toCompanion(resetRound),
-          );
+      await _database
+          .update(_database.rounds)
+          .replace(RoundMapper.toCompanion(resetRound));
     });
 
     return _readRoundById(resetRound.id);
@@ -133,18 +148,18 @@ class GameLocalDatasource {
     final roundToInsert = nextRound.copyWith(id: roundId);
 
     await _database.transaction(() async {
-      await (_database.update(_database.games)
-            ..where((table) => table.id.equals(nextRound.gameId)))
-          .write(
+      await (_database.update(
+        _database.games,
+      )..where((table) => table.id.equals(nextRound.gameId))).write(
         GamesCompanion(
           currentRoundNumber: Value(nextRoundNumber),
           updatedAt: Value(now),
         ),
       );
 
-      await _database.into(_database.rounds).insert(
-            RoundMapper.toCompanion(roundToInsert),
-          );
+      await _database
+          .into(_database.rounds)
+          .insert(RoundMapper.toCompanion(roundToInsert));
     });
 
     return _readRoundById(roundId);
@@ -155,9 +170,9 @@ class GameLocalDatasource {
     required DateTime finishedAt,
   }) async {
     final now = DateTime.now();
-    await (_database.update(_database.games)
-          ..where((table) => table.id.equals(gameId)))
-        .write(
+    await (_database.update(
+      _database.games,
+    )..where((table) => table.id.equals(gameId))).write(
       GamesCompanion(
         status: const Value('finished'),
         finishedAt: Value(finishedAt),
@@ -170,12 +185,12 @@ class GameLocalDatasource {
 
   Future<void> deleteGame(String gameId) async {
     await _database.transaction(() async {
-      await (_database.delete(_database.rounds)
-            ..where((table) => table.gameId.equals(gameId)))
-          .go();
-      await (_database.delete(_database.games)
-            ..where((table) => table.id.equals(gameId)))
-          .go();
+      await (_database.delete(
+        _database.rounds,
+      )..where((table) => table.gameId.equals(gameId))).go();
+      await (_database.delete(
+        _database.games,
+      )..where((table) => table.id.equals(gameId))).go();
     });
   }
 
@@ -185,9 +200,9 @@ class GameLocalDatasource {
     required String syncStatus,
   }) async {
     final now = DateTime.now();
-    await (_database.update(_database.games)
-          ..where((table) => table.id.equals(gameId)))
-        .write(
+    await (_database.update(
+      _database.games,
+    )..where((table) => table.id.equals(gameId))).write(
       GamesCompanion(
         cloudGameId: cloudGameId == null
             ? const Value.absent()
@@ -200,23 +215,23 @@ class GameLocalDatasource {
   }
 
   Future<List<Game>> getGamesBySyncStatus(String syncStatus) async {
-    final entries = await (_database.select(_database.games)
-          ..where((table) => table.syncStatus.equals(syncStatus)))
-        .get();
+    final entries = await (_database.select(
+      _database.games,
+    )..where((table) => table.syncStatus.equals(syncStatus))).get();
     return entries.map(GameMapper.toDomain).toList();
   }
 
   Future<Round> _readRoundById(String id) async {
-    final entry = await (_database.select(_database.rounds)
-          ..where((table) => table.id.equals(id)))
-        .getSingle();
+    final entry = await (_database.select(
+      _database.rounds,
+    )..where((table) => table.id.equals(id))).getSingle();
     return RoundMapper.toDomain(entry);
   }
 
   Future<Game> _readGameById(String id) async {
-    final entry = await (_database.select(_database.games)
-          ..where((table) => table.id.equals(id)))
-        .getSingle();
+    final entry = await (_database.select(
+      _database.games,
+    )..where((table) => table.id.equals(id))).getSingle();
     return GameMapper.toDomain(entry);
   }
 }

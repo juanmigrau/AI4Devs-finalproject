@@ -2681,3 +2681,51 @@ No uses modo Plan — es un fix puntual en BLoC y página.
 
 ---
 
+Corrige el bug: al volver atrás desde bidding_page a
+game_setup_page y pulsar "Empezar partida" de nuevo,
+aparece el error "Solo puedes iniciar la partida mientras
+está en preparación."
+
+CAUSA: StartGameUseCase cambia Game.status a 'in_progress'
+al crear la Round 1. Al volver atrás, el Game sigue en
+'in_progress' y el use case lo rechaza.
+
+FIX — Opción A (revertir estado al navegar atrás):
+
+En game_setup_page.dart, al activarse la navegación atrás
+desde bidding_page (onBack del RoundHeader o del botón
+atrás de bidding_page), ejecutar un nuevo use case:
+
+RevertGameToSetupUseCase:
+
+- Cambia Game.status de 'in_progress' a 'setup'
+- Elimina todas las Round con gameId == game.id de Drift
+  (la ronda 1 que se creó al pulsar "Empezar partida")
+- No modifica players[] ni ningún otro campo del Game
+
+Crea este use case en:
+lib/features/game_setup/domain/usecases/
+  revert_game_to_setup_usecase.dart
+
+Conecta su ejecución al evento de navegación atrás
+en bidding_page.dart (ronda 1):
+
+- Antes de navegar a game_setup_page, llamar a
+  RevertGameToSetupUseCase
+- Solo ejecutar si roundNumber == 1 (en rondas
+  posteriores, volver atrás muestra el resultado
+  anterior en solo lectura, no revierte nada)
+
+VERIFICACIÓN:
+
+- Empezar partida → bidding ronda 1 → atrás →
+  game_setup_page → "Empezar partida" → funciona
+  sin error
+- Game.status == 'setup' tras volver atrás
+- No hay Round en Drift con ese gameId tras volver atrás
+- En ronda > 1: volver atrás NO revierte nada,
+  muestra resultado anterior en solo lectura
+- flutter analyze sin errores
+
+No uses modo Plan — es un use case nuevo y cambios
+puntuales en dos páginas.
