@@ -6,6 +6,7 @@ import 'package:la_pocha/features/round/domain/services/dealer_restriction_valid
 import 'package:la_pocha/features/round/domain/usecases/close_bidding_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/load_bidding_context_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/submit_bid_usecase.dart';
+import 'package:la_pocha/features/round/domain/usecases/update_bid_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_state.dart';
 
@@ -13,6 +14,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
   BiddingBloc({
     required this._loadBiddingContext,
     required this._submitBid,
+    required this._updateBid,
     required this._closeBidding,
     DealerRestrictionValidator? validator,
   }) : _validator = validator ?? const DealerRestrictionValidator(),
@@ -20,11 +22,15 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
     on<BiddingStarted>(_onBiddingStarted);
     on<BidValueChanged>(_onBidValueChanged);
     on<BidConfirmed>(_onBidConfirmed);
+    on<BidEditActivated>(_onBidEditActivated);
+    on<BidEditCancelled>(_onBidEditCancelled);
+    on<BidUpdated>(_onBidUpdated);
     on<CloseBiddingRequested>(_onCloseBiddingRequested);
   }
 
   final LoadBiddingContextUseCase _loadBiddingContext;
   final SubmitBidUseCase _submitBid;
+  final UpdateBidUseCase _updateBid;
   final CloseBiddingUseCase _closeBidding;
   final DealerRestrictionValidator _validator;
 
@@ -54,7 +60,10 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
 
   void _onBidValueChanged(BidValueChanged event, Emitter<BiddingState> emit) {
     final current = state;
-    if (current is! BiddingLoaded || current.currentPlayerId == null) {
+    if (current is! BiddingLoaded) {
+      return;
+    }
+    if (current.editingPlayerId == null && current.currentPlayerId == null) {
       return;
     }
 
@@ -65,6 +74,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
         biddingOrder: current.biddingOrder,
         currentPlayerId: current.currentPlayerId,
         draftBid: event.bid,
+        editingPlayerId: current.editingPlayerId,
       ),
     );
   }
@@ -75,6 +85,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
   ) async {
     final current = state;
     if (current is! BiddingLoaded ||
+        current.editingPlayerId != null ||
         current.currentPlayerId == null ||
         !current.canConfirmBid ||
         current.isSubmitting) {
@@ -96,6 +107,89 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
           round: result.round,
           biddingOrder: result.biddingOrder,
           currentPlayerId: result.currentPlayerId,
+          draftBid: 0,
+        ),
+      );
+    } catch (error) {
+      emit(
+        current.copyWith(
+          isSubmitting: false,
+          validationMessage: () => mapExceptionToUserMessage(error),
+        ),
+      );
+    }
+  }
+
+  void _onBidEditActivated(
+    BidEditActivated event,
+    Emitter<BiddingState> emit,
+  ) {
+    final current = state;
+    if (current is! BiddingLoaded) {
+      return;
+    }
+    if (!current.round.bids.containsKey(event.playerId)) {
+      return;
+    }
+
+    emit(
+      _buildLoadedState(
+        game: current.game,
+        round: current.round,
+        biddingOrder: current.biddingOrder,
+        currentPlayerId: current.currentPlayerId,
+        draftBid: current.round.bids[event.playerId]!,
+        editingPlayerId: event.playerId,
+      ),
+    );
+  }
+
+  void _onBidEditCancelled(
+    BidEditCancelled event,
+    Emitter<BiddingState> emit,
+  ) {
+    final current = state;
+    if (current is! BiddingLoaded || current.editingPlayerId == null) {
+      return;
+    }
+
+    emit(
+      _buildLoadedState(
+        game: current.game,
+        round: current.round,
+        biddingOrder: current.biddingOrder,
+        currentPlayerId: current.currentPlayerId,
+        draftBid: 0,
+      ),
+    );
+  }
+
+  Future<void> _onBidUpdated(
+    BidUpdated event,
+    Emitter<BiddingState> emit,
+  ) async {
+    final current = state;
+    if (current is! BiddingLoaded ||
+        current.editingPlayerId != event.playerId ||
+        !current.canConfirmBid ||
+        current.isSubmitting) {
+      return;
+    }
+
+    emit(current.copyWith(isSubmitting: true, validationMessage: () => null));
+    try {
+      final updatedRound = await _updateBid(
+        round: current.round,
+        playerId: event.playerId,
+        newBid: event.newBid,
+      );
+
+      emit(
+        _buildLoadedState(
+          game: current.game,
+          round: updatedRound,
+          biddingOrder: current.biddingOrder,
+          currentPlayerId: current.currentPlayerId,
           draftBid: 0,
         ),
       );
@@ -146,34 +240,54 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
     required List<String> biddingOrder,
     required String? currentPlayerId,
     required int draftBid,
+    String? editingPlayerId,
   }) {
-    final partialSum = _validator.partialBidSum(round.bids);
+    final effectiveBids = Map<String, int>.from(round.bids);
+    if (editingPlayerId != null) {
+      effectiveBids[editingPlayerId] = draftBid;
+    }
+
+    final partialSum = _validator.partialBidSum(effectiveBids);
     final availableTricks = _validator.availableTricks(
       cardsInRound: round.cardsInRound,
-      bids: round.bids,
+      bids: effectiveBids,
     );
 
+    final dealerHasBid = round.bids.containsKey(round.dealerPlayerId);
     final isDealerTurn = currentPlayerId == round.dealerPlayerId;
-    final forbiddenBid = isDealerTurn
+    final shouldExposeForbidden = isDealerTurn || dealerHasBid;
+
+    final bidsBeforeDealer = Map<String, int>.from(effectiveBids)
+      ..remove(round.dealerPlayerId);
+    final forbiddenBid = shouldExposeForbidden
         ? _validator.forbiddenBidForDealer(
             cardsInRound: round.cardsInRound,
-            bidsBeforeDealer: round.bids,
+            bidsBeforeDealer: bidsBeforeDealer,
           )
         : null;
 
     final isDraftInRange = draftBid >= 0 && draftBid <= round.cardsInRound;
+    final isEditingDealer = editingPlayerId == round.dealerPlayerId;
+    final isActiveDealerTurn =
+        editingPlayerId == null && currentPlayerId == round.dealerPlayerId;
+    final appliesDealerRestriction = isEditingDealer || isActiveDealerTurn;
     final isForbidden =
+        appliesDealerRestriction &&
         forbiddenBid != null &&
         _validator.isForbiddenBid(bid: draftBid, forbiddenBid: forbiddenBid);
 
-    final canConfirmBid =
-        currentPlayerId != null && isDraftInRange && !isForbidden;
+    final canConfirmBid = editingPlayerId != null
+        ? isDraftInRange && !isForbidden
+        : currentPlayerId != null && isDraftInRange && !isForbidden;
 
-    final canClose = _validator.canClose(
-      cardsInRound: round.cardsInRound,
-      bids: round.bids,
-      playerIds: biddingOrder,
-    );
+    // canClose uses persisted bids only (not the edit draft).
+    final canClose = editingPlayerId != null
+        ? false
+        : _validator.canClose(
+            cardsInRound: round.cardsInRound,
+            bids: round.bids,
+            playerIds: biddingOrder,
+          );
 
     return BiddingLoaded(
       game: game,
@@ -186,6 +300,7 @@ class BiddingBloc extends Bloc<BiddingEvent, BiddingState> {
       forbiddenBid: forbiddenBid,
       canConfirmBid: canConfirmBid,
       canClose: canClose,
+      editingPlayerId: editingPlayerId,
     );
   }
 }

@@ -38,6 +38,7 @@ final class BiddingLoaded extends BiddingState {
     this.forbiddenBid,
     required this.canConfirmBid,
     required this.canClose,
+    this.editingPlayerId,
     this.validationMessage,
     this.isSubmitting = false,
     this.isClosing = false,
@@ -53,6 +54,7 @@ final class BiddingLoaded extends BiddingState {
   final int? forbiddenBid;
   final bool canConfirmBid;
   final bool canClose;
+  final String? editingPlayerId;
   final String? validationMessage;
   final bool isSubmitting;
   final bool isClosing;
@@ -68,6 +70,8 @@ final class BiddingLoaded extends BiddingState {
     int? Function()? forbiddenBid,
     bool? canConfirmBid,
     bool? canClose,
+    String? editingPlayerId,
+    bool clearEditingPlayerId = false,
     String? Function()? validationMessage,
     bool? isSubmitting,
     bool? isClosing,
@@ -84,6 +88,9 @@ final class BiddingLoaded extends BiddingState {
           forbiddenBid != null ? forbiddenBid() : this.forbiddenBid,
       canConfirmBid: canConfirmBid ?? this.canConfirmBid,
       canClose: canClose ?? this.canClose,
+      editingPlayerId: clearEditingPlayerId
+          ? null
+          : (editingPlayerId ?? this.editingPlayerId),
       validationMessage: validationMessage != null
           ? validationMessage()
           : this.validationMessage,
@@ -104,6 +111,7 @@ final class BiddingLoaded extends BiddingState {
         forbiddenBid,
         canConfirmBid,
         canClose,
+        editingPlayerId,
         validationMessage,
         isSubmitting,
         isClosing,

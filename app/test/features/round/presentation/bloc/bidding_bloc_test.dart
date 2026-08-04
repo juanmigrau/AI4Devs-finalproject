@@ -11,6 +11,7 @@ import 'package:la_pocha/features/round/domain/entities/submit_bid_result.dart';
 import 'package:la_pocha/features/round/domain/usecases/close_bidding_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/load_bidding_context_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/submit_bid_usecase.dart';
+import 'package:la_pocha/features/round/domain/usecases/update_bid_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/bidding_state.dart';
@@ -22,11 +23,13 @@ import 'bidding_bloc_test.mocks.dart';
 @GenerateNiceMocks([
   MockSpec<LoadBiddingContextUseCase>(),
   MockSpec<SubmitBidUseCase>(),
+  MockSpec<UpdateBidUseCase>(),
   MockSpec<CloseBiddingUseCase>(),
 ])
 void main() {
   late MockLoadBiddingContextUseCase loadBiddingContext;
   late MockSubmitBidUseCase submitBid;
+  late MockUpdateBidUseCase updateBid;
   late MockCloseBiddingUseCase closeBidding;
 
   const biddingOrder = ['p1', 'p2', 'p3', 'p0'];
@@ -102,12 +105,14 @@ void main() {
   BiddingBloc buildBloc() => BiddingBloc(
         loadBiddingContext: loadBiddingContext,
         submitBid: submitBid,
+        updateBid: updateBid,
         closeBidding: closeBidding,
       );
 
   setUp(() {
     loadBiddingContext = MockLoadBiddingContextUseCase();
     submitBid = MockSubmitBidUseCase();
+    updateBid = MockUpdateBidUseCase();
     closeBidding = MockCloseBiddingUseCase();
   });
 
@@ -249,6 +254,179 @@ void main() {
       isA<BiddingNavigateToPlay>()
           .having((s) => s.gameId, 'gameId', 'game-1')
           .having((s) => s.roundNumber, 'roundNumber', 1),
+    ],
+  );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'activates edit mode with pre-filled draft bid',
+    build: buildBloc,
+    seed: () => BiddingLoaded(
+      game: game,
+      round: round(bids: const {'p1': 2, 'p2': 1}),
+      biddingOrder: biddingOrder,
+      currentPlayerId: 'p3',
+      draftBid: 0,
+      partialSum: 3,
+      availableTricks: 1,
+      canConfirmBid: true,
+      canClose: false,
+    ),
+    act: (bloc) => bloc.add(const BidEditActivated('p1')),
+    expect: () => [
+      isA<BiddingLoaded>()
+          .having((s) => s.editingPlayerId, 'editingPlayerId', 'p1')
+          .having((s) => s.draftBid, 'draftBid', 2)
+          .having((s) => s.availableTricks, 'availableTricks', 1)
+          .having((s) => s.canClose, 'canClose', false),
+    ],
+  );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'cancels edit without changing confirmed bids',
+    build: buildBloc,
+    seed: () => BiddingLoaded(
+      game: game,
+      round: round(bids: const {'p1': 2, 'p2': 1}),
+      biddingOrder: biddingOrder,
+      currentPlayerId: 'p3',
+      draftBid: 3,
+      partialSum: 4,
+      availableTricks: 0,
+      canConfirmBid: true,
+      canClose: false,
+      editingPlayerId: 'p1',
+    ),
+    act: (bloc) => bloc.add(const BidEditCancelled()),
+    expect: () => [
+      isA<BiddingLoaded>()
+          .having((s) => s.editingPlayerId, 'editingPlayerId', null)
+          .having((s) => s.draftBid, 'draftBid', 0)
+          .having((s) => s.round.bids, 'bids', {'p1': 2, 'p2': 1})
+          .having((s) => s.availableTricks, 'availableTricks', 1),
+    ],
+  );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'switching edit row keeps first player confirmed bid',
+    build: buildBloc,
+    seed: () => BiddingLoaded(
+      game: game,
+      round: round(bids: const {'p1': 2, 'p2': 1}),
+      biddingOrder: biddingOrder,
+      currentPlayerId: 'p3',
+      draftBid: 3,
+      partialSum: 4,
+      availableTricks: 0,
+      canConfirmBid: true,
+      canClose: false,
+      editingPlayerId: 'p1',
+    ),
+    act: (bloc) => bloc.add(const BidEditActivated('p2')),
+    expect: () => [
+      isA<BiddingLoaded>()
+          .having((s) => s.editingPlayerId, 'editingPlayerId', 'p2')
+          .having((s) => s.draftBid, 'draftBid', 1)
+          .having((s) => s.round.bids['p1'], 'p1 bid', 2),
+    ],
+  );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'updates draft during edit and recalculates available tricks',
+    build: buildBloc,
+    seed: () => BiddingLoaded(
+      game: game,
+      round: round(bids: const {'p1': 2, 'p2': 1}),
+      biddingOrder: biddingOrder,
+      currentPlayerId: 'p3',
+      draftBid: 2,
+      partialSum: 3,
+      availableTricks: 1,
+      canConfirmBid: true,
+      canClose: false,
+      editingPlayerId: 'p1',
+    ),
+    act: (bloc) => bloc.add(const BidValueChanged(0)),
+    expect: () => [
+      isA<BiddingLoaded>()
+          .having((s) => s.draftBid, 'draftBid', 0)
+          .having((s) => s.availableTricks, 'availableTricks', 3)
+          .having((s) => s.editingPlayerId, 'editingPlayerId', 'p1'),
+    ],
+  );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'BidUpdated persists change and clears edit mode',
+    build: buildBloc,
+    seed: () => BiddingLoaded(
+      game: game,
+      round: round(bids: const {'p1': 2, 'p2': 1, 'p3': 1, 'p0': 0}),
+      biddingOrder: biddingOrder,
+      currentPlayerId: null,
+      draftBid: 0,
+      partialSum: 4,
+      availableTricks: 0,
+      forbiddenBid: 0,
+      canConfirmBid: true,
+      canClose: false,
+      editingPlayerId: 'p1',
+    ),
+    setUp: () {
+      when(
+        updateBid(
+          round: anyNamed('round'),
+          playerId: anyNamed('playerId'),
+          newBid: anyNamed('newBid'),
+        ),
+      ).thenAnswer(
+        (_) async => round(bids: const {'p1': 0, 'p2': 1, 'p3': 1, 'p0': 0}),
+      );
+    },
+    act: (bloc) => bloc.add(const BidUpdated(playerId: 'p1', newBid: 0)),
+    expect: () => [
+      isA<BiddingLoaded>().having((s) => s.isSubmitting, 'isSubmitting', true),
+      isA<BiddingLoaded>()
+          .having((s) => s.editingPlayerId, 'editingPlayerId', null)
+          .having((s) => s.round.bids['p1'], 'p1 bid', 0)
+          .having((s) => s.availableTricks, 'availableTricks', 2)
+          .having((s) => s.canClose, 'canClose', true)
+          .having((s) => s.forbiddenBid, 'forbiddenBid', 2),
+    ],
+  );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'BidUpdated that breaks dealer restriction disables canClose',
+    build: buildBloc,
+    seed: () => BiddingLoaded(
+      game: game,
+      round: round(bids: const {'p1': 1, 'p2': 1, 'p3': 1, 'p0': 0}),
+      biddingOrder: biddingOrder,
+      currentPlayerId: null,
+      draftBid: 2,
+      partialSum: 4,
+      availableTricks: 0,
+      forbiddenBid: 1,
+      canConfirmBid: true,
+      canClose: false,
+      editingPlayerId: 'p1',
+    ),
+    setUp: () {
+      when(
+        updateBid(
+          round: anyNamed('round'),
+          playerId: anyNamed('playerId'),
+          newBid: anyNamed('newBid'),
+        ),
+      ).thenAnswer(
+        (_) async => round(bids: const {'p1': 2, 'p2': 1, 'p3': 1, 'p0': 0}),
+      );
+    },
+    act: (bloc) => bloc.add(const BidUpdated(playerId: 'p1', newBid: 2)),
+    expect: () => [
+      isA<BiddingLoaded>().having((s) => s.isSubmitting, 'isSubmitting', true),
+      isA<BiddingLoaded>()
+          .having((s) => s.round.bids['p1'], 'p1 bid', 2)
+          .having((s) => s.canClose, 'canClose', false)
+          .having((s) => s.forbiddenBid, 'forbiddenBid', 0),
     ],
   );
 }

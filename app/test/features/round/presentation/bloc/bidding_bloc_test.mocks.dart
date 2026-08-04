@@ -16,6 +16,8 @@ import 'package:la_pocha/features/round/domain/usecases/load_bidding_context_use
     as _i5;
 import 'package:la_pocha/features/round/domain/usecases/submit_bid_usecase.dart'
     as _i7;
+import 'package:la_pocha/features/round/domain/usecases/update_bid_usecase.dart'
+    as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -129,6 +131,46 @@ class MockSubmitBidUseCase extends _i1.Mock implements _i7.SubmitBidUseCase {
             ),
           )
           as _i6.Future<_i3.SubmitBidResult>);
+}
+
+/// A class which mocks [UpdateBidUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockUpdateBidUseCase extends _i1.Mock implements _i9.UpdateBidUseCase {
+  @override
+  _i6.Future<_i4.Round> call({
+    required _i4.Round? round,
+    required String? playerId,
+    required int? newBid,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {
+              #round: round,
+              #playerId: playerId,
+              #newBid: newBid,
+            }),
+            returnValue: _i6.Future<_i4.Round>.value(
+              _FakeRound_2(
+                this,
+                Invocation.method(#call, [], {
+                  #round: round,
+                  #playerId: playerId,
+                  #newBid: newBid,
+                }),
+              ),
+            ),
+            returnValueForMissingStub: _i6.Future<_i4.Round>.value(
+              _FakeRound_2(
+                this,
+                Invocation.method(#call, [], {
+                  #round: round,
+                  #playerId: playerId,
+                  #newBid: newBid,
+                }),
+              ),
+            ),
+          )
+          as _i6.Future<_i4.Round>);
 }
 
 /// A class which mocks [CloseBiddingUseCase].

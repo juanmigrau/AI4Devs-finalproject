@@ -92,6 +92,12 @@ class _BiddingView extends StatelessWidget {
           if (didPop) {
             return;
           }
+          final bloc = context.read<BiddingBloc>();
+          final current = bloc.state;
+          if (current is BiddingLoaded && current.editingPlayerId != null) {
+            bloc.add(const BidEditCancelled());
+            return;
+          }
           await _onBack(context);
         },
         child: Scaffold(
@@ -211,13 +217,31 @@ class _LoadedBodyState extends State<_LoadedBody> {
   }
 
   BiddingPlayerRowStatus _statusFor(String playerId) {
+    if (playerId == state.editingPlayerId) {
+      return BiddingPlayerRowStatus.editing;
+    }
     if (state.round.bids.containsKey(playerId)) {
       return BiddingPlayerRowStatus.completed;
     }
-    if (playerId == state.currentPlayerId) {
+    if (playerId == state.currentPlayerId && state.editingPlayerId == null) {
       return BiddingPlayerRowStatus.active;
     }
+    if (playerId == state.currentPlayerId) {
+      // Current turn collapsed while another row is being edited.
+      return BiddingPlayerRowStatus.pending;
+    }
     return BiddingPlayerRowStatus.pending;
+  }
+
+  bool _isExpanded(BiddingPlayerRowStatus status) {
+    return status == BiddingPlayerRowStatus.active ||
+        status == BiddingPlayerRowStatus.editing;
+  }
+
+  void _cancelEditIfNeeded(BuildContext context) {
+    if (state.editingPlayerId != null) {
+      context.read<BiddingBloc>().add(const BidEditCancelled());
+    }
   }
 
   @override
@@ -227,7 +251,11 @@ class _LoadedBodyState extends State<_LoadedBody> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TricksBalanceIndicator(availableTricks: state.availableTricks),
+        GestureDetector(
+          onTap: () => _cancelEditIfNeeded(context),
+          behavior: HitTestBehavior.opaque,
+          child: TricksBalanceIndicator(availableTricks: state.availableTricks),
+        ),
         if (state.validationMessage != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
@@ -271,6 +299,12 @@ class _LoadedBodyState extends State<_LoadedBody> {
                             return const SizedBox.shrink();
                           }
                           final rowStatus = _statusFor(playerId);
+                          final isExpanded = _isExpanded(rowStatus);
+                          final isDealer =
+                              playerId == state.round.dealerPlayerId;
+                          final showForbidden = isDealer &&
+                              state.forbiddenBid != null &&
+                              rowStatus != BiddingPlayerRowStatus.pending;
                           return KeyedSubtree(
                             key: _keyFor(playerId),
                             child: BiddingPlayerRow(
@@ -278,26 +312,41 @@ class _LoadedBodyState extends State<_LoadedBody> {
                               index: index,
                               status: rowStatus,
                               bid: state.round.bids[playerId],
-                              isDealer: playerId == state.round.dealerPlayerId,
-                              draftBid: state.draftBid,
+                              isDealer: isDealer,
+                              draftBid: isExpanded ? state.draftBid : 0,
                               cardsInRound: state.round.cardsInRound,
                               forbiddenBid:
-                                  rowStatus == BiddingPlayerRowStatus.active
-                                  ? state.forbiddenBid
-                                  : null,
+                                  showForbidden ? state.forbiddenBid : null,
                               canConfirmBid: state.canConfirmBid,
                               isSubmitting: state.isSubmitting,
-                              onBidChanged:
-                                  rowStatus == BiddingPlayerRowStatus.active
+                              onActivateEdit:
+                                  rowStatus ==
+                                      BiddingPlayerRowStatus.completed
+                                  ? () => context.read<BiddingBloc>().add(
+                                      BidEditActivated(playerId),
+                                    )
+                                  : null,
+                              onBidChanged: isExpanded
                                   ? (bid) => context.read<BiddingBloc>().add(
                                       BidValueChanged(bid),
                                     )
                                   : null,
-                              onBidConfirmed:
-                                  rowStatus == BiddingPlayerRowStatus.active
-                                  ? () => context.read<BiddingBloc>().add(
-                                      const BidConfirmed(),
-                                    )
+                              onBidConfirmed: isExpanded
+                                  ? () {
+                                      final bloc =
+                                          context.read<BiddingBloc>();
+                                      if (rowStatus ==
+                                          BiddingPlayerRowStatus.editing) {
+                                        bloc.add(
+                                          BidUpdated(
+                                            playerId: playerId,
+                                            newBid: state.draftBid,
+                                          ),
+                                        );
+                                      } else {
+                                        bloc.add(const BidConfirmed());
+                                      }
+                                    }
                                   : null,
                             ),
                           );

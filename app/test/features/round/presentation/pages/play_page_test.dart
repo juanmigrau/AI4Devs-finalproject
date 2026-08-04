@@ -141,7 +141,7 @@ void main() {
     expect(find.text('38'), findsOneWidget);
     expect(find.text('2 / 4'), findsOneWidget);
     expect(find.text('Introducir bazas reales'), findsOneWidget);
-    expect(find.text('Corregir apuestas'), findsOneWidget);
+    expect(find.text('Corregir apuestas'), findsNothing);
     expect(find.text('En juego'), findsOneWidget);
   });
 }

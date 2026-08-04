@@ -5,7 +5,6 @@ import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_state.dart';
-import 'package:la_pocha/features/round/presentation/widgets/correct_bids_dialog.dart';
 import 'package:la_pocha/features/round/presentation/widgets/player_play_card.dart';
 import 'package:la_pocha/features/round/presentation/widgets/round_header.dart';
 import 'package:la_pocha/features/round/presentation/widgets/tricks_balance_banner.dart';
@@ -122,19 +121,6 @@ class _LoadedBody extends StatelessWidget {
 
   final PlayStateLoaded state;
 
-  Future<void> _onCorrectBids(BuildContext context) async {
-    final bloc = context.read<PlayStateBloc>();
-    final playState = state.playState;
-    final updatedBids = await showCorrectBidsDialog(
-      context,
-      players: playState.players,
-      round: playState.round,
-    );
-    if (updatedBids != null) {
-      bloc.add(BidsCorrectionSubmitted(updatedBids));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final playState = state.playState;
@@ -194,14 +180,7 @@ class _LoadedBody extends StatelessWidget {
             ),
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-          child: TextButton(
-            onPressed: () => _onCorrectBids(context),
-            child: const Text('Corregir apuestas'),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: FilledButton(
             onPressed: playState.restrictionMet
                 ? () => context.read<PlayStateBloc>().add(

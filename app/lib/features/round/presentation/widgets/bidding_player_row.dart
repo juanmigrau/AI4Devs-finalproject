@@ -5,7 +5,7 @@ import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/round/presentation/widgets/bid_input_stepper.dart';
 import 'package:la_pocha/features/round/presentation/widgets/forbidden_bid_warning.dart';
 
-enum BiddingPlayerRowStatus { pending, active, completed }
+enum BiddingPlayerRowStatus { pending, active, completed, editing }
 
 class BiddingPlayerRow extends StatelessWidget {
   const BiddingPlayerRow({
@@ -22,6 +22,7 @@ class BiddingPlayerRow extends StatelessWidget {
     this.isSubmitting = false,
     this.onBidChanged,
     this.onBidConfirmed,
+    this.onActivateEdit,
   });
 
   final PlayerEmbed player;
@@ -36,26 +37,29 @@ class BiddingPlayerRow extends StatelessWidget {
   final bool isSubmitting;
   final ValueChanged<int>? onBidChanged;
   final VoidCallback? onBidConfirmed;
+  final VoidCallback? onActivateEdit;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final isPending = status == BiddingPlayerRowStatus.pending;
     final isActive = status == BiddingPlayerRowStatus.active;
+    final isEditing = status == BiddingPlayerRowStatus.editing;
+    final isExpanded = isActive || isEditing;
     final opacity = isPending ? 0.4 : 1.0;
 
-    return Opacity(
+    final row = Opacity(
       opacity: opacity,
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: 12,
-          vertical: isActive ? 12 : 8,
+          vertical: isExpanded ? 12 : 8,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
-              height: isActive ? 56 : 36,
+              height: isExpanded ? 56 : 36,
               child: Row(
                 children: [
                   PlayerInitialAvatar(
@@ -71,8 +75,9 @@ class BiddingPlayerRow extends StatelessWidget {
                           child: Text(
                             player.displayName,
                             style: textTheme.bodyMedium?.copyWith(
-                              fontWeight:
-                                  isActive ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: isExpanded
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -101,7 +106,7 @@ class BiddingPlayerRow extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isActive)
+                  if (isExpanded)
                     BidInputStepper(
                       value: draftBid,
                       min: 0,
@@ -114,7 +119,7 @@ class BiddingPlayerRow extends StatelessWidget {
                 ],
               ),
             ),
-            if (isActive && isDealer && forbiddenBid != null) ...[
+            if (isDealer && forbiddenBid != null && !isPending) ...[
               const SizedBox(height: 4),
               ForbiddenBidWarning(forbiddenBid: forbiddenBid!),
             ],
@@ -122,5 +127,14 @@ class BiddingPlayerRow extends StatelessWidget {
         ),
       ),
     );
+
+    if (status == BiddingPlayerRowStatus.completed && onActivateEdit != null) {
+      return InkWell(
+        onTap: onActivateEdit,
+        child: row,
+      );
+    }
+
+    return row;
   }
 }

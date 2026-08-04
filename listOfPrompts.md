@@ -2729,3 +2729,78 @@ VERIFICACIÓN:
 
 No uses modo Plan — es un use case nuevo y cambios
 puntuales en dos páginas.
+
+---
+
+CAMBIO 1 — Edición inline de apuestas ya confirmadas
+en bidding_page.dart:
+
+Al tocar la fila de un jugador que ya tiene apuesta
+confirmada, activar modo edición inline con su apuesta
+actual pre-rellenada — mismo patrón que add_players_page.
+
+COMPORTAMIENTO:
+- Fila en reposo (apuesta confirmada): avatar + nombre
+  + número de apuesta en círculo verde
+- Al tocar la fila: se expande mostrando el selector
+  [-] [número] [+] [✓] con el valor actual pre-rellenado
+- Solo una fila en modo edición a la vez — si se toca
+  otra fila mientras una está en edición, la primera
+  se colapsa conservando su valor actual
+- Al confirmar con ✓: actualizar la apuesta, recalcular
+  inmediatamente:
+  * "Bazas restantes" (bazas disponibles - suma de apuestas)
+  * "Número prohibido" del repartidor (si ya es su turno
+    o si el repartidor ya apostó y la modificación lo
+    afecta)
+  * Estado del botón "Cerrar apuestas" (habilitado solo
+    si todas las apuestas están registradas Y la
+    restricción del repartidor se cumple)
+- Al cancelar (tocar fuera o botón atrás del teclado):
+  conservar el valor anterior sin cambios
+
+NUEVOS EVENTOS en BiddingBloc:
+- BidEditActivated(String playerId) — activa edición
+  en fila de jugador con apuesta ya confirmada
+- BidEditCancelled() — cancela sin cambios
+- BidUpdated(String playerId, int newBid) — confirma
+  el cambio y recalcula restricciones
+
+CAMBIO 2 — Eliminar "Corregir apuestas" de play_page:
+
+En play_page.dart, eliminar el botón/enlace secundario
+"Corregir apuestas" y su navegación asociada. Con la
+edición inline en bidding_page, el usuario simplemente
+vuelve atrás para corregir — no hace falta un acceso
+explícito desde play_page.
+
+Si existe correct_bids_dialog.dart o similar usado
+exclusivamente desde play_page, se puede mantener el
+fichero pero dejar de usarlo desde play_page (no borrar
+por si se reutiliza en otro contexto).
+
+CAMBIO 3 — Incrementar versión:
+
+En pubspec.yaml:
+ANTES: version: 1.0.0+1
+DESPUÉS: version: 1.0.1+2
+
+(A partir de ahora cada prompt de código incrementa
+el patch version y el build number)
+
+VERIFICACIÓN:
+- Tocar jugador con apuesta confirmada → modo edición
+  inline con valor pre-rellenado
+- Modificar apuesta → bazas restantes y número prohibido
+  se actualizan en tiempo real
+- Si modificación invalida restricción del repartidor →
+  botón "Cerrar apuestas" deshabilitado
+- play_page sin botón "Corregir apuestas"
+- pubspec.yaml con version: 1.0.1+2
+- flutter analyze sin errores
+
+Usa modo Plan — afecta a BiddingBloc, bidding_page
+y play_page.
+
+---
+
