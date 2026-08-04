@@ -41,6 +41,14 @@ class _GameOverflowMenuView extends StatelessWidget {
   final String gameId;
   final int? repeatRoundNumber;
 
+  Future<void> _confirmAndCancel(BuildContext context) async {
+    final cubit = context.read<CancelGameCubit>();
+    final confirmed = await showCancelGameDialog(context);
+    if (confirmed) {
+      await cubit.cancel(gameId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -70,46 +78,50 @@ class _GameOverflowMenuView extends StatelessWidget {
           },
         ),
       ],
-      child: PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert, color: Colors.white),
-        onSelected: (value) async {
-          switch (value) {
-            case 'repeat':
-              final roundNumber = repeatRoundNumber;
-              if (roundNumber == null) {
-                return;
-              }
-              final cubit = context.read<RepeatRoundCubit>();
-              final confirmed = await showRepeatRoundDialog(context);
-              if (confirmed) {
-                await cubit.repeat(gameId: gameId, roundNumber: roundNumber);
-              }
-            case 'cancel':
-              final cubit = context.read<CancelGameCubit>();
-              final confirmed = await showCancelGameDialog(context);
-              if (confirmed) {
-                await cubit.cancel(gameId);
-              }
-          }
-        },
-        itemBuilder: (context) => [
-          if (repeatRoundNumber != null)
-            const PopupMenuItem(
-              value: 'repeat',
-              child: Text(
-                'Repetir ronda',
-                style: TextStyle(color: Color(0xFFD9772E)),
-              ),
+      child: repeatRoundNumber == null
+          ? IconButton(
+              icon: const Icon(Icons.stop_circle_outlined),
+              color: Theme.of(context).colorScheme.error,
+              onPressed: () => _confirmAndCancel(context),
+            )
+          : PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onSelected: (value) async {
+                switch (value) {
+                  case 'repeat':
+                    final roundNumber = repeatRoundNumber;
+                    if (roundNumber == null) {
+                      return;
+                    }
+                    final cubit = context.read<RepeatRoundCubit>();
+                    final confirmed = await showRepeatRoundDialog(context);
+                    if (confirmed) {
+                      await cubit.repeat(
+                        gameId: gameId,
+                        roundNumber: roundNumber,
+                      );
+                    }
+                  case 'cancel':
+                    await _confirmAndCancel(context);
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'repeat',
+                  child: Text(
+                    'Repetir ronda',
+                    style: TextStyle(color: Color(0xFFD9772E)),
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'cancel',
+                  child: Text(
+                    'Cancelar partida',
+                    style: TextStyle(color: Color(0xFFD9772E)),
+                  ),
+                ),
+              ],
             ),
-          const PopupMenuItem(
-            value: 'cancel',
-            child: Text(
-              'Cancelar partida',
-              style: TextStyle(color: Color(0xFFD9772E)),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -139,7 +139,10 @@ void main() {
     expect(find.text('Ana'), findsOneWidget);
     expect(find.text('42'), findsOneWidget);
     expect(find.text('38'), findsOneWidget);
-    expect(find.text('2 / 4'), findsOneWidget);
+    expect(find.text('-2'), findsOneWidget);
+    expect(find.text('Balance de apuestas'), findsOneWidget);
+    expect(find.text('apostó'), findsWidgets);
+    expect(find.text('puntos'), findsWidgets);
     expect(find.text('Introducir bazas reales'), findsOneWidget);
     expect(find.text('Corregir apuestas'), findsNothing);
     expect(find.text('En juego'), findsOneWidget);

@@ -59,6 +59,10 @@ class _PlayView extends StatelessWidget {
   final String gameId;
   final int roundNumber;
 
+  void _goToBidding(BuildContext context) {
+    context.go('/games/$gameId/rounds/$roundNumber/bids');
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<PlayStateBloc, PlayStateBlocState>(
@@ -69,44 +73,54 @@ class _PlayView extends StatelessWidget {
           );
         }
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              BlocBuilder<PlayStateBloc, PlayStateBlocState>(
-                builder: (context, state) {
-                  final cardsInRound = state is PlayStateLoaded
-                      ? state.playState.round.cardsInRound
-                      : null;
-                  return RoundHeader(
-                    gameId: gameId,
-                    roundNumber: roundNumber,
-                    cardsInRound: cardsInRound,
-                    subtitle: 'En juego',
-                  );
-                },
-              ),
-              Expanded(
-                child: BlocBuilder<PlayStateBloc, PlayStateBlocState>(
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) {
+            return;
+          }
+          _goToBidding(context);
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                BlocBuilder<PlayStateBloc, PlayStateBlocState>(
                   builder: (context, state) {
-                    return switch (state) {
-                      PlayStateLoading() => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      PlayStateFailure(:final message) => Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(message),
-                          ),
-                        ),
-                      PlayStateLoaded() => _LoadedBody(state: state),
-                      _ => const SizedBox.shrink(),
-                    };
+                    final cardsInRound = state is PlayStateLoaded
+                        ? state.playState.round.cardsInRound
+                        : null;
+                    return RoundHeader(
+                      gameId: gameId,
+                      roundNumber: roundNumber,
+                      cardsInRound: cardsInRound,
+                      subtitle: 'En juego',
+                      onBack: () => _goToBidding(context),
+                    );
                   },
                 ),
-              ),
-            ],
+                Expanded(
+                  child: BlocBuilder<PlayStateBloc, PlayStateBlocState>(
+                    builder: (context, state) {
+                      return switch (state) {
+                        PlayStateLoading() => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        PlayStateFailure(:final message) => Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(message),
+                            ),
+                          ),
+                        PlayStateLoaded() => _LoadedBody(state: state),
+                        _ => const SizedBox.shrink(),
+                      };
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -124,6 +138,7 @@ class _LoadedBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playState = state.playState;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -144,28 +159,49 @@ class _LoadedBody extends StatelessWidget {
               ),
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: TricksBalanceBanner(
-            bidSum: playState.bidSum,
-            cardsInRound: playState.round.cardsInRound,
-            restrictionMet: playState.restrictionMet,
-          ),
+        TricksBalanceBanner(
+          bidSum: playState.bidSum,
+          cardsInRound: playState.round.cardsInRound,
         ),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(20),
-            itemCount: playState.players.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final player = playState.players[index];
-              return PlayerPlayCard(
-                player: player,
-                index: index,
-                bid: playState.round.bids[player.id] ?? 0,
-                isDealer: player.id == playState.round.dealerPlayerId,
-              );
-            },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    for (var index = 0;
+                        index < playState.players.length;
+                        index++) ...[
+                      if (index > 0)
+                        Divider(
+                          height: 1,
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      Builder(
+                        builder: (context) {
+                          final player = playState.players[index];
+                          return PlayerPlayCard(
+                            player: player,
+                            index: index,
+                            bid: playState.round.bids[player.id] ?? 0,
+                            isDealer:
+                                player.id == playState.round.dealerPlayerId,
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         if (!playState.restrictionMet)

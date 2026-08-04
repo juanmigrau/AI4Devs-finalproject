@@ -89,26 +89,31 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> tapCancelIcon(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.stop_circle_outlined));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> openMenuAndTapCancel(WidgetTester tester) async {
     await openMenu(tester);
     await tester.tap(find.text('Cancelar partida').last);
     await tester.pumpAndSettle();
   }
 
-  testWidgets('does not show "Repetir ronda" without repeatRoundNumber', (
+  testWidgets('shows cancel IconButton without repeatRoundNumber', (
     tester,
   ) async {
     await tester.pumpWidget(buildApp());
-    await openMenu(tester);
-    expect(find.text('Repetir ronda'), findsNothing);
+    expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 
-  testWidgets('shows confirmation dialog when tapping "Cancelar partida"', (
+  testWidgets('shows confirmation dialog when tapping cancel IconButton', (
     tester,
   ) async {
     await tester.pumpWidget(buildApp());
 
-    await openMenuAndTapCancel(tester);
+    await tapCancelIcon(tester);
 
     expect(find.text('Volver'), findsOneWidget);
     expect(
@@ -122,7 +127,7 @@ void main() {
   ) async {
     await tester.pumpWidget(buildApp());
 
-    await openMenuAndTapCancel(tester);
+    await tapCancelIcon(tester);
     await tester.tap(find.text('Volver'));
     await tester.pumpAndSettle();
 
@@ -135,12 +140,20 @@ void main() {
   ) async {
     await tester.pumpWidget(buildApp());
 
-    await openMenuAndTapCancel(tester);
+    await tapCancelIcon(tester);
     await tester.tap(find.widgetWithText(TextButton, 'Cancelar partida'));
     await tester.pumpAndSettle();
 
     verify(cancelGame(gameId: 'game-1')).called(1);
     expect(find.text('HOME SCREEN'), findsOneWidget);
+  });
+
+  testWidgets('shows overflow menu when repeatRoundNumber is set', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildApp(repeatRoundNumber: 1));
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    expect(find.byIcon(Icons.stop_circle_outlined), findsNothing);
   });
 
   testWidgets('shows repeat round confirmation dialog', (tester) async {
@@ -187,5 +200,19 @@ void main() {
 
     verify(repeatRound(gameId: 'game-1', roundNumber: 1)).called(1);
     expect(find.text('BIDDING SCREEN'), findsOneWidget);
+  });
+
+  testWidgets('shows cancel in overflow menu when repeat is available', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildApp(repeatRoundNumber: 1));
+
+    await openMenuAndTapCancel(tester);
+
+    expect(find.text('Volver'), findsOneWidget);
+    expect(
+      find.textContaining('Se perdera todo el progreso'),
+      findsOneWidget,
+    );
   });
 }
