@@ -83,6 +83,34 @@ void main() {
     expect(result.currentPlayerId, isNull);
   });
 
+  test(
+    'allows any dealer bid when other bids already exceed cardsInRound',
+    () async {
+      final round = Round(
+        id: 'round-1',
+        gameId: 'game-1',
+        roundNumber: 1,
+        cardsInRound: 1,
+        dealerPlayerId: 'p0',
+        status: RoundStatus.bidding,
+        bids: const {'p1': 1, 'p2': 1},
+        createdAt: DateTime(2026),
+      );
+      when(roundRepository.updateRound(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Round,
+      );
+
+      final result = await useCase(
+        round: round,
+        biddingOrder: const ['p1', 'p2', 'p0'],
+        currentPlayerId: 'p0',
+        bid: 0,
+      );
+
+      expect(result.round.bids['p0'], 0);
+    },
+  );
+
   test('rejects bid out of range', () async {
     expect(
       () => useCase(

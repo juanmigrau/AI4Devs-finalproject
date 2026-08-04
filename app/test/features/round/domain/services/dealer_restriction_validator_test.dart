@@ -22,7 +22,7 @@ void main() {
       );
     });
 
-    test('forbiddenBidForDealer equals available tricks before dealer bids', () {
+    test('forbiddenBidForDealer equals available tricks when non-negative', () {
       expect(
         validator.forbiddenBidForDealer(
           cardsInRound: 10,
@@ -32,9 +32,43 @@ void main() {
       );
     });
 
+    test('forbiddenBidForDealer is 0 when other bids sum equals cardsInRound', () {
+      expect(
+        validator.forbiddenBidForDealer(
+          cardsInRound: 1,
+          bidsBeforeDealer: const {'p1': 1, 'p2': 0},
+        ),
+        0,
+      );
+    });
+
+    test('forbiddenBidForDealer is 1 when others bid 0 in a 1-card round', () {
+      expect(
+        validator.forbiddenBidForDealer(
+          cardsInRound: 1,
+          bidsBeforeDealer: const {'p1': 0, 'p2': 0},
+        ),
+        1,
+      );
+    });
+
+    test(
+      'forbiddenBidForDealer is null when other bids already exceed cardsInRound',
+      () {
+        expect(
+          validator.forbiddenBidForDealer(
+            cardsInRound: 1,
+            bidsBeforeDealer: const {'p1': 1, 'p2': 1},
+          ),
+          isNull,
+        );
+      },
+    );
+
     test('isForbiddenBid returns true when bid equals forbidden value', () {
       expect(validator.isForbiddenBid(bid: 5, forbiddenBid: 5), isTrue);
       expect(validator.isForbiddenBid(bid: 4, forbiddenBid: 5), isFalse);
+      expect(validator.isForbiddenBid(bid: 0, forbiddenBid: null), isFalse);
     });
 
     test('canClose is false when sum equals cardsInRound', () {

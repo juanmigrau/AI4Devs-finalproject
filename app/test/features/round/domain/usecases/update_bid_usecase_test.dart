@@ -90,6 +90,30 @@ void main() {
     verify(roundRepository.updateRound(any)).called(1);
   });
 
+  test(
+    'allows dealer update to any bid when others already exceed cardsInRound',
+    () async {
+      final round = Round(
+        id: 'round-1',
+        gameId: 'game-1',
+        roundNumber: 1,
+        cardsInRound: 1,
+        dealerPlayerId: 'p0',
+        status: RoundStatus.bidding,
+        bids: const {'p1': 1, 'p2': 1, 'p0': 0},
+        createdAt: DateTime(2026),
+      );
+      when(roundRepository.updateRound(any)).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Round,
+      );
+
+      final result = await useCase(round: round, playerId: 'p0', newBid: 0);
+
+      expect(result.bids['p0'], 0);
+      verify(roundRepository.updateRound(any)).called(1);
+    },
+  );
+
   test('throws ArgumentError when bid is out of range', () async {
     expect(
       () => useCase(round: baseRound(), playerId: 'p1', newBid: 5),

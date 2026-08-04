@@ -429,4 +429,40 @@ void main() {
           .having((s) => s.forbiddenBid, 'forbiddenBid', 0),
     ],
   );
+
+  blocTest<BiddingBloc, BiddingState>(
+    'exposes null forbiddenBid when other bids exceed cardsInRound',
+    build: buildBloc,
+    seed: () {
+      final oneCardRound = Round(
+        id: 'round-1',
+        gameId: 'game-1',
+        roundNumber: 1,
+        cardsInRound: 1,
+        dealerPlayerId: 'p0',
+        status: RoundStatus.bidding,
+        bids: const {'p1': 1, 'p2': 1},
+        createdAt: DateTime(2026),
+      );
+      return BiddingLoaded(
+        game: game,
+        round: oneCardRound,
+        biddingOrder: const ['p1', 'p2', 'p0'],
+        currentPlayerId: 'p0',
+        draftBid: 0,
+        partialSum: 2,
+        availableTricks: -1,
+        forbiddenBid: null,
+        canConfirmBid: true,
+        canClose: false,
+      );
+    },
+    act: (bloc) => bloc.add(const BidValueChanged(1)),
+    expect: () => [
+      isA<BiddingLoaded>()
+          .having((s) => s.draftBid, 'draftBid', 1)
+          .having((s) => s.forbiddenBid, 'forbiddenBid', null)
+          .having((s) => s.canConfirmBid, 'canConfirmBid', true),
+    ],
+  );
 }

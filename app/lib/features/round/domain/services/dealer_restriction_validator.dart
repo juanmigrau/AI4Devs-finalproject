@@ -12,21 +12,24 @@ class DealerRestrictionValidator {
     return cardsInRound - partialBidSum(bids);
   }
 
-  int forbiddenBidForDealer({
+  /// Forbidden dealer bid = cardsInRound - sum of other bids.
+  /// Returns null when that value is negative (restriction cannot be violated).
+  int? forbiddenBidForDealer({
     required int cardsInRound,
     required Map<String, int> bidsBeforeDealer,
   }) {
-    return availableTricks(
+    final forbidden = availableTricks(
       cardsInRound: cardsInRound,
       bids: bidsBeforeDealer,
     );
+    return forbidden >= 0 ? forbidden : null;
   }
 
   bool isForbiddenBid({
     required int bid,
-    required int forbiddenBid,
+    required int? forbiddenBid,
   }) {
-    return bid == forbiddenBid;
+    return forbiddenBid != null && bid == forbiddenBid;
   }
 
   bool canClose({

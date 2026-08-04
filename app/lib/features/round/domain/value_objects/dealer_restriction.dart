@@ -9,7 +9,7 @@ class DealerRestriction extends Equatable {
 
   final int partialBidSum;
   final int availableTricks;
-  final int forbiddenBidForDealer;
+  final int? forbiddenBidForDealer;
 
   @override
   List<Object?> get props => [
