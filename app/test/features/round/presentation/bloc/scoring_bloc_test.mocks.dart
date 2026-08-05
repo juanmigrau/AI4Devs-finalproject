@@ -6,16 +6,14 @@
 import 'dart:async' as _i5;
 
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart'
-    as _i8;
+    as _i7;
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i3;
 import 'package:la_pocha/features/round/domain/entities/round_play_state.dart'
     as _i2;
 import 'package:la_pocha/features/round/domain/usecases/close_round_usecase.dart'
-    as _i7;
+    as _i6;
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart'
     as _i4;
-import 'package:la_pocha/features/round/domain/usecases/submit_tricks_usecase.dart'
-    as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -81,55 +79,15 @@ class MockGetRoundPlayStateUseCase extends _i1.Mock
           as _i5.Future<_i2.RoundPlayState>);
 }
 
-/// A class which mocks [SubmitTricksUseCase].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockSubmitTricksUseCase extends _i1.Mock
-    implements _i6.SubmitTricksUseCase {
-  @override
-  Map<String, int> previewScoresDelta({
-    required _i3.Round? round,
-    required Map<String, int>? tricks,
-    required List<String>? playerIds,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#previewScoresDelta, [], {
-              #round: round,
-              #tricks: tricks,
-              #playerIds: playerIds,
-            }),
-            returnValue: <String, int>{},
-            returnValueForMissingStub: <String, int>{},
-          )
-          as Map<String, int>);
-
-  @override
-  Map<String, int> call({
-    required _i3.Round? round,
-    required Map<String, int>? tricks,
-    required List<String>? playerIds,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#call, [], {
-              #round: round,
-              #tricks: tricks,
-              #playerIds: playerIds,
-            }),
-            returnValue: <String, int>{},
-            returnValueForMissingStub: <String, int>{},
-          )
-          as Map<String, int>);
-}
-
 /// A class which mocks [CloseRoundUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCloseRoundUseCase extends _i1.Mock implements _i7.CloseRoundUseCase {
+class MockCloseRoundUseCase extends _i1.Mock implements _i6.CloseRoundUseCase {
   @override
   _i5.Future<_i3.Round> call({
     required String? gameId,
     required _i3.Round? round,
-    required List<_i8.PlayerEmbed>? players,
+    required List<_i7.PlayerEmbed>? players,
     required Map<String, int>? tricks,
   }) =>
       (super.noSuchMethod(

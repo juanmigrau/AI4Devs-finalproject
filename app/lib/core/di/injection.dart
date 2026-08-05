@@ -520,7 +520,6 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<ScoringBloc>(
     () => ScoringBloc(
       getRoundPlayState: getIt<GetRoundPlayStateUseCase>(),
-      submitTricks: getIt<SubmitTricksUseCase>(),
       closeRound: getIt<CloseRoundUseCase>(),
       validator: getIt<TricksSumValidator>(),
     ),

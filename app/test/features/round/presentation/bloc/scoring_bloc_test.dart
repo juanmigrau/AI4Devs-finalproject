@@ -9,7 +9,6 @@ import 'package:la_pocha/features/game_setup/domain/entities/round_status.dart';
 import 'package:la_pocha/features/round/domain/entities/round_play_state.dart';
 import 'package:la_pocha/features/round/domain/usecases/close_round_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
-import 'package:la_pocha/features/round/domain/usecases/submit_tricks_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_state.dart';
@@ -20,13 +19,14 @@ import 'scoring_bloc_test.mocks.dart';
 
 @GenerateNiceMocks([
   MockSpec<GetRoundPlayStateUseCase>(),
-  MockSpec<SubmitTricksUseCase>(),
   MockSpec<CloseRoundUseCase>(),
 ])
 void main() {
   late MockGetRoundPlayStateUseCase getRoundPlayState;
-  late MockSubmitTricksUseCase submitTricks;
   late MockCloseRoundUseCase closeRound;
+
+  // Dealer p1 → scoringOrder = [p2, p1]
+  const scoringOrder = ['p2', 'p1'];
 
   final players = [
     PlayerEmbed(
@@ -87,33 +87,42 @@ void main() {
   ScoringBloc buildBloc() {
     return ScoringBloc(
       getRoundPlayState: getRoundPlayState,
-      submitTricks: submitTricks,
       closeRound: closeRound,
+    );
+  }
+
+  ScoringLoaded loaded({
+    Map<String, int> confirmedTricks = const {},
+    String? currentPlayerId = 'p2',
+    int draftTrick = 2,
+    int tricksSum = 0,
+    int remainingTricks = 4,
+    bool canConfirmTrick = true,
+    bool canConfirm = false,
+    String? editingPlayerId,
+  }) {
+    return ScoringLoaded(
+      game: game,
+      round: round,
+      scoringOrder: scoringOrder,
+      confirmedTricks: confirmedTricks,
+      currentPlayerId: currentPlayerId,
+      draftTrick: draftTrick,
+      tricksSum: tricksSum,
+      remainingTricks: remainingTricks,
+      canConfirmTrick: canConfirmTrick,
+      canConfirm: canConfirm,
+      editingPlayerId: editingPlayerId,
     );
   }
 
   setUp(() {
     getRoundPlayState = MockGetRoundPlayStateUseCase();
-    submitTricks = MockSubmitTricksUseCase();
     closeRound = MockCloseRoundUseCase();
-
-    when(
-      submitTricks.previewScoresDelta(
-        round: anyNamed('round'),
-        tricks: anyNamed('tricks'),
-        playerIds: anyNamed('playerIds'),
-      ),
-    ).thenAnswer((invocation) {
-      final tricks = invocation.namedArguments[#tricks] as Map<String, int>;
-      return {
-        for (final entry in tricks.entries)
-          entry.key: entry.value == 2 ? 20 : 0,
-      };
-    });
   });
 
   blocTest<ScoringBloc, ScoringState>(
-    'loads scoring state with zero draft tricks',
+    'loads scoring with draftTrick equal to current player bid',
     build: buildBloc,
     setUp: () {
       when(
@@ -129,35 +138,141 @@ void main() {
     expect: () => [
       const ScoringLoading(),
       isA<ScoringLoaded>()
-          .having((s) => s.draftTricks, 'draftTricks', {'p1': 0, 'p2': 0})
-          .having((s) => s.canConfirm, 'canConfirm', false)
-          .having((s) => s.tricksSum, 'tricksSum', 0),
+          .having((s) => s.scoringOrder, 'scoringOrder', scoringOrder)
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p2')
+          .having((s) => s.draftTrick, 'draftTrick', 2)
+          .having((s) => s.confirmedTricks, 'confirmedTricks', <String, int>{})
+          .having((s) => s.remainingTricks, 'remainingTricks', 4)
+          .having((s) => s.canConfirm, 'canConfirm', false),
     ],
   );
 
   blocTest<ScoringBloc, ScoringState>(
-    'updates draft tricks and enables confirm when sum matches',
+    'updates draft trick value',
     build: buildBloc,
-    seed: () => ScoringLoaded(
-      game: game,
-      round: round,
-      players: players,
-      draftTricks: const {'p1': 0, 'p2': 0},
-      tricksSum: 0,
-      canConfirm: false,
-      scoresPreview: const {},
-    ),
-    act: (bloc) async {
-      bloc.add(const TrickValueChanged(playerId: 'p1', value: 2));
-      bloc.add(const TrickValueChanged(playerId: 'p2', value: 2));
-    },
+    seed: loaded,
+    act: (bloc) => bloc.add(const TrickValueChanged(3)),
     expect: () => [
       isA<ScoringLoaded>()
-          .having((s) => s.draftTricks['p1'], 'p1 tricks', 2)
-          .having((s) => s.canConfirm, 'canConfirm', false),
+          .having((s) => s.draftTrick, 'draftTrick', 3)
+          .having((s) => s.canConfirmTrick, 'canConfirmTrick', true),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'confirms tricks and advances to next player with bid as draft',
+    build: buildBloc,
+    seed: loaded,
+    act: (bloc) => bloc.add(const TricksConfirmed()),
+    expect: () => [
       isA<ScoringLoaded>()
-          .having((s) => s.tricksSum, 'tricksSum', 4)
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 2},
+          )
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p1')
+          .having((s) => s.draftTrick, 'draftTrick', 2)
+          .having((s) => s.remainingTricks, 'remainingTricks', 2)
+          .having((s) => s.canConfirm, 'canConfirm', false),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'enables confirm when all tricks match cards in round',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2},
+      currentPlayerId: 'p1',
+      draftTrick: 2,
+      tricksSum: 2,
+      remainingTricks: 2,
+    ),
+    act: (bloc) => bloc.add(const TricksConfirmed()),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 2, 'p1': 2},
+          )
+          .having((s) => s.currentPlayerId, 'currentPlayerId', null)
+          .having((s) => s.remainingTricks, 'remainingTricks', 0)
           .having((s) => s.canConfirm, 'canConfirm', true),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'activates edit with current confirmed value as draft',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 2},
+      currentPlayerId: null,
+      draftTrick: 0,
+      tricksSum: 4,
+      remainingTricks: 0,
+      canConfirm: true,
+    ),
+    act: (bloc) => bloc.add(const TricksEditActivated('p2')),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having((s) => s.editingPlayerId, 'editingPlayerId', 'p2')
+          .having((s) => s.draftTrick, 'draftTrick', 2)
+          .having((s) => s.canConfirm, 'canConfirm', false)
+          .having((s) => s.remainingTricks, 'remainingTricks', 0),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'cancels edit without changing confirmed tricks',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 2},
+      currentPlayerId: null,
+      draftTrick: 3,
+      tricksSum: 5,
+      remainingTricks: -1,
+      canConfirm: false,
+      editingPlayerId: 'p2',
+    ),
+    act: (bloc) => bloc.add(const TricksEditCancelled()),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having((s) => s.editingPlayerId, 'editingPlayerId', null)
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 2, 'p1': 2},
+          )
+          .having((s) => s.remainingTricks, 'remainingTricks', 0)
+          .having((s) => s.canConfirm, 'canConfirm', true),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'updates confirmed tricks on edit confirm and recalculates remaining',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 2},
+      currentPlayerId: null,
+      draftTrick: 1,
+      tricksSum: 3,
+      remainingTricks: 1,
+      canConfirm: false,
+      editingPlayerId: 'p2',
+    ),
+    act: (bloc) =>
+        bloc.add(const TricksUpdated(playerId: 'p2', newTricks: 1)),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 1, 'p1': 2},
+          )
+          .having((s) => s.editingPlayerId, 'editingPlayerId', null)
+          .having((s) => s.remainingTricks, 'remainingTricks', 1)
+          .having((s) => s.canConfirm, 'canConfirm', false),
     ],
   );
 
@@ -174,14 +289,13 @@ void main() {
         ),
       ).thenAnswer((_) async => round.copyWith(status: RoundStatus.closed));
     },
-    seed: () => ScoringLoaded(
-      game: game,
-      round: round,
-      players: players,
-      draftTricks: const {'p1': 2, 'p2': 2},
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 2},
+      currentPlayerId: null,
+      draftTrick: 0,
       tricksSum: 4,
+      remainingTricks: 0,
       canConfirm: true,
-      scoresPreview: const {'p1': 20, 'p2': 20},
     ),
     act: (bloc) => bloc.add(const CloseRoundRequested()),
     expect: () => [
@@ -195,14 +309,13 @@ void main() {
   blocTest<ScoringBloc, ScoringState>(
     'does not close when tricks sum is invalid',
     build: buildBloc,
-    seed: () => ScoringLoaded(
-      game: game,
-      round: round,
-      players: players,
-      draftTricks: const {'p1': 2, 'p2': 1},
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 1},
+      currentPlayerId: null,
+      draftTrick: 0,
       tricksSum: 3,
+      remainingTricks: 1,
       canConfirm: false,
-      scoresPreview: const {'p1': 20, 'p2': 15},
     ),
     act: (bloc) => bloc.add(const CloseRoundRequested()),
     expect: () => [],

@@ -23,7 +23,7 @@ class TricksBalanceBanner extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Balance de apuestas',
+            'Balance de bazas',
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

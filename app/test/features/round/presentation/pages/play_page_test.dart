@@ -66,9 +66,7 @@ void main() {
     playerCount: 2,
     totalCards: 40,
     maxCardsPerRound: 10,
-    roundSequence: const [
-      RoundDefinition(roundNumber: 1, cardsPerPlayer: 4),
-    ],
+    roundSequence: const [RoundDefinition(roundNumber: 1, cardsPerPlayer: 4)],
     players: players,
     currentRoundNumber: 1,
     startedAt: DateTime(2026),
@@ -113,9 +111,7 @@ void main() {
         gameId: anyNamed('gameId'),
         roundNumber: anyNamed('roundNumber'),
       ),
-    ).thenAnswer(
-      (_) async => round.copyWith(status: RoundStatus.bidding),
-    );
+    ).thenAnswer((_) async => round.copyWith(status: RoundStatus.bidding));
 
     await getIt.reset();
     getIt.registerFactory<GetRoundPlayStateUseCase>(() => getRoundPlayState);
@@ -124,10 +120,7 @@ void main() {
       () => revertRoundToBidding,
     );
     getIt.registerFactory<PlayStateBloc>(
-      () => PlayStateBloc(
-        getRoundPlayState: getIt(),
-        correctBids: getIt(),
-      ),
+      () => PlayStateBloc(getRoundPlayState: getIt(), correctBids: getIt()),
     );
     getIt.registerFactory<CancelGameUseCase>(() => cancelGame);
     getIt.registerFactory<CancelGameCubit>(
@@ -157,8 +150,8 @@ void main() {
     expect(find.text('38'), findsOneWidget);
     expect(find.text('-2'), findsOneWidget);
     expect(find.text('Balance de apuestas'), findsOneWidget);
-    expect(find.text('Apostó'), findsOneWidget);
-    expect(find.text('Puntos'), findsOneWidget);
+    expect(find.text('Bazas'), findsOneWidget);
+    expect(find.text('Pts'), findsOneWidget);
     expect(find.text('Introducir bazas reales'), findsOneWidget);
     expect(find.text('Corregir apuestas'), findsNothing);
     expect(find.text('En juego'), findsOneWidget);
@@ -172,34 +165,26 @@ void main() {
         routes: [
           GoRoute(
             path: '/games/:gameId/rounds/:roundNumber/play',
-            builder: (context, state) => const PlayPage(
-              gameId: 'game-1',
-              roundNumber: 1,
-            ),
+            builder: (context, state) =>
+                const PlayPage(gameId: 'game-1', roundNumber: 1),
           ),
           GoRoute(
             path: '/games/:gameId/rounds/:roundNumber/bids',
-            builder: (context, state) => const Scaffold(
-              body: Text('BIDDING SCREEN'),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Text('BIDDING SCREEN')),
           ),
         ],
       );
 
       await tester.pumpWidget(
-        MaterialApp.router(
-          theme: AppTheme.light,
-          routerConfig: router,
-        ),
+        MaterialApp.router(theme: AppTheme.light, routerConfig: router),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.arrow_back));
       await tester.pumpAndSettle();
 
-      verify(
-        revertRoundToBidding(gameId: 'game-1', roundNumber: 1),
-      ).called(1);
+      verify(revertRoundToBidding(gameId: 'game-1', roundNumber: 1)).called(1);
       expect(find.text('BIDDING SCREEN'), findsOneWidget);
     },
   );

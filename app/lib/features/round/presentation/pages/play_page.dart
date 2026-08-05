@@ -12,11 +12,7 @@ import 'package:la_pocha/features/round/presentation/widgets/tricks_balance_bann
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class PlayPage extends StatefulWidget {
-  const PlayPage({
-    super.key,
-    required this.gameId,
-    required this.roundNumber,
-  });
+  const PlayPage({super.key, required this.gameId, required this.roundNumber});
 
   final String gameId;
   final int roundNumber;
@@ -42,14 +38,13 @@ class _PlayPageState extends State<PlayPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<PlayStateBloc>()
-        ..add(PlayStateStarted(
-          gameId: widget.gameId,
-          roundNumber: widget.roundNumber,
-        )),
-      child: _PlayView(
-        gameId: widget.gameId,
-        roundNumber: widget.roundNumber,
-      ),
+        ..add(
+          PlayStateStarted(
+            gameId: widget.gameId,
+            roundNumber: widget.roundNumber,
+          ),
+        ),
+      child: _PlayView(gameId: widget.gameId, roundNumber: widget.roundNumber),
     );
   }
 }
@@ -113,14 +108,14 @@ class _PlayView extends StatelessWidget {
                     builder: (context, state) {
                       return switch (state) {
                         PlayStateLoading() => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: CircularProgressIndicator(),
+                        ),
                         PlayStateFailure(:final message) => Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Text(message),
-                            ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(message),
                           ),
+                        ),
                         PlayStateLoaded() => _LoadedBody(state: state),
                         _ => const SizedBox.shrink(),
                       };
@@ -183,20 +178,20 @@ class _LoadedBody extends StatelessWidget {
                     SizedBox(
                       width: 52,
                       child: Text(
-                        'Apostó',
+                        'Bazas',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
                     SizedBox(
                       width: 52,
                       child: Text(
-                        'Puntos',
+                        'Pts',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -212,9 +207,11 @@ class _LoadedBody extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
-                    for (var index = 0;
-                        index < playState.players.length;
-                        index++) ...[
+                    for (
+                      var index = 0;
+                      index < playState.players.length;
+                      index++
+                    ) ...[
                       if (index > 0)
                         Divider(
                           height: 1,
@@ -247,9 +244,9 @@ class _LoadedBody extends StatelessWidget {
             child: Text(
               'La suma de apuestas iguala ${playState.round.cardsInRound}. '
               'El repartidor debe corregir su apuesta antes de continuar.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: _warningColor,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: _warningColor),
             ),
           ),
         Padding(
@@ -257,8 +254,8 @@ class _LoadedBody extends StatelessWidget {
           child: FilledButton(
             onPressed: playState.restrictionMet
                 ? () => context.read<PlayStateBloc>().add(
-                      const IntroduceTricksRequested(),
-                    )
+                    const IntroduceTricksRequested(),
+                  )
                 : null,
             child: const Text('Introducir bazas reales'),
           ),

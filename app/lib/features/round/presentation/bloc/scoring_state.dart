@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
-import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart';
 
 sealed class ScoringState extends Equatable {
@@ -31,44 +30,66 @@ final class ScoringLoaded extends ScoringState {
   const ScoringLoaded({
     required this.game,
     required this.round,
-    required this.players,
-    required this.draftTricks,
+    required this.scoringOrder,
+    required this.confirmedTricks,
+    required this.currentPlayerId,
+    required this.draftTrick,
     required this.tricksSum,
+    required this.remainingTricks,
+    required this.canConfirmTrick,
     required this.canConfirm,
-    required this.scoresPreview,
+    this.editingPlayerId,
     this.validationMessage,
     this.isClosing = false,
   });
 
   final Game game;
   final Round round;
-  final List<PlayerEmbed> players;
-  final Map<String, int> draftTricks;
+  final List<String> scoringOrder;
+  final Map<String, int> confirmedTricks;
+  final String? currentPlayerId;
+  final int draftTrick;
   final int tricksSum;
+  final int remainingTricks;
+  final bool canConfirmTrick;
   final bool canConfirm;
-  final Map<String, int> scoresPreview;
+  final String? editingPlayerId;
   final String? validationMessage;
   final bool isClosing;
 
   ScoringLoaded copyWith({
     Game? game,
     Round? round,
-    List<PlayerEmbed>? players,
-    Map<String, int>? draftTricks,
+    List<String>? scoringOrder,
+    Map<String, int>? confirmedTricks,
+    String? currentPlayerId,
+    bool clearCurrentPlayerId = false,
+    int? draftTrick,
     int? tricksSum,
+    int? remainingTricks,
+    bool? canConfirmTrick,
     bool? canConfirm,
-    Map<String, int>? scoresPreview,
+    String? editingPlayerId,
+    bool clearEditingPlayerId = false,
     String? Function()? validationMessage,
     bool? isClosing,
   }) {
     return ScoringLoaded(
       game: game ?? this.game,
       round: round ?? this.round,
-      players: players ?? this.players,
-      draftTricks: draftTricks ?? this.draftTricks,
+      scoringOrder: scoringOrder ?? this.scoringOrder,
+      confirmedTricks: confirmedTricks ?? this.confirmedTricks,
+      currentPlayerId: clearCurrentPlayerId
+          ? null
+          : (currentPlayerId ?? this.currentPlayerId),
+      draftTrick: draftTrick ?? this.draftTrick,
       tricksSum: tricksSum ?? this.tricksSum,
+      remainingTricks: remainingTricks ?? this.remainingTricks,
+      canConfirmTrick: canConfirmTrick ?? this.canConfirmTrick,
       canConfirm: canConfirm ?? this.canConfirm,
-      scoresPreview: scoresPreview ?? this.scoresPreview,
+      editingPlayerId: clearEditingPlayerId
+          ? null
+          : (editingPlayerId ?? this.editingPlayerId),
       validationMessage: validationMessage != null
           ? validationMessage()
           : this.validationMessage,
@@ -80,11 +101,15 @@ final class ScoringLoaded extends ScoringState {
   List<Object?> get props => [
         game,
         round,
-        players,
-        draftTricks,
+        scoringOrder,
+        confirmedTricks,
+        currentPlayerId,
+        draftTrick,
         tricksSum,
+        remainingTricks,
+        canConfirmTrick,
         canConfirm,
-        scoresPreview,
+        editingPlayerId,
         validationMessage,
         isClosing,
       ];

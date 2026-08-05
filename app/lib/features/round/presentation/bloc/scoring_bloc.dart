@@ -1,31 +1,35 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
-import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart';
+import 'package:la_pocha/features/round/domain/services/bid_order_service.dart';
 import 'package:la_pocha/features/round/domain/services/tricks_sum_validator.dart';
 import 'package:la_pocha/features/round/domain/usecases/close_round_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
-import 'package:la_pocha/features/round/domain/usecases/submit_tricks_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_state.dart';
 
 class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
   ScoringBloc({
     required this._getRoundPlayState,
-    required this._submitTricks,
     required this._closeRound,
+    BidOrderService? bidOrderService,
     TricksSumValidator? validator,
-  }) : _validator = validator ?? const TricksSumValidator(),
+  }) : _bidOrderService = bidOrderService ?? const BidOrderService(),
+       _validator = validator ?? const TricksSumValidator(),
        super(const ScoringInitial()) {
     on<ScoringStarted>(_onScoringStarted);
     on<TrickValueChanged>(_onTrickValueChanged);
+    on<TricksConfirmed>(_onTricksConfirmed);
+    on<TricksEditActivated>(_onTricksEditActivated);
+    on<TricksEditCancelled>(_onTricksEditCancelled);
+    on<TricksUpdated>(_onTricksUpdated);
     on<CloseRoundRequested>(_onCloseRoundRequested);
   }
 
   final GetRoundPlayStateUseCase _getRoundPlayState;
-  final SubmitTricksUseCase _submitTricks;
   final CloseRoundUseCase _closeRound;
+  final BidOrderService _bidOrderService;
   final TricksSumValidator _validator;
 
   Future<void> _onScoringStarted(
@@ -38,15 +42,23 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
         gameId: event.gameId,
         roundNumber: event.roundNumber,
       );
-      final draftTricks = {
-        for (final player in playState.players) player.id: 0,
-      };
+      final scoringOrder = _bidOrderService.biddingOrder(
+        players: playState.game.players,
+        dealerPlayerId: playState.round.dealerPlayerId,
+      );
+      final currentPlayerId = scoringOrder.isEmpty ? null : scoringOrder.first;
+      final draftTrick = currentPlayerId == null
+          ? 0
+          : playState.round.bids[currentPlayerId] ?? 0;
+
       emit(
         _buildLoadedState(
           game: playState.game,
           round: playState.round,
-          players: playState.players,
-          draftTricks: draftTricks,
+          scoringOrder: scoringOrder,
+          confirmedTricks: const {},
+          currentPlayerId: currentPlayerId,
+          draftTrick: draftTrick,
         ),
       );
     } catch (error) {
@@ -62,16 +74,135 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
     if (current is! ScoringLoaded) {
       return;
     }
-
-    final updatedTricks = Map<String, int>.from(current.draftTricks)
-      ..[event.playerId] = event.value;
+    if (current.editingPlayerId == null && current.currentPlayerId == null) {
+      return;
+    }
 
     emit(
       _buildLoadedState(
         game: current.game,
         round: current.round,
-        players: current.players,
-        draftTricks: updatedTricks,
+        scoringOrder: current.scoringOrder,
+        confirmedTricks: current.confirmedTricks,
+        currentPlayerId: current.currentPlayerId,
+        draftTrick: event.value,
+        editingPlayerId: current.editingPlayerId,
+      ),
+    );
+  }
+
+  void _onTricksConfirmed(
+    TricksConfirmed event,
+    Emitter<ScoringState> emit,
+  ) {
+    final current = state;
+    if (current is! ScoringLoaded ||
+        current.editingPlayerId != null ||
+        current.currentPlayerId == null ||
+        !current.canConfirmTrick) {
+      return;
+    }
+
+    final playerId = current.currentPlayerId!;
+    final updatedTricks = Map<String, int>.from(current.confirmedTricks)
+      ..[playerId] = current.draftTrick;
+
+    final nextPlayerId = _nextUnconfirmedPlayer(
+      scoringOrder: current.scoringOrder,
+      confirmedTricks: updatedTricks,
+    );
+    final draftTrick = nextPlayerId == null
+        ? 0
+        : current.round.bids[nextPlayerId] ?? 0;
+
+    emit(
+      _buildLoadedState(
+        game: current.game,
+        round: current.round,
+        scoringOrder: current.scoringOrder,
+        confirmedTricks: updatedTricks,
+        currentPlayerId: nextPlayerId,
+        draftTrick: draftTrick,
+      ),
+    );
+  }
+
+  void _onTricksEditActivated(
+    TricksEditActivated event,
+    Emitter<ScoringState> emit,
+  ) {
+    final current = state;
+    if (current is! ScoringLoaded) {
+      return;
+    }
+    if (!current.confirmedTricks.containsKey(event.playerId)) {
+      return;
+    }
+
+    emit(
+      _buildLoadedState(
+        game: current.game,
+        round: current.round,
+        scoringOrder: current.scoringOrder,
+        confirmedTricks: current.confirmedTricks,
+        currentPlayerId: current.currentPlayerId,
+        draftTrick: current.confirmedTricks[event.playerId]!,
+        editingPlayerId: event.playerId,
+      ),
+    );
+  }
+
+  void _onTricksEditCancelled(
+    TricksEditCancelled event,
+    Emitter<ScoringState> emit,
+  ) {
+    final current = state;
+    if (current is! ScoringLoaded || current.editingPlayerId == null) {
+      return;
+    }
+
+    final draftTrick = current.currentPlayerId == null
+        ? 0
+        : current.round.bids[current.currentPlayerId!] ?? 0;
+
+    emit(
+      _buildLoadedState(
+        game: current.game,
+        round: current.round,
+        scoringOrder: current.scoringOrder,
+        confirmedTricks: current.confirmedTricks,
+        currentPlayerId: current.currentPlayerId,
+        draftTrick: draftTrick,
+      ),
+    );
+  }
+
+  void _onTricksUpdated(
+    TricksUpdated event,
+    Emitter<ScoringState> emit,
+  ) {
+    final current = state;
+    if (current is! ScoringLoaded ||
+        current.editingPlayerId != event.playerId ||
+        !current.canConfirmTrick) {
+      return;
+    }
+
+    final updatedTricks = Map<String, int>.from(current.confirmedTricks)
+      ..[event.playerId] = event.newTricks;
+
+    final draftTrick = current.currentPlayerId == null
+        ? 0
+        : current.round.bids[current.currentPlayerId!] ?? 0;
+
+    emit(
+      _buildLoadedState(
+        game: current.game,
+        round: current.round,
+        scoringOrder: current.scoringOrder,
+        confirmedTricks: updatedTricks,
+        currentPlayerId: current.currentPlayerId,
+        draftTrick: draftTrick,
       ),
     );
   }
@@ -90,8 +221,8 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
       await _closeRound(
         gameId: current.game.id,
         round: current.round,
-        players: current.players,
-        tricks: current.draftTricks,
+        players: current.game.players,
+        tricks: current.confirmedTricks,
       );
       emit(
         ScoringNavigateToResult(
@@ -109,51 +240,64 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
     }
   }
 
+  String? _nextUnconfirmedPlayer({
+    required List<String> scoringOrder,
+    required Map<String, int> confirmedTricks,
+  }) {
+    for (final playerId in scoringOrder) {
+      if (!confirmedTricks.containsKey(playerId)) {
+        return playerId;
+      }
+    }
+    return null;
+  }
+
   ScoringLoaded _buildLoadedState({
     required Game game,
     required Round round,
-    required List<PlayerEmbed> players,
-    required Map<String, int> draftTricks,
+    required List<String> scoringOrder,
+    required Map<String, int> confirmedTricks,
+    required String? currentPlayerId,
+    required int draftTrick,
+    String? editingPlayerId,
   }) {
-    final playerIds = players.map((player) => player.id).toList();
-    final tricksSum = _validator.partialTricksSum(draftTricks);
-    final canConfirm = _validator.canClose(
+    final effectiveTricks = Map<String, int>.from(confirmedTricks);
+    if (editingPlayerId != null) {
+      effectiveTricks[editingPlayerId] = draftTrick;
+    }
+
+    final tricksSum = _validator.partialTricksSum(effectiveTricks);
+    final remainingTricks = round.cardsInRound - tricksSum;
+
+    final isDraftInRange = _validator.isTrickInRange(
+      trick: draftTrick,
       cardsInRound: round.cardsInRound,
-      tricks: draftTricks,
-      playerIds: playerIds,
-    );
-    final scoresPreview = _submitTricks.previewScoresDelta(
-      round: round,
-      tricks: draftTricks,
-      playerIds: playerIds,
     );
 
-    String? validationMessage;
-    if (!canConfirm && tricksSum > round.cardsInRound) {
-      validationMessage =
-          'La suma de bazas ($tricksSum) supera ${round.cardsInRound}';
-    } else if (!canConfirm &&
-        tricksSum == round.cardsInRound &&
-        !_validator.areAllTricksInRange(
-          cardsInRound: round.cardsInRound,
-          tricks: draftTricks,
-          playerIds: playerIds,
-        )) {
-      validationMessage = 'Alguna baza está fuera de rango';
-    } else if (!canConfirm && tricksSum < round.cardsInRound) {
-      validationMessage =
-          'Faltan ${round.cardsInRound - tricksSum} bazas por repartir';
-    }
+    final canConfirmTrick = editingPlayerId != null
+        ? isDraftInRange
+        : currentPlayerId != null && isDraftInRange;
+
+    final canConfirm = editingPlayerId != null
+        ? false
+        : _validator.canClose(
+            cardsInRound: round.cardsInRound,
+            tricks: confirmedTricks,
+            playerIds: scoringOrder,
+          );
 
     return ScoringLoaded(
       game: game,
       round: round,
-      players: players,
-      draftTricks: draftTricks,
+      scoringOrder: scoringOrder,
+      confirmedTricks: confirmedTricks,
+      currentPlayerId: currentPlayerId,
+      draftTrick: draftTrick,
       tricksSum: tricksSum,
+      remainingTricks: remainingTricks,
+      canConfirmTrick: canConfirmTrick,
       canConfirm: canConfirm,
-      scoresPreview: scoresPreview,
-      validationMessage: validationMessage,
+      editingPlayerId: editingPlayerId,
     );
   }
 }

@@ -21,16 +21,42 @@ final class ScoringStarted extends ScoringEvent {
 }
 
 final class TrickValueChanged extends ScoringEvent {
-  const TrickValueChanged({
-    required this.playerId,
-    required this.value,
-  });
+  const TrickValueChanged(this.value);
 
-  final String playerId;
   final int value;
 
   @override
-  List<Object?> get props => [playerId, value];
+  List<Object?> get props => [value];
+}
+
+final class TricksConfirmed extends ScoringEvent {
+  const TricksConfirmed();
+}
+
+final class TricksEditActivated extends ScoringEvent {
+  const TricksEditActivated(this.playerId);
+
+  final String playerId;
+
+  @override
+  List<Object?> get props => [playerId];
+}
+
+final class TricksEditCancelled extends ScoringEvent {
+  const TricksEditCancelled();
+}
+
+final class TricksUpdated extends ScoringEvent {
+  const TricksUpdated({
+    required this.playerId,
+    required this.newTricks,
+  });
+
+  final String playerId;
+  final int newTricks;
+
+  @override
+  List<Object?> get props => [playerId, newTricks];
 }
 
 final class CloseRoundRequested extends ScoringEvent {
