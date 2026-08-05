@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game_status.dart';
@@ -15,6 +16,7 @@ import 'package:la_pocha/features/round/presentation/bloc/repeat_round_cubit.dar
 import 'package:la_pocha/features/round/domain/entities/round_play_state.dart';
 import 'package:la_pocha/features/round/domain/usecases/correct_bids_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
+import 'package:la_pocha/features/round/domain/usecases/revert_round_to_bidding_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_bloc.dart';
 import 'package:la_pocha/features/round/presentation/pages/play_page.dart';
 import 'package:mockito/annotations.dart';
@@ -27,12 +29,14 @@ import 'play_page_test.mocks.dart';
   MockSpec<CorrectBidsUseCase>(),
   MockSpec<CancelGameUseCase>(),
   MockSpec<RepeatRoundUseCase>(),
+  MockSpec<RevertRoundToBiddingUseCase>(),
 ])
 void main() {
   late MockGetRoundPlayStateUseCase getRoundPlayState;
   late MockCorrectBidsUseCase correctBids;
   late MockCancelGameUseCase cancelGame;
   late MockRepeatRoundUseCase repeatRound;
+  late MockRevertRoundToBiddingUseCase revertRoundToBidding;
   final getIt = GetIt.instance;
 
   final players = [
@@ -103,10 +107,22 @@ void main() {
     correctBids = MockCorrectBidsUseCase();
     cancelGame = MockCancelGameUseCase();
     repeatRound = MockRepeatRoundUseCase();
+    revertRoundToBidding = MockRevertRoundToBiddingUseCase();
+    when(
+      revertRoundToBidding(
+        gameId: anyNamed('gameId'),
+        roundNumber: anyNamed('roundNumber'),
+      ),
+    ).thenAnswer(
+      (_) async => round.copyWith(status: RoundStatus.bidding),
+    );
 
     await getIt.reset();
     getIt.registerFactory<GetRoundPlayStateUseCase>(() => getRoundPlayState);
     getIt.registerFactory<CorrectBidsUseCase>(() => correctBids);
+    getIt.registerFactory<RevertRoundToBiddingUseCase>(
+      () => revertRoundToBidding,
+    );
     getIt.registerFactory<PlayStateBloc>(
       () => PlayStateBloc(
         getRoundPlayState: getIt(),
@@ -141,10 +157,50 @@ void main() {
     expect(find.text('38'), findsOneWidget);
     expect(find.text('-2'), findsOneWidget);
     expect(find.text('Balance de apuestas'), findsOneWidget);
-    expect(find.text('apostó'), findsWidgets);
-    expect(find.text('puntos'), findsWidgets);
+    expect(find.text('Apostó'), findsOneWidget);
+    expect(find.text('Puntos'), findsOneWidget);
     expect(find.text('Introducir bazas reales'), findsOneWidget);
     expect(find.text('Corregir apuestas'), findsNothing);
     expect(find.text('En juego'), findsOneWidget);
   });
+
+  testWidgets(
+    'back button reverts round to bidding before navigating to bids',
+    (tester) async {
+      final router = GoRouter(
+        initialLocation: '/games/game-1/rounds/1/play',
+        routes: [
+          GoRoute(
+            path: '/games/:gameId/rounds/:roundNumber/play',
+            builder: (context, state) => const PlayPage(
+              gameId: 'game-1',
+              roundNumber: 1,
+            ),
+          ),
+          GoRoute(
+            path: '/games/:gameId/rounds/:roundNumber/bids',
+            builder: (context, state) => const Scaffold(
+              body: Text('BIDDING SCREEN'),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          theme: AppTheme.light,
+          routerConfig: router,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pumpAndSettle();
+
+      verify(
+        revertRoundToBidding(gameId: 'game-1', roundNumber: 1),
+      ).called(1);
+      expect(find.text('BIDDING SCREEN'), findsOneWidget);
+    },
+  );
 }

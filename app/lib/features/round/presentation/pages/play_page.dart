@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/features/round/domain/usecases/revert_round_to_bidding_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_state.dart';
@@ -59,7 +60,14 @@ class _PlayView extends StatelessWidget {
   final String gameId;
   final int roundNumber;
 
-  void _goToBidding(BuildContext context) {
+  Future<void> _goToBidding(BuildContext context) async {
+    await getIt<RevertRoundToBiddingUseCase>()(
+      gameId: gameId,
+      roundNumber: roundNumber,
+    );
+    if (!context.mounted) {
+      return;
+    }
     context.go('/games/$gameId/rounds/$roundNumber/bids');
   }
 
@@ -167,9 +175,38 @@ class _LoadedBody extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    const Expanded(flex: 3, child: SizedBox()),
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        'Apostó',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        'Puntos',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 clipBehavior: Clip.antiAlias,

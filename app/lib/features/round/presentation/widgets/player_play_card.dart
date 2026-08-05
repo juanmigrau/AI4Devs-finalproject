@@ -27,15 +27,16 @@ class PlayerPlayCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           children: [
-            PlayerInitialAvatar(
-              name: player.displayName,
-              colorIndex: index,
-              radius: 16,
-            ),
-            const SizedBox(width: 12),
             Expanded(
+              flex: 3,
               child: Row(
                 children: [
+                  PlayerInitialAvatar(
+                    name: player.displayName,
+                    colorIndex: index,
+                    radius: 16,
+                  ),
+                  const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       player.displayName,
@@ -56,48 +57,30 @@ class PlayerPlayCard extends StatelessWidget {
             ),
             Semantics(
               label: '${player.displayName} apostó $bid',
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'apostó',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+              child: SizedBox(
+                width: 52,
+                child: Text(
+                  '$bid',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(
-                    '$bid',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
-            const SizedBox(width: 16),
             Semantics(
               label:
                   '${player.displayName} tiene ${player.totalScore} puntos',
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'puntos',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+              child: SizedBox(
+                width: 52,
+                child: Text(
+                  '${player.totalScore}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(
-                    '${player.totalScore}',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ],
