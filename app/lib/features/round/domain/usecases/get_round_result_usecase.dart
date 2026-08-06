@@ -49,6 +49,7 @@ class GetRoundResultUseCase {
     final entries = _rankingService.buildRanking(
       players: game.players,
       scoresDelta: scoresDelta,
+      includePositionDelta: roundNumber > 1,
     );
 
     return RoundResult(

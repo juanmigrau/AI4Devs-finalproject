@@ -160,23 +160,40 @@ void main() {
     expect(updatedPlayers[1].totalScore, 25);
   });
 
-  test('throws when round is closed', () async {
+  test('resets closed round to bidding and reverts totalScore', () async {
     final round = baseRound(status: RoundStatus.closed);
 
     when(
       roundRepository.getRoundByGameAndNumber('game-1', 2),
     ).thenAnswer((_) async => round);
 
-    expect(
-      () => useCase(gameId: 'game-1', roundNumber: 2),
-      throwsA(isA<StateError>()),
-    );
-    verifyNever(
+    when(
       gameRepository.repeatRoundAndRevertScores(
         resetRound: anyNamed('resetRound'),
         updatedPlayers: anyNamed('updatedPlayers'),
       ),
-    );
+    ).thenAnswer((invocation) async {
+      return invocation.namedArguments[#resetRound] as Round;
+    });
+
+    final result = await useCase(gameId: 'game-1', roundNumber: 2);
+
+    expect(result.status, RoundStatus.bidding);
+    expect(result.bids, isEmpty);
+    expect(result.tricks, isNull);
+    expect(result.scoresDelta, isNull);
+    expect(result.closedAt, isNull);
+
+    final captured = verify(
+      gameRepository.repeatRoundAndRevertScores(
+        resetRound: captureAnyNamed('resetRound'),
+        updatedPlayers: captureAnyNamed('updatedPlayers'),
+      ),
+    ).captured;
+
+    final updatedPlayers = captured[1] as List<PlayerEmbed>;
+    expect(updatedPlayers[0].totalScore, 20);
+    expect(updatedPlayers[1].totalScore, 10);
   });
 
   test('throws when round is not the current round', () async {

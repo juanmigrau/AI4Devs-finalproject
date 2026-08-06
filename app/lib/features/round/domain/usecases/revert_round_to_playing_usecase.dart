@@ -3,8 +3,14 @@ import 'package:la_pocha/features/game_setup/domain/entities/round_status.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/round_repository.dart';
 
-class RepeatRoundUseCase {
-  RepeatRoundUseCase(this._gameRepository, this._roundRepository);
+/// Reverts a closed round back to [RoundStatus.playing] so tricks can be
+/// re-entered. Clears tricks and scoresDelta, and subtracts the round's
+/// scoresDelta from each player's totalScore.
+class RevertRoundToPlayingUseCase {
+  const RevertRoundToPlayingUseCase(
+    this._gameRepository,
+    this._roundRepository,
+  );
 
   final GameRepository _gameRepository;
   final RoundRepository _roundRepository;
@@ -18,22 +24,18 @@ class RepeatRoundUseCase {
       throw StateError('Game not found: $gameId');
     }
 
-    if (game.currentRoundNumber != roundNumber) {
-      throw StateError('Only the current round can be repeated');
-    }
-
     final round = await _roundRepository.getRoundByGameAndNumber(
       gameId,
       roundNumber,
     );
     if (round == null) {
-      throw StateError('Round not found: $gameId round $roundNumber');
+      throw StateError('Round not found: $gameId/$roundNumber');
     }
 
-    if (round.status != RoundStatus.bidding &&
-        round.status != RoundStatus.playing &&
-        round.status != RoundStatus.closed) {
-      throw StateError('Round cannot be repeated in status ${round.status}');
+    if (round.status != RoundStatus.closed) {
+      throw StateError(
+        'Round cannot be reverted to playing from status ${round.status}',
+      );
     }
 
     final delta = round.scoresDelta ?? const <String, int>{};
@@ -45,10 +47,22 @@ class RepeatRoundUseCase {
         )
         .toList();
 
-    final resetRound = round.resetToBidding();
+    final reopenedRound = Round(
+      id: round.id,
+      gameId: round.gameId,
+      roundNumber: round.roundNumber,
+      cardsInRound: round.cardsInRound,
+      dealerPlayerId: round.dealerPlayerId,
+      status: RoundStatus.playing,
+      bids: round.bids,
+      tricks: const {},
+      scoresDelta: const {},
+      createdAt: round.createdAt,
+      closedAt: null,
+    );
 
     return _gameRepository.repeatRoundAndRevertScores(
-      resetRound: resetRound,
+      resetRound: reopenedRound,
       updatedPlayers: updatedPlayers,
     );
   }

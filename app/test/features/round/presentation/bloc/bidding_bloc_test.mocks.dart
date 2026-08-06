@@ -11,13 +11,13 @@ import 'package:la_pocha/features/round/domain/entities/bidding_context.dart'
 import 'package:la_pocha/features/round/domain/entities/submit_bid_result.dart'
     as _i3;
 import 'package:la_pocha/features/round/domain/usecases/close_bidding_usecase.dart'
-    as _i8;
+    as _i9;
 import 'package:la_pocha/features/round/domain/usecases/load_bidding_context_usecase.dart'
     as _i5;
 import 'package:la_pocha/features/round/domain/usecases/submit_bid_usecase.dart'
     as _i7;
 import 'package:la_pocha/features/round/domain/usecases/update_bid_usecase.dart'
-    as _i9;
+    as _i8;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -136,7 +136,7 @@ class MockSubmitBidUseCase extends _i1.Mock implements _i7.SubmitBidUseCase {
 /// A class which mocks [UpdateBidUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockUpdateBidUseCase extends _i1.Mock implements _i9.UpdateBidUseCase {
+class MockUpdateBidUseCase extends _i1.Mock implements _i8.UpdateBidUseCase {
   @override
   _i6.Future<_i4.Round> call({
     required _i4.Round? round,
@@ -177,7 +177,7 @@ class MockUpdateBidUseCase extends _i1.Mock implements _i9.UpdateBidUseCase {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCloseBiddingUseCase extends _i1.Mock
-    implements _i8.CloseBiddingUseCase {
+    implements _i9.CloseBiddingUseCase {
   @override
   _i6.Future<_i4.Round> call({
     required _i4.Round? round,

@@ -50,6 +50,7 @@ import 'package:la_pocha/features/round/domain/usecases/get_round_result_usecase
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/load_bidding_context_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/revert_round_to_bidding_usecase.dart';
+import 'package:la_pocha/features/round/domain/usecases/revert_round_to_playing_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/submit_bid_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/update_bid_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/submit_tricks_usecase.dart';
@@ -372,6 +373,13 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<RevertRoundToBiddingUseCase>(
     () => RevertRoundToBiddingUseCase(getIt<RoundRepository>()),
+  );
+
+  getIt.registerFactory<RevertRoundToPlayingUseCase>(
+    () => RevertRoundToPlayingUseCase(
+      getIt<GameRepository>(),
+      getIt<RoundRepository>(),
+    ),
   );
 
   getIt.registerFactory<SubmitTricksUseCase>(

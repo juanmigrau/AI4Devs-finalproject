@@ -267,6 +267,15 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
           as _i6.Future<_i3.StartGameResult>);
 
   @override
+  _i6.Future<void> revertGameToSetup(String? gameId) =>
+      (super.noSuchMethod(
+            Invocation.method(#revertGameToSetup, [gameId]),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
   _i6.Future<_i4.Round> closeRoundAndUpdateScores({
     required _i4.Round? closedRound,
     required List<_i11.PlayerEmbed>? updatedPlayers,

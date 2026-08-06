@@ -256,6 +256,15 @@ class MockGameLocalDatasource extends _i1.Mock
           as _i7.Future<_i4.StartGameResult>);
 
   @override
+  _i7.Future<void> revertGameToSetup(String? gameId) =>
+      (super.noSuchMethod(
+            Invocation.method(#revertGameToSetup, [gameId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<_i5.Round> closeRoundAndUpdateScores({
     required _i5.Round? closedRound,
     required List<_i10.PlayerEmbed>? updatedPlayers,

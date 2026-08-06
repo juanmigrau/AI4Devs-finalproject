@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/round/domain/entities/round_result.dart';
+import 'package:la_pocha/features/round/domain/usecases/revert_round_to_playing_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_event.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_state.dart';
-import 'package:la_pocha/features/round/presentation/widgets/ranking_list.dart';
 import 'package:la_pocha/features/round/presentation/widgets/round_header.dart';
+import 'package:la_pocha/features/round/presentation/widgets/round_result_player_row.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class RoundResultPage extends StatefulWidget {
@@ -68,6 +69,17 @@ class _RoundResultView extends StatelessWidget {
   final int roundNumber;
   final bool readOnly;
 
+  Future<void> _goToScoring(BuildContext context) async {
+    await getIt<RevertRoundToPlayingUseCase>()(
+      gameId: gameId,
+      roundNumber: roundNumber,
+    );
+    if (!context.mounted) {
+      return;
+    }
+    context.go('/games/$gameId/rounds/$roundNumber/tricks');
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<RoundResultBloc, RoundResultState>(
@@ -80,61 +92,75 @@ class _RoundResultView extends StatelessWidget {
           context.go('/games/${state.gameId}/final');
         }
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              BlocBuilder<RoundResultBloc, RoundResultState>(
-                builder: (context, state) {
-                  final cardsInRound = switch (state) {
-                    RoundResultLoaded(:final result) => result.round.cardsInRound,
-                    RoundResultAdvancing(:final result) => result.round.cardsInRound,
-                    _ => null,
-                  };
-                  final dealerName = switch (state) {
-                    RoundResultLoaded(:final result) => result.dealerDisplayName,
-                    RoundResultAdvancing(:final result) => result.dealerDisplayName,
-                    _ => null,
-                  };
-                  return RoundHeader(
-                    gameId: gameId,
-                    roundNumber: roundNumber,
-                    cardsInRound: cardsInRound,
-                    subtitle: 'Resultado',
-                    dealerName: dealerName,
-                    repeatRoundNumber: readOnly ? null : roundNumber,
-                  );
-                },
-              ),
-              Expanded(
-                child: BlocBuilder<RoundResultBloc, RoundResultState>(
+      child: PopScope(
+        canPop: readOnly,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop || readOnly) {
+            return;
+          }
+          _goToScoring(context);
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                BlocBuilder<RoundResultBloc, RoundResultState>(
                   builder: (context, state) {
-                    return switch (state) {
-                      RoundResultLoading() => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      RoundResultFailure(:final message) => Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(message),
-                          ),
-                        ),
-                      RoundResultLoaded(:final result) ||
+                    final cardsInRound = switch (state) {
+                      RoundResultLoaded(:final result) =>
+                        result.round.cardsInRound,
                       RoundResultAdvancing(:final result) =>
-                        _LoadedBody(
-                          gameId: gameId,
-                          roundNumber: roundNumber,
-                          result: result,
-                          isAdvancing: state is RoundResultAdvancing,
-                          readOnly: readOnly,
-                        ),
-                      _ => const SizedBox.shrink(),
+                        result.round.cardsInRound,
+                      _ => null,
                     };
+                    final dealerName = switch (state) {
+                      RoundResultLoaded(:final result) =>
+                        result.dealerDisplayName,
+                      RoundResultAdvancing(:final result) =>
+                        result.dealerDisplayName,
+                      _ => null,
+                    };
+                    return RoundHeader(
+                      gameId: gameId,
+                      roundNumber: roundNumber,
+                      cardsInRound: cardsInRound,
+                      subtitle: 'Resultado',
+                      dealerName: dealerName,
+                      repeatRoundNumber: readOnly ? null : roundNumber,
+                      onBack: readOnly ? null : () => _goToScoring(context),
+                    );
                   },
                 ),
-              ),
-            ],
+                Expanded(
+                  child: BlocBuilder<RoundResultBloc, RoundResultState>(
+                    builder: (context, state) {
+                      return switch (state) {
+                        RoundResultLoading() => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        RoundResultFailure(:final message) => Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(message),
+                            ),
+                          ),
+                        RoundResultLoaded(:final result) ||
+                        RoundResultAdvancing(:final result) =>
+                          _LoadedBody(
+                            gameId: gameId,
+                            roundNumber: roundNumber,
+                            result: result,
+                            isAdvancing: state is RoundResultAdvancing,
+                            readOnly: readOnly,
+                          ),
+                        _ => const SizedBox.shrink(),
+                      };
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -159,6 +185,8 @@ class _LoadedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -179,7 +207,63 @@ class _LoadedBody extends StatelessWidget {
             ),
           ),
         Expanded(
-          child: RankingList(entries: result.entries),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 24),
+                    const Expanded(flex: 3, child: SizedBox()),
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        'Ronda',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 52,
+                      child: Text(
+                        'Total',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width: 36),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    for (var index = 0; index < result.entries.length; index++) ...[
+                      if (index > 0)
+                        Divider(
+                          height: 1,
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.6,
+                          ),
+                        ),
+                      RoundResultPlayerRow(entry: result.entries[index]),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         if (!readOnly)
           Padding(
