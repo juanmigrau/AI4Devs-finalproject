@@ -2804,3 +2804,49 @@ y play_page.
 
 ---
 
+Corrige la validación del límite superior en
+scoring_page.dart:
+
+PROBLEMA: el botón + permite añadir bazas más allá
+del total de cartas de la ronda, mostrando un número
+negativo en "Bazas restantes" en rojo. El botón
+"Confirmar bazas" se deshabilita pero el estado
+visual es confuso.
+
+FIX: deshabilitar el botón + de cada jugador cuando
+la suma total de bazas ya introducidas (sumando todos
+los jugadores, confirmados y el activo) es igual a
+cartas_en_ronda.
+
+En ScoringBloc, calcular:
+  final totalTricks = tricks.values.fold(0, (a, b) => a + b);
+  final canAddMore = totalTricks < cardsInRound;
+
+Pasar canAddMore al widget de la fila activa:
+- Botón +: onPressed: canAddMore ? () => add() : null
+- Botón -: onPressed: tricks[playerId]! > 0
+             ? () => subtract() : null
+
+Para filas ya confirmadas en modo edición inline:
+  misma lógica — el botón + se deshabilita si
+  (totalTricks - tricks[playerId]! + valorActual)
+  >= cardsInRound, es decir, si aumentar ese jugador
+  haría que el total supere el límite.
+
+RESULTADO ESPERADO:
+- Nunca puede aparecer "Bazas restantes" en negativo
+- El botón + se vuelve gris/deshabilitado antes de
+  poder superar el límite
+- "Bazas restantes" llega a 0 (verde) como mínimo,
+  nunca a negativo
+
+pubspec.yaml:
+ANTES: version: 1.0.6+7
+DESPUÉS: version: 1.0.7+8
+
+flutter analyze sin errores.
+No uses modo Plan — fix puntual en ScoringBloc
+y widget de fila activa.
+
+---
+

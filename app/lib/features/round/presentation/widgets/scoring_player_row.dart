@@ -16,6 +16,7 @@ class ScoringPlayerRow extends StatelessWidget {
     this.draftTrick = 0,
     required this.cardsInRound,
     required this.canConfirmTrick,
+    this.canAddMore = true,
     this.isDealer = false,
     this.onTrickChanged,
     this.onTrickConfirmed,
@@ -29,6 +30,7 @@ class ScoringPlayerRow extends StatelessWidget {
   final int draftTrick;
   final int cardsInRound;
   final bool canConfirmTrick;
+  final bool canAddMore;
   final bool isDealer;
   final ValueChanged<int>? onTrickChanged;
   final VoidCallback? onTrickConfirmed;
@@ -102,7 +104,7 @@ class ScoringPlayerRow extends StatelessWidget {
                 BidInputStepper(
                   value: draftTrick,
                   min: 0,
-                  max: cardsInRound,
+                  max: canAddMore ? cardsInRound : draftTrick,
                   onChanged: onTrickChanged ?? (_) {},
                   onConfirm: onTrickConfirmed ?? () {},
                   canConfirm: canConfirmTrick,

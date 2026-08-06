@@ -99,6 +99,7 @@ void main() {
     int remainingTricks = 4,
     bool canConfirmTrick = true,
     bool canConfirm = false,
+    bool canAddMore = true,
     String? editingPlayerId,
   }) {
     return ScoringLoaded(
@@ -112,6 +113,7 @@ void main() {
       remainingTricks: remainingTricks,
       canConfirmTrick: canConfirmTrick,
       canConfirm: canConfirm,
+      canAddMore: canAddMore,
       editingPlayerId: editingPlayerId,
     );
   }
@@ -143,6 +145,7 @@ void main() {
           .having((s) => s.draftTrick, 'draftTrick', 2)
           .having((s) => s.confirmedTricks, 'confirmedTricks', <String, int>{})
           .having((s) => s.remainingTricks, 'remainingTricks', 4)
+          .having((s) => s.canAddMore, 'canAddMore', true)
           .having((s) => s.canConfirm, 'canConfirm', false),
     ],
   );
@@ -174,6 +177,7 @@ void main() {
           .having((s) => s.currentPlayerId, 'currentPlayerId', 'p1')
           .having((s) => s.draftTrick, 'draftTrick', 2)
           .having((s) => s.remainingTricks, 'remainingTricks', 2)
+          .having((s) => s.canAddMore, 'canAddMore', false)
           .having((s) => s.canConfirm, 'canConfirm', false),
     ],
   );
@@ -329,5 +333,79 @@ void main() {
         ),
       );
     },
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'canAddMore is false when confirmed plus draft equals cardsInRound',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 3},
+      currentPlayerId: 'p1',
+      draftTrick: 0,
+      tricksSum: 3,
+      remainingTricks: 1,
+      canAddMore: true,
+    ),
+    act: (bloc) => bloc.add(const TrickValueChanged(1)),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having((s) => s.draftTrick, 'draftTrick', 1)
+          .having((s) => s.canAddMore, 'canAddMore', false)
+          .having((s) => s.remainingTricks, 'remainingTricks', 1),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'rejects draft increase when canAddMore is false',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 3},
+      currentPlayerId: 'p1',
+      draftTrick: 1,
+      tricksSum: 3,
+      remainingTricks: 1,
+      canAddMore: false,
+    ),
+    act: (bloc) => bloc.add(const TrickValueChanged(2)),
+    expect: () => [],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'canAddMore is false when editing would exceed cardsInRound on increment',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 2},
+      currentPlayerId: null,
+      draftTrick: 2,
+      tricksSum: 4,
+      remainingTricks: 0,
+      canConfirm: false,
+      canAddMore: false,
+      editingPlayerId: 'p2',
+    ),
+    act: (bloc) => bloc.add(const TrickValueChanged(3)),
+    expect: () => [],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'allows decreasing draft while at cardsInRound limit',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 2, 'p1': 2},
+      currentPlayerId: null,
+      draftTrick: 2,
+      tricksSum: 4,
+      remainingTricks: 0,
+      canConfirm: false,
+      canAddMore: false,
+      editingPlayerId: 'p2',
+    ),
+    act: (bloc) => bloc.add(const TrickValueChanged(1)),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having((s) => s.draftTrick, 'draftTrick', 1)
+          .having((s) => s.remainingTricks, 'remainingTricks', 1)
+          .having((s) => s.canAddMore, 'canAddMore', true),
+    ],
   );
 }

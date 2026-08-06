@@ -300,6 +300,7 @@ class _LoadedBodyState extends State<_LoadedBody> {
                               draftTrick: isExpanded ? state.draftTrick : 0,
                               cardsInRound: state.round.cardsInRound,
                               canConfirmTrick: state.canConfirmTrick,
+                              canAddMore: state.canAddMore,
                               onActivateEdit:
                                   rowStatus ==
                                       ScoringPlayerRowStatus.completed

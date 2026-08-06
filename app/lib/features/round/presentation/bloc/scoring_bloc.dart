@@ -77,6 +77,9 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
     if (current.editingPlayerId == null && current.currentPlayerId == null) {
       return;
     }
+    if (event.value > current.draftTrick && !current.canAddMore) {
+      return;
+    }
 
     emit(
       _buildLoadedState(
@@ -269,6 +272,15 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
     final tricksSum = _validator.partialTricksSum(effectiveTricks);
     final remainingTricks = round.cardsInRound - tricksSum;
 
+    final tricksForLimit = Map<String, int>.from(confirmedTricks);
+    if (editingPlayerId != null) {
+      tricksForLimit[editingPlayerId] = draftTrick;
+    } else if (currentPlayerId != null) {
+      tricksForLimit[currentPlayerId] = draftTrick;
+    }
+    final totalTricks = _validator.partialTricksSum(tricksForLimit);
+    final canAddMore = totalTricks < round.cardsInRound;
+
     final isDraftInRange = _validator.isTrickInRange(
       trick: draftTrick,
       cardsInRound: round.cardsInRound,
@@ -297,6 +309,7 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
       remainingTricks: remainingTricks,
       canConfirmTrick: canConfirmTrick,
       canConfirm: canConfirm,
+      canAddMore: canAddMore,
       editingPlayerId: editingPlayerId,
     );
   }

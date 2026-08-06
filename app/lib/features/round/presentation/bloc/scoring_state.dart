@@ -38,6 +38,7 @@ final class ScoringLoaded extends ScoringState {
     required this.remainingTricks,
     required this.canConfirmTrick,
     required this.canConfirm,
+    required this.canAddMore,
     this.editingPlayerId,
     this.validationMessage,
     this.isClosing = false,
@@ -53,6 +54,7 @@ final class ScoringLoaded extends ScoringState {
   final int remainingTricks;
   final bool canConfirmTrick;
   final bool canConfirm;
+  final bool canAddMore;
   final String? editingPlayerId;
   final String? validationMessage;
   final bool isClosing;
@@ -69,6 +71,7 @@ final class ScoringLoaded extends ScoringState {
     int? remainingTricks,
     bool? canConfirmTrick,
     bool? canConfirm,
+    bool? canAddMore,
     String? editingPlayerId,
     bool clearEditingPlayerId = false,
     String? Function()? validationMessage,
@@ -87,6 +90,7 @@ final class ScoringLoaded extends ScoringState {
       remainingTricks: remainingTricks ?? this.remainingTricks,
       canConfirmTrick: canConfirmTrick ?? this.canConfirmTrick,
       canConfirm: canConfirm ?? this.canConfirm,
+      canAddMore: canAddMore ?? this.canAddMore,
       editingPlayerId: clearEditingPlayerId
           ? null
           : (editingPlayerId ?? this.editingPlayerId),
@@ -109,6 +113,7 @@ final class ScoringLoaded extends ScoringState {
         remainingTricks,
         canConfirmTrick,
         canConfirm,
+        canAddMore,
         editingPlayerId,
         validationMessage,
         isClosing,
