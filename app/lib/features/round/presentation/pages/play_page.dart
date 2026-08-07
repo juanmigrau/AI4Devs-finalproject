@@ -146,22 +146,6 @@ class _LoadedBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (playState.round.roundNumber >= 2)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () {
-                  context.go(
-                    '/games/${playState.round.gameId}/rounds/${playState.round.roundNumber - 1}/result?readOnly=true',
-                  );
-                },
-                icon: const Icon(Icons.arrow_back, size: 16),
-                label: const Text('Ver ronda anterior'),
-              ),
-            ),
-          ),
         TricksBalanceBanner(
           bidSum: playState.bidSum,
           cardsInRound: playState.round.cardsInRound,

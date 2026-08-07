@@ -114,19 +114,11 @@ class _RoundResultView extends StatelessWidget {
                         result.round.cardsInRound,
                       _ => null,
                     };
-                    final dealerName = switch (state) {
-                      RoundResultLoaded(:final result) =>
-                        result.dealerDisplayName,
-                      RoundResultAdvancing(:final result) =>
-                        result.dealerDisplayName,
-                      _ => null,
-                    };
                     return RoundHeader(
                       gameId: gameId,
                       roundNumber: roundNumber,
                       cardsInRound: cardsInRound,
                       subtitle: 'Resultado',
-                      dealerName: dealerName,
                       repeatRoundNumber: readOnly ? null : roundNumber,
                       onBack: readOnly ? null : () => _goToScoring(context),
                     );
@@ -148,8 +140,6 @@ class _RoundResultView extends StatelessWidget {
                         RoundResultLoaded(:final result) ||
                         RoundResultAdvancing(:final result) =>
                           _LoadedBody(
-                            gameId: gameId,
-                            roundNumber: roundNumber,
                             result: result,
                             isAdvancing: state is RoundResultAdvancing,
                             readOnly: readOnly,
@@ -170,15 +160,11 @@ class _RoundResultView extends StatelessWidget {
 
 class _LoadedBody extends StatelessWidget {
   const _LoadedBody({
-    required this.gameId,
-    required this.roundNumber,
     required this.result,
     required this.isAdvancing,
     required this.readOnly,
   });
 
-  final String gameId;
-  final int roundNumber;
   final RoundResult result;
   final bool isAdvancing;
   final bool readOnly;
@@ -190,22 +176,27 @@ class _LoadedBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (roundNumber >= 2)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () {
-                  context.go(
-                    '/games/$gameId/rounds/${roundNumber - 1}/result?readOnly=true',
-                  );
-                },
-                icon: const Icon(Icons.arrow_back, size: 16),
-                label: const Text('Ver ronda anterior'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Text(
+                'Reparte:',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
               ),
-            ),
+              const SizedBox(width: 8),
+              Text(
+                result.dealerDisplayName,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+              ),
+            ],
           ),
+        ),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -214,7 +205,7 @@ class _LoadedBody extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    const SizedBox(width: 24),
+                    const SizedBox(width: 36),
                     const Expanded(flex: 3, child: SizedBox()),
                     SizedBox(
                       width: 52,
@@ -236,7 +227,6 @@ class _LoadedBody extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    const SizedBox(width: 36),
                   ],
                 ),
               ),

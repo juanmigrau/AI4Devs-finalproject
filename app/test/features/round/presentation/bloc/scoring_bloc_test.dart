@@ -124,7 +124,7 @@ void main() {
   });
 
   blocTest<ScoringBloc, ScoringState>(
-    'loads scoring with draftTrick equal to current player bid',
+    'loads scoring with draftTrick equal to min(bid, cardsInRound)',
     build: buildBloc,
     setUp: () {
       when(
@@ -163,7 +163,7 @@ void main() {
   );
 
   blocTest<ScoringBloc, ScoringState>(
-    'confirms tricks and advances to next player with bid as draft',
+    'confirms tricks and advances with min(bid, remaining) as draft',
     build: buildBloc,
     seed: loaded,
     act: (bloc) => bloc.add(const TricksConfirmed()),
@@ -406,6 +406,167 @@ void main() {
           .having((s) => s.draftTrick, 'draftTrick', 1)
           .having((s) => s.remainingTricks, 'remainingTricks', 1)
           .having((s) => s.canAddMore, 'canAddMore', true),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'waterfall defaults: min(bid, remaining) across turn order',
+    build: () {
+      final fourPlayers = [
+        PlayerEmbed(
+          id: 'p1',
+          displayName: 'Ana',
+          isGuest: true,
+          userId: null,
+          seatOrder: 0,
+          totalScore: 0,
+          joinedAt: DateTime(2026),
+        ),
+        PlayerEmbed(
+          id: 'p2',
+          displayName: 'Bob',
+          isGuest: true,
+          userId: null,
+          seatOrder: 1,
+          totalScore: 0,
+          joinedAt: DateTime(2026),
+        ),
+        PlayerEmbed(
+          id: 'p3',
+          displayName: 'Cara',
+          isGuest: true,
+          userId: null,
+          seatOrder: 2,
+          totalScore: 0,
+          joinedAt: DateTime(2026),
+        ),
+        PlayerEmbed(
+          id: 'p4',
+          displayName: 'Dan',
+          isGuest: true,
+          userId: null,
+          seatOrder: 3,
+          totalScore: 0,
+          joinedAt: DateTime(2026),
+        ),
+      ];
+      final fourPlayerGame = Game(
+        id: 'game-1',
+        status: GameStatus.inProgress,
+        playerCount: 4,
+        totalCards: 40,
+        maxCardsPerRound: 10,
+        roundSequence: const [
+          RoundDefinition(roundNumber: 1, cardsPerPlayer: 4),
+        ],
+        players: fourPlayers,
+        currentRoundNumber: 1,
+        startedAt: DateTime(2026),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      // Dealer p1 → order [p2, p3, p4, p1]; bids 2,1,2,0
+      final fourPlayerRound = Round(
+        id: 'round-1',
+        gameId: 'game-1',
+        roundNumber: 1,
+        cardsInRound: 4,
+        dealerPlayerId: 'p1',
+        status: RoundStatus.playing,
+        bids: const {'p2': 2, 'p3': 1, 'p4': 2, 'p1': 0},
+        createdAt: DateTime(2026),
+      );
+      when(
+        getRoundPlayState(
+          gameId: anyNamed('gameId'),
+          roundNumber: anyNamed('roundNumber'),
+        ),
+      ).thenAnswer(
+        (_) async => RoundPlayState(
+          game: fourPlayerGame,
+          round: fourPlayerRound,
+          players: fourPlayers,
+          bidSum: 5,
+          restrictionMet: false,
+        ),
+      );
+      return ScoringBloc(
+        getRoundPlayState: getRoundPlayState,
+        closeRound: closeRound,
+      );
+    },
+    act: (bloc) async {
+      bloc.add(const ScoringStarted(gameId: 'game-1', roundNumber: 1));
+      await bloc.stream.firstWhere((s) => s is ScoringLoaded);
+      bloc.add(const TricksConfirmed()); // p2: 2 → remaining 2
+      await bloc.stream.first;
+      bloc.add(const TricksConfirmed()); // p3: 1 → remaining 1
+      await bloc.stream.first;
+      bloc.add(const TricksConfirmed()); // p4: min(2,1)=1 → remaining 0
+      await bloc.stream.first;
+      bloc.add(const TricksConfirmed()); // p1: min(0,0)=0
+    },
+    expect: () => [
+      const ScoringLoading(),
+      isA<ScoringLoaded>()
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p2')
+          .having((s) => s.draftTrick, 'draftTrick', 2),
+      isA<ScoringLoaded>()
+          .having((s) => s.confirmedTricks, 'confirmedTricks', {'p2': 2})
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p3')
+          .having((s) => s.draftTrick, 'draftTrick', 1),
+      isA<ScoringLoaded>()
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 2, 'p3': 1},
+          )
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p4')
+          .having((s) => s.draftTrick, 'draftTrick', 1),
+      isA<ScoringLoaded>()
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 2, 'p3': 1, 'p4': 1},
+          )
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p1')
+          .having((s) => s.draftTrick, 'draftTrick', 0),
+      isA<ScoringLoaded>()
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 2, 'p3': 1, 'p4': 1, 'p1': 0},
+          )
+          .having((s) => s.currentPlayerId, 'currentPlayerId', null)
+          .having((s) => s.canConfirm, 'canConfirm', true),
+    ],
+  );
+
+  blocTest<ScoringBloc, ScoringState>(
+    'recalculates pending draft after editing confirmed when bid exceeds remaining',
+    build: buildBloc,
+    seed: () => loaded(
+      confirmedTricks: const {'p2': 3},
+      currentPlayerId: 'p1',
+      draftTrick: 1,
+      tricksSum: 3,
+      remainingTricks: 1,
+      canConfirm: false,
+      editingPlayerId: 'p2',
+    ),
+    act: (bloc) =>
+        bloc.add(const TricksUpdated(playerId: 'p2', newTricks: 4)),
+    expect: () => [
+      isA<ScoringLoaded>()
+          .having(
+            (s) => s.confirmedTricks,
+            'confirmedTricks',
+            {'p2': 4},
+          )
+          .having((s) => s.editingPlayerId, 'editingPlayerId', null)
+          .having((s) => s.currentPlayerId, 'currentPlayerId', 'p1')
+          .having((s) => s.draftTrick, 'draftTrick', 0)
+          .having((s) => s.remainingTricks, 'remainingTricks', 0),
     ],
   );
 }

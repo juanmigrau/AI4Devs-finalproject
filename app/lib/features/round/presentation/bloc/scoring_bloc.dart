@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
@@ -47,9 +49,12 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
         dealerPlayerId: playState.round.dealerPlayerId,
       );
       final currentPlayerId = scoringOrder.isEmpty ? null : scoringOrder.first;
-      final draftTrick = currentPlayerId == null
-          ? 0
-          : playState.round.bids[currentPlayerId] ?? 0;
+      final draftTrick = _defaultTrickForPlayer(
+        playerId: currentPlayerId,
+        bids: playState.round.bids,
+        cardsInRound: playState.round.cardsInRound,
+        confirmedTricks: const {},
+      );
 
       emit(
         _buildLoadedState(
@@ -114,9 +119,12 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
       scoringOrder: current.scoringOrder,
       confirmedTricks: updatedTricks,
     );
-    final draftTrick = nextPlayerId == null
-        ? 0
-        : current.round.bids[nextPlayerId] ?? 0;
+    final draftTrick = _defaultTrickForPlayer(
+      playerId: nextPlayerId,
+      bids: current.round.bids,
+      cardsInRound: current.round.cardsInRound,
+      confirmedTricks: updatedTricks,
+    );
 
     emit(
       _buildLoadedState(
@@ -164,9 +172,12 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
       return;
     }
 
-    final draftTrick = current.currentPlayerId == null
-        ? 0
-        : current.round.bids[current.currentPlayerId!] ?? 0;
+    final draftTrick = _defaultTrickForPlayer(
+      playerId: current.currentPlayerId,
+      bids: current.round.bids,
+      cardsInRound: current.round.cardsInRound,
+      confirmedTricks: current.confirmedTricks,
+    );
 
     emit(
       _buildLoadedState(
@@ -194,9 +205,12 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
     final updatedTricks = Map<String, int>.from(current.confirmedTricks)
       ..[event.playerId] = event.newTricks;
 
-    final draftTrick = current.currentPlayerId == null
-        ? 0
-        : current.round.bids[current.currentPlayerId!] ?? 0;
+    final draftTrick = _defaultTrickForPlayer(
+      playerId: current.currentPlayerId,
+      bids: current.round.bids,
+      cardsInRound: current.round.cardsInRound,
+      confirmedTricks: updatedTricks,
+    );
 
     emit(
       _buildLoadedState(
@@ -241,6 +255,24 @@ class ScoringBloc extends Bloc<ScoringEvent, ScoringState> {
         ),
       );
     }
+  }
+
+  /// Default tricks for a pending player: min(bid, remaining after confirmed).
+  /// Confirmed players are never recalculated; only pending drafts use this.
+  int _defaultTrickForPlayer({
+    required String? playerId,
+    required Map<String, int> bids,
+    required int cardsInRound,
+    required Map<String, int> confirmedTricks,
+  }) {
+    if (playerId == null) {
+      return 0;
+    }
+    final remaining =
+        cardsInRound - _validator.partialTricksSum(confirmedTricks);
+    final cappedRemaining = math.max(0, remaining);
+    final bid = bids[playerId] ?? 0;
+    return math.min(bid, cappedRemaining);
   }
 
   String? _nextUnconfirmedPlayer({

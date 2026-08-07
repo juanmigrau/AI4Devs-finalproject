@@ -26,14 +26,9 @@ class RoundResultPlayerRow extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(
-              width: 24,
-              child: Text(
-                '${entry.rank}',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+              width: 36,
+              child: _PositionChange(
+                positionDelta: positionDelta,
               ),
             ),
             Expanded(
@@ -77,12 +72,6 @@ class RoundResultPlayerRow extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(
-              width: 36,
-              child: _PositionChange(
-                positionDelta: positionDelta,
               ),
             ),
           ],

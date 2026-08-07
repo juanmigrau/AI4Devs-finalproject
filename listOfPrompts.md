@@ -2850,3 +2850,104 @@ y widget de fila activa.
 
 ---
 
+Aplica los siguientes cambios en varias pantallas:
+
+═══════════════════════════════════════
+1. ELIMINAR "Ver ronda anterior" DE TODAS LAS PANTALLAS
+═══════════════════════════════════════
+
+Busca y elimina el link/botón "Ver ronda anterior"
+(o "‹ Ver ronda anterior") en TODAS las pantallas
+donde aparezca:
+- bidding_page.dart
+- play_page.dart
+- scoring_page.dart
+- round_result_page.dart
+- Cualquier otro fichero donde esté implementado
+
+No eliminar la funcionalidad de RevertRoundToBiddingUseCase
+ni RevertRoundToPlayingUseCase — solo el enlace visual
+de navegación a la ronda anterior en modo solo lectura.
+
+═══════════════════════════════════════
+2. ROUND_RESULT_PAGE — ajustes de diseño
+═══════════════════════════════════════
+
+A) "Repartidor: [nombre]" fuera de la AppBar:
+   - En RoundHeader o AppBar: subtitle solo "Resultado"
+     (sin "Repartidor: [nombre]")
+   - Añadir línea de texto bajo la cabecera verde,
+     mismo estilo que game_setup_page:
+     Row: Text("Reparte:", bodyMedium, onSurfaceVariant)
+          + Text("[nombre]", bodyLarge bold, onSurface)
+     Padding: horizontal 16, vertical 8
+
+B) Orden de columnas en la tabla — de izquierda a derecha:
+   Cambio posición | Nombre | Ronda | Total
+
+   Cabecera actualizada:
+   - Cambio pos. (width: 36, vacío — icono en fila)
+   - Espacio nombre (flex: 3, vacío)
+   - "Ronda" (width: 52, labelSmall, onSurfaceVariant)
+   - "Total" (width: 52, labelSmall, onSurfaceVariant)
+
+   Fila actualizada:
+   - Cambio posición (width: 36): ↑n, ↓n o — 
+   - PlayerInitialAvatar + nombre (flex: 3)
+   - Puntos ronda (width: 52): "+10" o "-5"
+   - Puntos total (width: 52)
+
+═══════════════════════════════════════
+3. SCORING_PAGE — valor por defecto corregido
+═══════════════════════════════════════
+
+Al inicializar la pantalla, calcular el valor por
+defecto de bazas para cada jugador en ORDEN DE TURNO
+(seatOrder), no todos a la vez:
+
+int bazasRestantes = cardsInRound;
+for (final player in playersInOrder) {
+  final valorDefecto = min(bids[player.id]!, bazasRestantes);
+  tricks[player.id] = valorDefecto;
+  bazasRestantes -= valorDefecto;
+}
+
+Así el tercer jugador del ejemplo (apostó 2, quedan 1)
+recibe valorDefecto = min(2, 1) = 1.
+
+Este cálculo debe ejecutarse en ScoringBloc al cargar
+la pantalla (en el evento que inicializa el estado),
+antes de que el usuario toque nada.
+
+Los jugadores que el usuario ya ha confirmado no se
+recalculan — solo los pendientes si el usuario vuelve
+atrás y avanza de nuevo.
+
+═══════════════════════════════════════
+4. VERSIÓN
+═══════════════════════════════════════
+
+pubspec.yaml:
+ANTES: version: 1.0.8+9
+DESPUÉS: version: 1.0.9+10
+
+═══════════════════════════════════════
+VERIFICACIÓN
+═══════════════════════════════════════
+
+- Sin "Ver ronda anterior" en ninguna pantalla del
+  ciclo de ronda
+- round_result_page: subtitle "Resultado" en AppBar,
+  "Reparte: [nombre]" como línea bajo la cabecera
+- Columnas en orden: cambio pos. | nombre | ronda | total
+- Ejemplo (4 cartas, apuestas 2,1,2,0):
+  * Jugador 1: default 2, restantes → 2
+  * Jugador 2: default 1, restantes → 1
+  * Jugador 3: default min(2,1)=1, restantes → 0
+  * Jugador 4: default min(0,0)=0
+  * Suma total = 4 == cardsInRound ✓
+- flutter analyze sin errores
+
+Usa modo Plan — afecta a múltiples ficheros.
+
+---
