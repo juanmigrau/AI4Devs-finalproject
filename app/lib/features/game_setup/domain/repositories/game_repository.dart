@@ -8,6 +8,8 @@ abstract class GameRepository {
 
   Future<Game?> getGameById(String id);
 
+  Future<Game?> getInProgressGame();
+
   Future<Game> updateGamePlayers(String gameId, List<PlayerEmbed> players);
 
   Future<StartGameResult> startGame({

@@ -30,6 +30,19 @@ class GameLocalDatasource {
     return GameMapper.toDomain(entries.first);
   }
 
+  Future<Game?> getInProgressGame() async {
+    final entries =
+        await (_database.select(_database.games)
+              ..where((table) => table.status.equals('in_progress'))
+              ..orderBy([(table) => OrderingTerm.desc(table.updatedAt)])
+              ..limit(1))
+            .get();
+    if (entries.isEmpty) {
+      return null;
+    }
+    return GameMapper.toDomain(entries.first);
+  }
+
   Future<Game> updateGamePlayers(
     String gameId,
     List<PlayerEmbed> players,

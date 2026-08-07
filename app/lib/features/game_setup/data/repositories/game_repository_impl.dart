@@ -17,6 +17,9 @@ class GameRepositoryImpl implements GameRepository {
   Future<Game?> getGameById(String id) => _localDatasource.getGameById(id);
 
   @override
+  Future<Game?> getInProgressGame() => _localDatasource.getInProgressGame();
+
+  @override
   Future<Game> updateGamePlayers(String gameId, List<PlayerEmbed> players) =>
       _localDatasource.updateGamePlayers(gameId, players);
 

@@ -2951,3 +2951,82 @@ VERIFICACIÓN
 Usa modo Plan — afecta a múltiples ficheros.
 
 ---
+
+Aplica dos mejoras de arquitectura:
+
+═══════════════════════════════════════
+1. FORZAR ORIENTACIÓN VERTICAL
+═══════════════════════════════════════
+
+En main.dart, antes de runApp():
+
+WidgetsFlutterBinding.ensureInitialized();
+await SystemChrome.setPreferredOrientations([
+  DeviceOrientation.portraitUp,
+  DeviceOrientation.portraitDown,
+]);
+
+Añadir import: 'package:flutter/services.dart'
+
+═══════════════════════════════════════
+2. REHIDRATACIÓN DE PARTIDA EN CURSO
+═══════════════════════════════════════
+
+PROBLEMA: si la app va a segundo plano y el SO mata
+el proceso, al volver la app arranca desde Home
+perdiendo el estado de la partida en curso, aunque
+la partida está persistida en Drift.
+
+FIX — Guard de navegación en go_router:
+
+En core/router/app_router.dart, añadir un redirect
+global que al arrancar la app compruebe:
+
+1. ¿Existe algún Game con status == 'in_progress'
+   en Drift? Si no: navegar a Home normalmente.
+
+2. Si sí: obtener el Game in_progress y su Round
+   activa (currentRoundNumber). Según el estado
+   de la Round:
+   - status == 'bidding': navegar a
+     /games/{gameId}/rounds/{roundNumber}/bids
+   - status == 'playing': navegar a
+     /games/{gameId}/rounds/{roundNumber}/play
+   - status == 'closed' (resultado pendiente): navegar a
+     /games/{gameId}/rounds/{roundNumber}/result
+
+3. Este redirect solo aplica en el arranque inicial
+   (primera navegación), no en cada cambio de ruta.
+   Usar un flag booleano _initialRedirectDone en el
+   router para ejecutarlo solo una vez.
+
+IMPLEMENTACIÓN:
+- Crear GetActiveGameUseCase en
+  lib/features/game/domain/usecases/ que devuelva
+  el Game con status == 'in_progress' o null
+- El redirect del router lo llama de forma síncrona
+  (puede requerir pre-cargar el dato antes de que
+  el router se inicialice, similar a como se carga
+  Firebase)
+- Si hay error al leer Drift: navegar a Home
+  (fallback seguro)
+
+VERIFICACIÓN:
+- Partida en curso → app a segundo plano → volver
+  → app navega directamente a la pantalla correcta
+  del ciclo de ronda
+- Sin partida en curso → app arranca en Home
+- El estado del BLoC se recarga desde Drift al
+  navegar a la pantalla correcta (ya debería
+  funcionar si los BLoCs cargan datos en su
+  evento inicial — verificar que es así)
+
+pubspec.yaml:
+ANTES: version: 1.0.9+10
+DESPUÉS: version: 1.0.10+11
+
+flutter analyze sin errores.
+Usa modo Plan — afecta a main.dart y app_router.dart.
+
+---
+

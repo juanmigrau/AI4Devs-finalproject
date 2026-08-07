@@ -23,6 +23,7 @@ import 'package:la_pocha/features/game_setup/domain/usecases/add_player_from_fav
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/cancel_game_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/create_game_draft_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/get_active_game_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/get_game_by_id_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/randomize_first_dealer_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/remove_player_usecase.dart';
@@ -428,6 +429,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<GetGameByIdUseCase>(
     () => GetGameByIdUseCase(getIt<GameRepository>()),
+  );
+
+  getIt.registerFactory<GetActiveGameUseCase>(
+    () => GetActiveGameUseCase(getIt<GameRepository>()),
   );
 
   getIt.registerFactory<AddPlayerUseCase>(

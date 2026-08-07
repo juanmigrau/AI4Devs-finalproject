@@ -21,11 +21,22 @@ import 'package:la_pocha/features/history/presentation/pages/history_list_page.d
 GoRouter createAppRouter({
   required AuthRefreshNotifier refreshListenable,
   required AuthBloc authBloc,
+  String? resumeLocation,
 }) {
+  var initialRedirectDone = false;
+
   return GoRouter(
     initialLocation: '/',
     refreshListenable: refreshListenable,
     redirect: (context, state) {
+      if (!initialRedirectDone) {
+        initialRedirectDone = true;
+        if (resumeLocation != null &&
+            state.matchedLocation != resumeLocation) {
+          return resumeLocation;
+        }
+      }
+
       final location = state.matchedLocation;
       final isAuthenticated = authBloc.state is Authenticated;
 
