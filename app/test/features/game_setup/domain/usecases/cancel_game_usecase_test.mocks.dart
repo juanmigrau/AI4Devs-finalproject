@@ -73,6 +73,15 @@ class MockGameRepository extends _i1.Mock implements _i5.GameRepository {
           as _i6.Future<_i2.Game?>);
 
   @override
+  _i6.Future<_i2.Game?> getInProgressGame() =>
+      (super.noSuchMethod(
+            Invocation.method(#getInProgressGame, []),
+            returnValue: _i6.Future<_i2.Game?>.value(),
+            returnValueForMissingStub: _i6.Future<_i2.Game?>.value(),
+          )
+          as _i6.Future<_i2.Game?>);
+
+  @override
   _i6.Future<_i2.Game> updateGamePlayers(
     String? gameId,
     List<_i7.PlayerEmbed>? players,

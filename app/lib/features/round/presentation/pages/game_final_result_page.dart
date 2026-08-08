@@ -3,14 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
+import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
+import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/core/widgets/warning_banner.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/round_repository.dart';
+import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
+import 'package:la_pocha/features/history/presentation/bloc/repeat_game_cubit.dart';
+import 'package:la_pocha/features/history/presentation/widgets/repeat_game_dialog.dart';
 import 'package:la_pocha/features/round/domain/entities/ranking_entry.dart';
 import 'package:la_pocha/features/round/domain/services/ranking_service.dart';
-import 'package:la_pocha/features/round/presentation/widgets/ranking_list.dart';
+import 'package:la_pocha/features/sync/presentation/bloc/game_sync_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class GameFinalResultPage extends StatefulWidget {
@@ -58,67 +63,363 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
     return _FinalResultData(
       entries: entries,
       roundCount: game.roundSequence.length,
-      winnerName: entries.isNotEmpty
-          ? entries.first.player.displayName
-          : '',
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: FutureBuilder<_FinalResultData>(
-          future: _loadFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    mapExceptionToUserMessage(snapshot.error!),
-                  ),
-                ),
-              );
-            }
-
-            final data = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  PochaAppBar(
-                    title: 'Resultado final',
-                    subtitle:
-                        '${data.roundCount} rondas · Ganador: ${data.winnerName}',
-                    leading: IconButton(
-                      onPressed: () => context.go('/'),
-                      icon: const Icon(Icons.home, color: Colors.white),
+    return BlocProvider(
+      create: (_) => getIt<RepeatGameCubit>(),
+      child: Scaffold(
+        body: SafeArea(
+          child: FutureBuilder<_FinalResultData>(
+            future: _loadFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      mapExceptionToUserMessage(snapshot.error!),
                     ),
                   ),
-                  const _SignUpBanner(),
-                  RankingList(
-                    entries: data.entries,
-                    showPositionDelta: false,
-                    shrinkWrap: true,
+                );
+              }
+
+              final data = snapshot.data!;
+              return _LoadedBody(
+                gameId: widget.gameId,
+                data: data,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadedBody extends StatelessWidget {
+  const _LoadedBody({
+    required this.gameId,
+    required this.data,
+  });
+
+  final String gameId;
+  final _FinalResultData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<RepeatGameCubit, RepeatGameState>(
+      listener: (context, state) {
+        if (state is RepeatGameSuccess) {
+          context.go('/games/${state.newGameId}/setup');
+        } else if (state is RepeatGameFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        }
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          PochaAppBar(
+            title: 'Resultado final',
+            subtitle: '${data.roundCount} rondas',
+            leading: IconButton(
+              onPressed: () => context.go('/'),
+              icon: const Icon(Icons.home, color: Colors.white),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              children: [
+                _SyncStatusBanner(gameId: gameId),
+                const _SignUpBanner(),
+                if (data.entries.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _WinnerCard(entry: data.entries.first),
+                ],
+                if (data.entries.length > 1) ...[
+                  const SizedBox(height: 16),
+                  _RestOfPlayersList(entries: data.entries.skip(1).toList()),
+                ],
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PrimaryButton(
+                  label: 'Nueva partida',
+                  onPressed: () => context.go('/games/new'),
+                ),
+                const SizedBox(height: 12),
+                _RepeatGameOutlinedButton(gameId: gameId),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SyncStatusBanner extends StatelessWidget {
+  const _SyncStatusBanner({required this.gameId});
+
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<GameSyncBloc, GameSyncState>(
+      builder: (context, state) {
+        final Widget banner;
+        switch (state) {
+          case GameSyncFailure(:final gameId) when gameId == this.gameId:
+            banner = const WarningBanner(
+              message:
+                  'No se pudo sincronizar con la nube. '
+                  'Se reintentará automáticamente.',
+              icon: Icons.cloud_off_outlined,
+            );
+          case GameSyncInProgress(:final gameId) when gameId == this.gameId:
+            banner = const WarningBanner(
+              message: 'Sincronizando con la nube...',
+              icon: Icons.cloud_upload_outlined,
+            );
+          default:
+            return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: banner,
+        );
+      },
+    );
+  }
+}
+
+class _WinnerCard extends StatelessWidget {
+  const _WinnerCard({required this.entry});
+
+  final RankingEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final player = entry.player;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const Text('🏆', style: TextStyle(fontSize: 32)),
+          const SizedBox(width: 12),
+          PlayerInitialAvatar(
+            name: player.displayName,
+            colorIndex: player.seatOrder,
+            radius: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  player.displayName,
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onPrimaryContainer,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    child: OutlinedButton(
-                      onPressed: () => context.go('/'),
-                      child: const Text('Nueva partida'),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  '${entry.totalScore} puntos',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onPrimaryContainer.withValues(
+                      alpha: 0.8,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RestOfPlayersList extends StatelessWidget {
+  const _RestOfPlayersList({required this.entries});
+
+  final List<RankingEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              const SizedBox(width: 24),
+              const Expanded(flex: 3, child: SizedBox()),
+              SizedBox(
+                width: 52,
+                child: Text(
+                  'Total',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              for (var index = 0; index < entries.length; index++) ...[
+                if (index > 0)
+                  Divider(
+                    height: 1,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                  ),
+                _FinalStandingRow(entry: entries[index]),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FinalStandingRow extends StatelessWidget {
+  const _FinalStandingRow({required this.entry});
+
+  final RankingEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final player = entry.player;
+
+    return SizedBox(
+      height: 52,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              child: Text(
+                '${entry.rank}',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  PlayerInitialAvatar(
+                    name: player.displayName,
+                    colorIndex: player.seatOrder,
+                    radius: 14,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      player.displayName,
+                      style: textTheme.bodyMedium,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-            );
-          },
+            ),
+            SizedBox(
+              width: 52,
+              child: Text(
+                '${entry.totalScore}',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+}
+
+class _RepeatGameOutlinedButton extends StatelessWidget {
+  const _RepeatGameOutlinedButton({required this.gameId});
+
+  final String gameId;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RepeatGameCubit, RepeatGameState>(
+      builder: (context, state) {
+        final isLoading = state is RepeatGameInProgress;
+
+        return OutlinedButton(
+          onPressed: isLoading ? null : () => _onRepeatPressed(context),
+          child: isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Repetir partida'),
+        );
+      },
+    );
+  }
+
+  Future<void> _onRepeatPressed(BuildContext context) async {
+    final confirmed = await showRepeatGameDialog(context);
+    if (!confirmed || !context.mounted) {
+      return;
+    }
+
+    await context.read<RepeatGameCubit>().repeat(
+          gameId: gameId,
+          source: GameHistorySource.local,
+        );
   }
 }
 
@@ -133,7 +434,7 @@ class _SignUpBanner extends StatelessWidget {
           return const SizedBox.shrink();
         }
         return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          padding: const EdgeInsets.only(top: 8),
           child: WarningBanner(
             message:
                 'Crea una cuenta para guardar y compartir esta partida',
@@ -150,10 +451,8 @@ class _FinalResultData {
   const _FinalResultData({
     required this.entries,
     required this.roundCount,
-    required this.winnerName,
   });
 
   final List<RankingEntry> entries;
   final int roundCount;
-  final String winnerName;
 }

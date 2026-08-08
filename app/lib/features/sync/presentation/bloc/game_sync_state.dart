@@ -11,6 +11,15 @@ final class GameSyncIdle extends GameSyncState {
   const GameSyncIdle();
 }
 
+final class GameSyncInProgress extends GameSyncState {
+  const GameSyncInProgress({required this.gameId});
+
+  final String gameId;
+
+  @override
+  List<Object?> get props => [gameId];
+}
+
 final class GameSyncSuccess extends GameSyncState {
   const GameSyncSuccess({required this.gameId});
 

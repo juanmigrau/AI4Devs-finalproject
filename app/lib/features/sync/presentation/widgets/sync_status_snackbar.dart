@@ -19,8 +19,6 @@ class SyncStatusSnackbar extends StatelessWidget {
         }
         messenger.hideCurrentSnackBar();
 
-        final colorScheme = Theme.of(context).colorScheme;
-
         switch (state) {
           case GameSyncSuccess():
             messenger.showSnackBar(
@@ -34,23 +32,7 @@ class SyncStatusSnackbar extends StatelessWidget {
               ),
             );
           case GameSyncFailure():
-            messenger.showSnackBar(
-              SnackBar(
-                content: const Text(
-                  'No se pudo sincronizar; se reintentará',
-                ),
-                backgroundColor: colorScheme.tertiaryContainer,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                action: SnackBarAction(
-                  label: 'OK',
-                  textColor: colorScheme.onTertiaryContainer,
-                  onPressed: messenger.hideCurrentSnackBar,
-                ),
-              ),
-            );
+          case GameSyncInProgress():
           case GameSyncIdle():
             break;
         }

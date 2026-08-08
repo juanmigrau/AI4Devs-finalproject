@@ -212,6 +212,14 @@ class MockGameLocalDatasource extends _i1.Mock
           as _i7.Future<_i3.Game?>);
 
   @override
+  _i7.Future<_i3.Game?> getInProgressGame() =>
+      (super.noSuchMethod(
+            Invocation.method(#getInProgressGame, []),
+            returnValue: _i7.Future<_i3.Game?>.value(),
+          )
+          as _i7.Future<_i3.Game?>);
+
+  @override
   _i7.Future<_i3.Game> updateGamePlayers(
     String? gameId,
     List<_i10.PlayerEmbed>? players,

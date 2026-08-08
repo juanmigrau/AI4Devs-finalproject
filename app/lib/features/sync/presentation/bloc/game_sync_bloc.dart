@@ -17,6 +17,7 @@ class GameSyncBloc extends Bloc<GameSyncEvent, GameSyncState> {
     GameUploadRequested event,
     Emitter<GameSyncState> emit,
   ) async {
+    emit(GameSyncInProgress(gameId: event.gameId));
     final outcome = await _uploadFinishedGame(gameId: event.gameId);
 
     switch (outcome) {

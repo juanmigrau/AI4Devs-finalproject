@@ -3030,3 +3030,149 @@ Usa modo Plan — afecta a main.dart y app_router.dart.
 
 ---
 
+Rediseña game_final_result_page.dart aplicando
+estos cambios:
+
+═══════════════════════════════════════
+1. APPBAR
+═══════════════════════════════════════
+
+- Título: "Resultado final"
+- Subtítulo: "$totalRounds rondas" (sin "Ganador: [nombre]")
+- Leading: icono de casa que navega a Home (ya existe)
+- Sin menú de tres puntos en esta pantalla
+
+═══════════════════════════════════════
+2. TARJETA DEL GANADOR
+═══════════════════════════════════════
+
+El jugador en primera posición (mayor totalScore) se
+muestra en una tarjeta destacada SOBRE la lista:
+
+Container(
+  decoration: BoxDecoration(
+    color: colorScheme.primaryContainer,
+    borderRadius: BorderRadius.circular(16),
+  ),
+  padding: EdgeInsets.all(16),
+  child: Row(
+    children: [
+      Text("🏆", style: TextStyle(fontSize: 32)),
+      SizedBox(width: 12),
+      PlayerInitialAvatar(radius: 28),
+      SizedBox(width: 12),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(winner.displayName,
+            style: headlineSmall bold,
+            color: colorScheme.onPrimaryContainer),
+          Text("${winner.totalScore} puntos",
+            style: bodyMedium,
+            color: colorScheme.onPrimaryContainer
+              .withOpacity(0.8)),
+        ]
+      )
+    ]
+  )
+)
+
+═══════════════════════════════════════
+3. LISTA DEL RESTO DE JUGADORES
+═══════════════════════════════════════
+
+Mismo patrón tabular que round_result_page.
+Jugadores del 2º al último puesto (sin el ganador).
+
+Cabecera sobre el Container:
+- Espacio posición (width: 24, vacío)
+- Espacio nombre (flex: 3, vacío)
+- "Total" (width: 52, labelSmall, onSurfaceVariant,
+  textAlign: center)
+
+Filas de ~52dp:
+- Posición (width: 24, bodyMedium bold, primary)
+- PlayerInitialAvatar(radius: 14) + nombre (flex: 3)
+- totalScore (width: 52, bodyMedium bold,
+  textAlign: center)
+
+SIN columna de puntos de ronda.
+
+═══════════════════════════════════════
+4. BANNER DE SINCRONIZACIÓN — widget inline
+═══════════════════════════════════════
+
+CORRECCIÓN DE BUG: el banner actual persiste al
+navegar a otra pantalla porque está implementado
+como overlay/dialog/snackbar con duración indefinida.
+
+Sustituir completamente por WarningBanner como
+widget INLINE en el árbol de widgets de la página
+(no showDialog, no showSnackBar, no overlay):
+
+BlocBuilder<GameSyncBloc, GameSyncState>(
+  builder: (context, state) {
+    if (state is GameSyncFailure)
+      return WarningBanner(
+        message: "No se pudo sincronizar con la nube. "
+                 "Se reintentará automáticamente.",
+        icon: Icons.cloud_off_outlined,
+      );
+    if (state is GameSyncInProgress)
+      return WarningBanner(
+        message: "Sincronizando con la nube...",
+        icon: Icons.cloud_upload_outlined,
+      );
+    return SizedBox.shrink(); // synced: sin banner
+  }
+)
+
+Al ser widget inline, desaparece automáticamente
+al navegar fuera de la pantalla — sin necesidad
+de botón "OK" ni acción del usuario para cerrarlo.
+
+Eliminar cualquier showDialog, showSnackBar o
+Overlay relacionado con el estado de sincronización
+en esta pantalla.
+
+═══════════════════════════════════════
+5. BOTONES INFERIORES
+═══════════════════════════════════════
+
+Column con dos botones de ancho completo:
+
+A) PrimaryButton: "Nueva partida"
+   onPressed: context.go('/games/new')
+   (NO navegar a Home)
+
+B) OutlinedButton: "Repetir partida"
+   onPressed: RepeatGameUseCase(gameId) →
+   navegar a /games/{newGameId}/setup
+   Reutilizar implementación existente de LPT-8.
+
+═══════════════════════════════════════
+6. VERSIÓN
+═══════════════════════════════════════
+
+pubspec.yaml:
+ANTES: version: 1.0.10+11
+DESPUÉS: version: 1.0.11+12
+
+═══════════════════════════════════════
+VERIFICACIÓN
+═══════════════════════════════════════
+
+- Ganador en tarjeta destacada con 🏆 y avatar grande
+- Sin "Ganador: [nombre]" en AppBar
+- Sin columna "Ronda" en la lista del 2º al último
+- Banner de sync es widget inline — desaparece
+  al navegar a otra pantalla sin acción del usuario
+- Sin botón "OK" en el banner
+- "Nueva partida" → /games/new (no Home)
+- "Repetir partida" → game_setup_page mismos jugadores
+- flutter analyze sin errores
+
+Usa modo Plan.
+
+---
+
