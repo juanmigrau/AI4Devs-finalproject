@@ -6,6 +6,7 @@ import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
+import 'package:la_pocha/core/widgets/root_scaffold_messenger_key.dart';
 import 'package:la_pocha/core/widgets/warning_banner.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart';
@@ -113,16 +114,44 @@ class _LoadedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<RepeatGameCubit, RepeatGameState>(
-      listener: (context, state) {
-        if (state is RepeatGameSuccess) {
-          context.go('/games/${state.newGameId}/setup');
-        } else if (state is RepeatGameFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<RepeatGameCubit, RepeatGameState>(
+          listener: (context, state) {
+            if (state is RepeatGameSuccess) {
+              context.go('/games/${state.newGameId}/setup');
+            } else if (state is RepeatGameFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
+          },
+        ),
+        BlocListener<GameSyncBloc, GameSyncState>(
+          listener: (context, state) {
+            if (state is! GameSyncFailure || state.gameId != gameId) {
+              return;
+            }
+
+            final colorScheme = Theme.of(context).colorScheme;
+            rootScaffoldMessengerKey.currentState?.showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'No se pudo sincronizar con la nube. '
+                  'Puedes intentarlo de nuevo desde el historial.',
+                ),
+                duration: const Duration(seconds: 5),
+                backgroundColor: colorScheme.errorContainer,
+                action: SnackBarAction(
+                  label: 'OK',
+                  onPressed: () => rootScaffoldMessengerKey.currentState
+                      ?.hideCurrentSnackBar(),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -138,7 +167,6 @@ class _LoadedBody extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               children: [
-                _SyncStatusBanner(gameId: gameId),
                 const _SignUpBanner(),
                 if (data.entries.isNotEmpty) ...[
                   const SizedBox(height: 16),
@@ -156,53 +184,17 @@ class _LoadedBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _RepeatGameOutlinedButton(gameId: gameId),
+                const SizedBox(height: 12),
                 PrimaryButton(
                   label: 'Nueva partida',
                   onPressed: () => context.go('/games/new'),
                 ),
-                const SizedBox(height: 12),
-                _RepeatGameOutlinedButton(gameId: gameId),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SyncStatusBanner extends StatelessWidget {
-  const _SyncStatusBanner({required this.gameId});
-
-  final String gameId;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<GameSyncBloc, GameSyncState>(
-      builder: (context, state) {
-        final Widget banner;
-        switch (state) {
-          case GameSyncFailure(:final gameId) when gameId == this.gameId:
-            banner = const WarningBanner(
-              message:
-                  'No se pudo sincronizar con la nube. '
-                  'Se reintentará automáticamente.',
-              icon: Icons.cloud_off_outlined,
-            );
-          case GameSyncInProgress(:final gameId) when gameId == this.gameId:
-            banner = const WarningBanner(
-              message: 'Sincronizando con la nube...',
-              icon: Icons.cloud_upload_outlined,
-            );
-          default:
-            return const SizedBox.shrink();
-        }
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: banner,
-        );
-      },
     );
   }
 }

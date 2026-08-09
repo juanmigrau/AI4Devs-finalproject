@@ -17,10 +17,10 @@ class SyncStatusSnackbar extends StatelessWidget {
         if (messenger == null) {
           return;
         }
-        messenger.hideCurrentSnackBar();
 
         switch (state) {
           case GameSyncSuccess():
+            messenger.hideCurrentSnackBar();
             messenger.showSnackBar(
               SnackBar(
                 content: const Text('Partida guardada en la nube'),

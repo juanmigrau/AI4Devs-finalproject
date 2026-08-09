@@ -22,8 +22,6 @@ import 'package:la_pocha/features/history/domain/entities/game_history_source.da
     as _i10;
 import 'package:la_pocha/features/history/domain/usecases/repeat_game_usecase.dart'
     as _i9;
-import 'package:la_pocha/features/sync/presentation/bloc/game_sync_bloc.dart'
-    as _i14;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i11;
 
@@ -466,116 +464,6 @@ class MockAuthBloc extends _i1.Mock implements _i12.AuthBloc {
 
   @override
   void onChange(_i13.Change<_i12.AuthState>? change) => super.noSuchMethod(
-    Invocation.method(#onChange, [change]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void addError(Object? error, [StackTrace? stackTrace]) => super.noSuchMethod(
-    Invocation.method(#addError, [error, stackTrace]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void onError(Object? error, StackTrace? stackTrace) => super.noSuchMethod(
-    Invocation.method(#onError, [error, stackTrace]),
-    returnValueForMissingStub: null,
-  );
-}
-
-/// A class which mocks [GameSyncBloc].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockGameSyncBloc extends _i1.Mock implements _i14.GameSyncBloc {
-  @override
-  bool get isClosed =>
-      (super.noSuchMethod(
-            Invocation.getter(#isClosed),
-            returnValue: false,
-            returnValueForMissingStub: false,
-          )
-          as bool);
-
-  @override
-  _i14.GameSyncState get state =>
-      (super.noSuchMethod(
-            Invocation.getter(#state),
-            returnValue: _i11.dummyValue<_i14.GameSyncState>(
-              this,
-              Invocation.getter(#state),
-            ),
-            returnValueForMissingStub: _i11.dummyValue<_i14.GameSyncState>(
-              this,
-              Invocation.getter(#state),
-            ),
-          )
-          as _i14.GameSyncState);
-
-  @override
-  _i6.Stream<_i14.GameSyncState> get stream =>
-      (super.noSuchMethod(
-            Invocation.getter(#stream),
-            returnValue: _i6.Stream<_i14.GameSyncState>.empty(),
-            returnValueForMissingStub: _i6.Stream<_i14.GameSyncState>.empty(),
-          )
-          as _i6.Stream<_i14.GameSyncState>);
-
-  @override
-  void add(_i14.GameSyncEvent? event) => super.noSuchMethod(
-    Invocation.method(#add, [event]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void onEvent(_i14.GameSyncEvent? event) => super.noSuchMethod(
-    Invocation.method(#onEvent, [event]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void emit(_i14.GameSyncState? state) => super.noSuchMethod(
-    Invocation.method(#emit, [state]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void on<E extends _i14.GameSyncEvent>(
-    _i13.EventHandler<E, _i14.GameSyncState>? handler, {
-    _i13.EventTransformer<E>? transformer,
-  }) => super.noSuchMethod(
-    Invocation.method(#on, [handler], {#transformer: transformer}),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void onTransition(
-    _i13.Transition<_i14.GameSyncEvent, _i14.GameSyncState>? transition,
-  ) => super.noSuchMethod(
-    Invocation.method(#onTransition, [transition]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void onDone(
-    _i14.GameSyncEvent? event, [
-    Object? error,
-    StackTrace? stackTrace,
-  ]) => super.noSuchMethod(
-    Invocation.method(#onDone, [event, error, stackTrace]),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  _i6.Future<void> close() =>
-      (super.noSuchMethod(
-            Invocation.method(#close, []),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
-
-  @override
-  void onChange(_i13.Change<_i14.GameSyncState>? change) => super.noSuchMethod(
     Invocation.method(#onChange, [change]),
     returnValueForMissingStub: null,
   );

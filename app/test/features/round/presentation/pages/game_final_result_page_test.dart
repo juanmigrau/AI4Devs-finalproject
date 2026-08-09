@@ -1,9 +1,12 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
-import 'package:la_pocha/core/widgets/warning_banner.dart';
+import 'package:la_pocha/core/widgets/root_scaffold_messenger_key.dart';
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
@@ -24,12 +27,14 @@ import 'package:mockito/mockito.dart';
 
 import 'game_final_result_page_test.mocks.dart';
 
+class MockGameSyncBloc extends MockBloc<GameSyncEvent, GameSyncState>
+    implements GameSyncBloc {}
+
 @GenerateNiceMocks([
   MockSpec<GameRepository>(),
   MockSpec<RoundRepository>(),
   MockSpec<RepeatGameUseCase>(),
   MockSpec<AuthBloc>(),
-  MockSpec<GameSyncBloc>(),
 ])
 void main() {
   late MockGameRepository gameRepository;
@@ -37,6 +42,7 @@ void main() {
   late MockRepeatGameUseCase repeatGame;
   late MockAuthBloc authBloc;
   late MockGameSyncBloc gameSyncBloc;
+  late StreamController<GameSyncState> syncStates;
   final getIt = GetIt.instance;
 
   provideDummy<AuthState>(const AuthInitial());
@@ -107,6 +113,13 @@ void main() {
     repeatGame = MockRepeatGameUseCase();
     authBloc = MockAuthBloc();
     gameSyncBloc = MockGameSyncBloc();
+    syncStates = StreamController<GameSyncState>.broadcast();
+
+    whenListen(
+      gameSyncBloc,
+      syncStates.stream,
+      initialState: const GameSyncIdle(),
+    );
 
     when(gameRepository.getGameById('game-1')).thenAnswer((_) async => game);
     when(
@@ -127,10 +140,6 @@ void main() {
       ),
     );
 
-    when(gameSyncBloc.stream).thenAnswer((_) => const Stream.empty());
-    when(gameSyncBloc.close()).thenAnswer((_) async {});
-    when(gameSyncBloc.state).thenReturn(const GameSyncIdle());
-
     await getIt.reset();
     getIt.registerLazySingleton<GameRepository>(() => gameRepository);
     getIt.registerLazySingleton<RoundRepository>(() => roundRepository);
@@ -140,10 +149,14 @@ void main() {
   });
 
   tearDown(() async {
+    await syncStates.close();
     await getIt.reset();
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+
     await tester.pumpWidget(
       MultiBlocProvider(
         providers: [
@@ -152,6 +165,7 @@ void main() {
         ],
         child: MaterialApp(
           theme: AppTheme.light,
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
           home: const GameFinalResultPage(gameId: 'game-1'),
         ),
       ),
@@ -179,48 +193,35 @@ void main() {
     expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 
-  testWidgets('shows sync failure banner inline without OK action', (
-    tester,
-  ) async {
-    when(gameSyncBloc.state).thenReturn(
+  testWidgets('shows sync failure snackbar with OK action', (tester) async {
+    await pumpPage(tester);
+
+    syncStates.add(
       const GameSyncFailure(
         gameId: 'game-1',
         outcome: UploadFinishedGameOutcome.failed,
       ),
     );
-
-    await pumpPage(tester);
+    await tester.pump();
+    await tester.pump();
 
     expect(
       find.text(
-        'No se pudo sincronizar con la nube. Se reintentará automáticamente.',
+        'No se pudo sincronizar con la nube. '
+        'Puedes intentarlo de nuevo desde el historial.',
       ),
       findsOneWidget,
     );
-    expect(find.text('OK'), findsNothing);
-    expect(find.byType(WarningBanner), findsWidgets);
+    expect(find.text('OK'), findsOneWidget);
   });
 
-  testWidgets('shows sync in progress banner inline', (tester) async {
-    when(gameSyncBloc.state).thenReturn(
-      const GameSyncInProgress(gameId: 'game-1'),
-    );
-
+  testWidgets('does not show snackbar for sync in progress', (tester) async {
     await pumpPage(tester);
 
-    expect(find.text('Sincronizando con la nube...'), findsOneWidget);
-    expect(find.text('OK'), findsNothing);
-  });
+    syncStates.add(const GameSyncInProgress(gameId: 'game-1'));
+    await tester.pump();
+    await tester.pump();
 
-  testWidgets('hides sync banner when idle', (tester) async {
-    await pumpPage(tester);
-
-    expect(find.text('Sincronizando con la nube...'), findsNothing);
-    expect(
-      find.text(
-        'No se pudo sincronizar con la nube. Se reintentará automáticamente.',
-      ),
-      findsNothing,
-    );
+    expect(find.byType(SnackBar), findsNothing);
   });
 }
