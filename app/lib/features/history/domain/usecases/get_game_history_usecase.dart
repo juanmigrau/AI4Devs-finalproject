@@ -1,4 +1,4 @@
-import '../entities/game_history_item.dart';
+import '../entities/game_history_load_result.dart';
 import '../repositories/history_repository.dart';
 
 class GetGameHistoryUseCase {
@@ -6,5 +6,5 @@ class GetGameHistoryUseCase {
 
   final HistoryRepository _repository;
 
-  Future<List<GameHistoryItem>> call() => _repository.getGameHistory();
+  Future<GameHistoryLoadResult> call() => _repository.getGameHistory();
 }

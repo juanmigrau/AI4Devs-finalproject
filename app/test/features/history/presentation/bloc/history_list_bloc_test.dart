@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_item.dart';
+import 'package:la_pocha/features/history/domain/entities/game_history_load_result.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart';
 import 'package:la_pocha/features/history/presentation/bloc/history_list_bloc.dart';
@@ -45,7 +46,9 @@ void main() {
     'emits loaded when history has items',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenAnswer((_) async => items);
+      when(getGameHistory()).thenAnswer(
+        (_) async => GameHistoryLoadResult(items: items),
+      );
     },
     act: (bloc) => bloc.add(const HistoryListStarted()),
     expect: () => [
@@ -55,10 +58,27 @@ void main() {
   );
 
   blocTest<HistoryListBloc, HistoryListState>(
+    'emits loaded with cloudError when cloud load failed',
+    build: buildBloc,
+    setUp: () {
+      when(getGameHistory()).thenAnswer(
+        (_) async => GameHistoryLoadResult(items: items, cloudError: true),
+      );
+    },
+    act: (bloc) => bloc.add(const HistoryListStarted()),
+    expect: () => [
+      const HistoryListLoading(),
+      HistoryListLoaded(items: items, cloudError: true),
+    ],
+  );
+
+  blocTest<HistoryListBloc, HistoryListState>(
     'emits empty when history has no items',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenAnswer((_) async => []);
+      when(getGameHistory()).thenAnswer(
+        (_) async => const GameHistoryLoadResult(items: []),
+      );
     },
     act: (bloc) => bloc.add(const HistoryListStarted()),
     expect: () => [
@@ -71,7 +91,9 @@ void main() {
     'reloads items on refresh without loading state',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenAnswer((_) async => items);
+      when(getGameHistory()).thenAnswer(
+        (_) async => GameHistoryLoadResult(items: items),
+      );
     },
     seed: () => HistoryListLoaded(items: items),
     act: (bloc) => bloc.add(const HistoryListRefreshed()),
@@ -82,7 +104,7 @@ void main() {
   );
 
   blocTest<HistoryListBloc, HistoryListState>(
-    'emits failure when use case throws',
+    'emits failure without DEBUG details when use case throws',
     build: buildBloc,
     setUp: () {
       when(getGameHistory()).thenThrow(Exception('network error'));
@@ -90,7 +112,11 @@ void main() {
     act: (bloc) => bloc.add(const HistoryListStarted()),
     expect: () => [
       const HistoryListLoading(),
-      isA<HistoryListFailure>(),
+      isA<HistoryListFailure>().having(
+        (state) => state.message,
+        'message',
+        isNot(contains('[DEBUG]')),
+      ),
     ],
   );
 
@@ -100,5 +126,42 @@ void main() {
     seed: () => HistoryListLoaded(items: items),
     act: (bloc) => bloc.add(const HistoryListGameDeleted('game-1')),
     expect: () => [const HistoryListEmpty()],
+  );
+
+  blocTest<HistoryListBloc, HistoryListState>(
+    'preserves cloudError when deleting one of several items',
+    build: buildBloc,
+    seed: () => HistoryListLoaded(
+      items: [
+        items.first,
+        GameHistoryItem(
+          id: 'game-2',
+          source: GameHistorySource.local,
+          finishedAt: DateTime(2026, 7, 5),
+          playerCount: 3,
+          displayLabel: '5 jul 2026 — Luis',
+          winnerName: 'Luis',
+          winnerScore: 10,
+        ),
+      ],
+      cloudError: true,
+    ),
+    act: (bloc) => bloc.add(const HistoryListGameDeleted('game-1')),
+    expect: () => [
+      HistoryListLoaded(
+        items: [
+          GameHistoryItem(
+            id: 'game-2',
+            source: GameHistorySource.local,
+            finishedAt: DateTime(2026, 7, 5),
+            playerCount: 3,
+            displayLabel: '5 jul 2026 — Luis',
+            winnerName: 'Luis',
+            winnerScore: 10,
+          ),
+        ],
+        cloudError: true,
+      ),
+    ],
   );
 }

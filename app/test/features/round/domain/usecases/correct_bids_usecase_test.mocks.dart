@@ -59,7 +59,6 @@ class MockRoundRepository extends _i1.Mock implements _i3.RoundRepository {
           )
           as _i4.Future<_i2.Round?>);
 
-
   @override
   _i4.Future<List<_i2.Round>> getRoundsByGameId(String? gameId) =>
       (super.noSuchMethod(
@@ -70,6 +69,7 @@ class MockRoundRepository extends _i1.Mock implements _i3.RoundRepository {
             ),
           )
           as _i4.Future<List<_i2.Round>>);
+
   @override
   _i4.Future<_i2.Round> updateRound(_i2.Round? round) =>
       (super.noSuchMethod(

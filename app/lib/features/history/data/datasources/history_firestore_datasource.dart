@@ -60,7 +60,9 @@ class HistoryFirestoreDatasource {
     } on FirebaseException catch (error) {
       throw GameSyncException(
         _mapFailureType(error.code),
-        error.message,
+        error.code == 'failed-precondition'
+            ? 'failed-precondition: ${error.message}'
+            : error.message,
       );
     }
   }

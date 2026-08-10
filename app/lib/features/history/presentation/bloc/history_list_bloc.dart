@@ -57,7 +57,12 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
       return;
     }
 
-    emit(HistoryListLoaded(items: updatedItems));
+    emit(
+      HistoryListLoaded(
+        items: updatedItems,
+        cloudError: current.cloudError,
+      ),
+    );
   }
 
   Future<void> _loadHistory(
@@ -70,14 +75,21 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
 
     try {
       await _retryPendingUploads();
-      final items = await _getGameHistory();
-      if (items.isEmpty) {
+      final result = await _getGameHistory();
+      if (result.items.isEmpty) {
         emit(const HistoryListEmpty());
         return;
       }
-      emit(HistoryListLoaded(items: items));
+      emit(
+        HistoryListLoaded(
+          items: result.items,
+          cloudError: result.cloudError,
+        ),
+      );
     } catch (error) {
-      emit(HistoryListFailure(message: mapExceptionToUserMessage(error)));
+      emit(
+        HistoryListFailure(message: mapExceptionToUserMessage(error)),
+      );
     }
   }
 }

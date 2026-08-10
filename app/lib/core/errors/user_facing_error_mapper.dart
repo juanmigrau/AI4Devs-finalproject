@@ -1,13 +1,23 @@
+import 'package:firebase_core/firebase_core.dart';
+
 /// Maps domain/data exceptions to short Spanish messages for the UI.
 ///
 /// Never pass [Object.toString] of an exception directly to the user.
 String mapExceptionToUserMessage(Object error) {
+  if (error is FirebaseException && error.code == 'failed-precondition') {
+    return _failedPreconditionHistoryMessage;
+  }
+
   final syncMessage = _mapGameSyncException(error);
   if (syncMessage != null) {
     return syncMessage;
   }
 
   final raw = _rawMessage(error);
+
+  if (raw.contains('failed-precondition')) {
+    return _failedPreconditionHistoryMessage;
+  }
 
   if (raw.contains('Player limit reached')) {
     return 'No puedes añadir más jugadores. Has alcanzado el límite de la partida.';
@@ -160,6 +170,10 @@ String mapExceptionToUserMessage(Object error) {
   return 'Ha ocurrido un error inesperado. Inténtalo de nuevo.';
 }
 
+const _failedPreconditionHistoryMessage =
+    'No se pudo cargar el historial de la nube. '
+    'Comprueba tu conexión e inténtalo de nuevo.';
+
 /// Matches [GameSyncException] by runtime type name to avoid core→feature imports.
 String? _mapGameSyncException(Object error) {
   if (error.runtimeType.toString() != 'GameSyncException') {
@@ -167,6 +181,9 @@ String? _mapGameSyncException(Object error) {
   }
 
   final text = error.toString();
+  if (text.contains('failed-precondition')) {
+    return _failedPreconditionHistoryMessage;
+  }
   if (text.contains('permissionDenied')) {
     return 'No tienes permiso para sincronizar esta partida.';
   }

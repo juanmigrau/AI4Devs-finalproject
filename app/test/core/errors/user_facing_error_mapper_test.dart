@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/sync/data/datasources/game_firestore_datasource.dart';
@@ -126,6 +127,39 @@ void main() {
       );
 
       expect(message, 'No tienes permiso para sincronizar esta partida.');
+    });
+
+    test('maps FirebaseException failed-precondition to history cloud message', () {
+      final message = mapExceptionToUserMessage(
+        FirebaseException(
+          plugin: 'cloud_firestore',
+          code: 'failed-precondition',
+          message: 'The query requires an index',
+        ),
+      );
+
+      expect(
+        message,
+        'No se pudo cargar el historial de la nube. '
+        'Comprueba tu conexión e inténtalo de nuevo.',
+      );
+      expect(message, isNot(contains('failed-precondition')));
+      expect(message, isNot(contains('index')));
+    });
+
+    test('maps wrapped GameSyncException failed-precondition', () {
+      final message = mapExceptionToUserMessage(
+        const GameSyncException(
+          GameSyncFailureType.unknown,
+          'failed-precondition: The query requires an index',
+        ),
+      );
+
+      expect(
+        message,
+        'No se pudo cargar el historial de la nube. '
+        'Comprueba tu conexión e inténtalo de nuevo.',
+      );
     });
 
     test('uses Spanish fallback for unknown errors', () {

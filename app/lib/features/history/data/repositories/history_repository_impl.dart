@@ -3,6 +3,7 @@ import 'package:la_pocha/features/history/data/datasources/history_firestore_dat
 import 'package:la_pocha/features/history/data/datasources/history_local_datasource.dart';
 import 'package:la_pocha/features/history/domain/entities/game_detail.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_item.dart';
+import 'package:la_pocha/features/history/domain/entities/game_history_load_result.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/domain/repositories/history_repository.dart';
 import 'package:la_pocha/features/history/domain/services/game_detail_mapper.dart';
@@ -24,12 +25,23 @@ class HistoryRepositoryImpl implements HistoryRepository {
   final GameDetailMapper _gameDetailMapper;
 
   @override
-  Future<List<GameHistoryItem>> getGameHistory() async {
+  Future<GameHistoryLoadResult> getGameHistory() async {
     final localItems = await _localDatasource.getFinishedGames();
-    final cloudItems = await _firestoreDatasource.getFinishedCloudGames();
+
+    var cloudError = false;
+    var cloudItems = <GameHistoryItem>[];
+    try {
+      cloudItems = await _firestoreDatasource.getFinishedCloudGames();
+    } catch (_) {
+      cloudError = true;
+      cloudItems = const [];
+    }
+
     final hiddenIds = await _hiddenGamesDatasource.getHiddenGameIds();
     final merged = _mergeAndDeduplicate(localItems, cloudItems);
-    return _filterHiddenItems(merged, hiddenIds);
+    final filtered = _filterHiddenItems(merged, hiddenIds);
+
+    return GameHistoryLoadResult(items: filtered, cloudError: cloudError);
   }
 
   @override

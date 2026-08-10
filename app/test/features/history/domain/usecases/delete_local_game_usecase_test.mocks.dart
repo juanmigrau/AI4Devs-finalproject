@@ -3,24 +3,24 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
+import 'dart:async' as _i8;
 
-import 'package:la_pocha/features/game_setup/domain/entities/game.dart' as _i3;
+import 'package:la_pocha/features/game_setup/domain/entities/game.dart' as _i4;
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart'
     as _i11;
-import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i5;
+import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i6;
 import 'package:la_pocha/features/game_setup/domain/entities/start_game_result.dart'
-    as _i4;
+    as _i5;
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart'
     as _i10;
 import 'package:la_pocha/features/history/domain/entities/game_detail.dart'
+    as _i3;
+import 'package:la_pocha/features/history/domain/entities/game_history_load_result.dart'
     as _i2;
-import 'package:la_pocha/features/history/domain/entities/game_history_item.dart'
-    as _i8;
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart'
     as _i9;
 import 'package:la_pocha/features/history/domain/repositories/history_repository.dart'
-    as _i6;
+    as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -38,47 +38,59 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeGameDetail_0 extends _i1.SmartFake implements _i2.GameDetail {
-  _FakeGameDetail_0(Object parent, Invocation parentInvocation)
+class _FakeGameHistoryLoadResult_0 extends _i1.SmartFake
+    implements _i2.GameHistoryLoadResult {
+  _FakeGameHistoryLoadResult_0(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeGame_1 extends _i1.SmartFake implements _i3.Game {
-  _FakeGame_1(Object parent, Invocation parentInvocation)
+class _FakeGameDetail_1 extends _i1.SmartFake implements _i3.GameDetail {
+  _FakeGameDetail_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeStartGameResult_2 extends _i1.SmartFake
-    implements _i4.StartGameResult {
-  _FakeStartGameResult_2(Object parent, Invocation parentInvocation)
+class _FakeGame_2 extends _i1.SmartFake implements _i4.Game {
+  _FakeGame_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeRound_3 extends _i1.SmartFake implements _i5.Round {
-  _FakeRound_3(Object parent, Invocation parentInvocation)
+class _FakeStartGameResult_3 extends _i1.SmartFake
+    implements _i5.StartGameResult {
+  _FakeStartGameResult_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeRound_4 extends _i1.SmartFake implements _i6.Round {
+  _FakeRound_4(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
 /// A class which mocks [HistoryRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockHistoryRepository extends _i1.Mock implements _i6.HistoryRepository {
+class MockHistoryRepository extends _i1.Mock implements _i7.HistoryRepository {
   @override
-  _i7.Future<List<_i8.GameHistoryItem>> getGameHistory() =>
+  _i8.Future<_i2.GameHistoryLoadResult> getGameHistory() =>
       (super.noSuchMethod(
             Invocation.method(#getGameHistory, []),
-            returnValue: _i7.Future<List<_i8.GameHistoryItem>>.value(
-              <_i8.GameHistoryItem>[],
+            returnValue: _i8.Future<_i2.GameHistoryLoadResult>.value(
+              _FakeGameHistoryLoadResult_0(
+                this,
+                Invocation.method(#getGameHistory, []),
+              ),
             ),
             returnValueForMissingStub:
-                _i7.Future<List<_i8.GameHistoryItem>>.value(
-                  <_i8.GameHistoryItem>[],
+                _i8.Future<_i2.GameHistoryLoadResult>.value(
+                  _FakeGameHistoryLoadResult_0(
+                    this,
+                    Invocation.method(#getGameHistory, []),
+                  ),
                 ),
           )
-          as _i7.Future<List<_i8.GameHistoryItem>>);
+          as _i8.Future<_i2.GameHistoryLoadResult>);
 
   @override
-  _i7.Future<_i2.GameDetail> getGameDetail({
+  _i8.Future<_i3.GameDetail> getGameDetail({
     required String? gameId,
     required _i9.GameHistorySource? source,
   }) =>
@@ -87,8 +99,8 @@ class MockHistoryRepository extends _i1.Mock implements _i6.HistoryRepository {
               #gameId: gameId,
               #source: source,
             }),
-            returnValue: _i7.Future<_i2.GameDetail>.value(
-              _FakeGameDetail_0(
+            returnValue: _i8.Future<_i3.GameDetail>.value(
+              _FakeGameDetail_1(
                 this,
                 Invocation.method(#getGameDetail, [], {
                   #gameId: gameId,
@@ -96,8 +108,8 @@ class MockHistoryRepository extends _i1.Mock implements _i6.HistoryRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i2.GameDetail>.value(
-              _FakeGameDetail_0(
+            returnValueForMissingStub: _i8.Future<_i3.GameDetail>.value(
+              _FakeGameDetail_1(
                 this,
                 Invocation.method(#getGameDetail, [], {
                   #gameId: gameId,
@@ -106,25 +118,25 @@ class MockHistoryRepository extends _i1.Mock implements _i6.HistoryRepository {
               ),
             ),
           )
-          as _i7.Future<_i2.GameDetail>);
+          as _i8.Future<_i3.GameDetail>);
 
   @override
-  _i7.Future<void> deleteLocalGame(String? gameId) =>
+  _i8.Future<void> deleteLocalGame(String? gameId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteLocalGame, [gameId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<void> hideCloudGame(String? gameId) =>
+  _i8.Future<void> hideCloudGame(String? gameId) =>
       (super.noSuchMethod(
             Invocation.method(#hideCloudGame, [gameId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 }
 
 /// A class which mocks [GameRepository].
@@ -132,64 +144,64 @@ class MockHistoryRepository extends _i1.Mock implements _i6.HistoryRepository {
 /// See the documentation for Mockito's code generation for more information.
 class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
   @override
-  _i7.Future<_i3.Game> saveDraft(_i3.Game? game) =>
+  _i8.Future<_i4.Game> saveDraft(_i4.Game? game) =>
       (super.noSuchMethod(
             Invocation.method(#saveDraft, [game]),
-            returnValue: _i7.Future<_i3.Game>.value(
-              _FakeGame_1(this, Invocation.method(#saveDraft, [game])),
+            returnValue: _i8.Future<_i4.Game>.value(
+              _FakeGame_2(this, Invocation.method(#saveDraft, [game])),
             ),
-            returnValueForMissingStub: _i7.Future<_i3.Game>.value(
-              _FakeGame_1(this, Invocation.method(#saveDraft, [game])),
+            returnValueForMissingStub: _i8.Future<_i4.Game>.value(
+              _FakeGame_2(this, Invocation.method(#saveDraft, [game])),
             ),
           )
-          as _i7.Future<_i3.Game>);
+          as _i8.Future<_i4.Game>);
 
   @override
-  _i7.Future<_i3.Game?> getGameById(String? id) =>
+  _i8.Future<_i4.Game?> getGameById(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#getGameById, [id]),
-            returnValue: _i7.Future<_i3.Game?>.value(),
-            returnValueForMissingStub: _i7.Future<_i3.Game?>.value(),
+            returnValue: _i8.Future<_i4.Game?>.value(),
+            returnValueForMissingStub: _i8.Future<_i4.Game?>.value(),
           )
-          as _i7.Future<_i3.Game?>);
+          as _i8.Future<_i4.Game?>);
 
   @override
-  _i7.Future<_i3.Game?> getInProgressGame() =>
+  _i8.Future<_i4.Game?> getInProgressGame() =>
       (super.noSuchMethod(
             Invocation.method(#getInProgressGame, []),
-            returnValue: _i7.Future<_i3.Game?>.value(),
-            returnValueForMissingStub: _i7.Future<_i3.Game?>.value(),
+            returnValue: _i8.Future<_i4.Game?>.value(),
+            returnValueForMissingStub: _i8.Future<_i4.Game?>.value(),
           )
-          as _i7.Future<_i3.Game?>);
+          as _i8.Future<_i4.Game?>);
 
   @override
-  _i7.Future<_i3.Game> updateGamePlayers(
+  _i8.Future<_i4.Game> updateGamePlayers(
     String? gameId,
     List<_i11.PlayerEmbed>? players,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateGamePlayers, [gameId, players]),
-            returnValue: _i7.Future<_i3.Game>.value(
-              _FakeGame_1(
+            returnValue: _i8.Future<_i4.Game>.value(
+              _FakeGame_2(
                 this,
                 Invocation.method(#updateGamePlayers, [gameId, players]),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i3.Game>.value(
-              _FakeGame_1(
+            returnValueForMissingStub: _i8.Future<_i4.Game>.value(
+              _FakeGame_2(
                 this,
                 Invocation.method(#updateGamePlayers, [gameId, players]),
               ),
             ),
           )
-          as _i7.Future<_i3.Game>);
+          as _i8.Future<_i4.Game>);
 
   @override
-  _i7.Future<_i4.StartGameResult> startGame({
+  _i8.Future<_i5.StartGameResult> startGame({
     required String? gameId,
     required List<_i11.PlayerEmbed>? players,
     required String? firstDealerPlayerId,
-    required _i5.Round? firstRound,
+    required _i6.Round? firstRound,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#startGame, [], {
@@ -198,8 +210,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               #firstDealerPlayerId: firstDealerPlayerId,
               #firstRound: firstRound,
             }),
-            returnValue: _i7.Future<_i4.StartGameResult>.value(
-              _FakeStartGameResult_2(
+            returnValue: _i8.Future<_i5.StartGameResult>.value(
+              _FakeStartGameResult_3(
                 this,
                 Invocation.method(#startGame, [], {
                   #gameId: gameId,
@@ -209,8 +221,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i4.StartGameResult>.value(
-              _FakeStartGameResult_2(
+            returnValueForMissingStub: _i8.Future<_i5.StartGameResult>.value(
+              _FakeStartGameResult_3(
                 this,
                 Invocation.method(#startGame, [], {
                   #gameId: gameId,
@@ -221,20 +233,20 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               ),
             ),
           )
-          as _i7.Future<_i4.StartGameResult>);
+          as _i8.Future<_i5.StartGameResult>);
 
   @override
-  _i7.Future<void> revertGameToSetup(String? gameId) =>
+  _i8.Future<void> revertGameToSetup(String? gameId) =>
       (super.noSuchMethod(
             Invocation.method(#revertGameToSetup, [gameId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<_i5.Round> closeRoundAndUpdateScores({
-    required _i5.Round? closedRound,
+  _i8.Future<_i6.Round> closeRoundAndUpdateScores({
+    required _i6.Round? closedRound,
     required List<_i11.PlayerEmbed>? updatedPlayers,
   }) =>
       (super.noSuchMethod(
@@ -242,8 +254,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               #closedRound: closedRound,
               #updatedPlayers: updatedPlayers,
             }),
-            returnValue: _i7.Future<_i5.Round>.value(
-              _FakeRound_3(
+            returnValue: _i8.Future<_i6.Round>.value(
+              _FakeRound_4(
                 this,
                 Invocation.method(#closeRoundAndUpdateScores, [], {
                   #closedRound: closedRound,
@@ -251,8 +263,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i5.Round>.value(
-              _FakeRound_3(
+            returnValueForMissingStub: _i8.Future<_i6.Round>.value(
+              _FakeRound_4(
                 this,
                 Invocation.method(#closeRoundAndUpdateScores, [], {
                   #closedRound: closedRound,
@@ -261,11 +273,11 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               ),
             ),
           )
-          as _i7.Future<_i5.Round>);
+          as _i8.Future<_i6.Round>);
 
   @override
-  _i7.Future<_i5.Round> repeatRoundAndRevertScores({
-    required _i5.Round? resetRound,
+  _i8.Future<_i6.Round> repeatRoundAndRevertScores({
+    required _i6.Round? resetRound,
     required List<_i11.PlayerEmbed>? updatedPlayers,
   }) =>
       (super.noSuchMethod(
@@ -273,8 +285,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               #resetRound: resetRound,
               #updatedPlayers: updatedPlayers,
             }),
-            returnValue: _i7.Future<_i5.Round>.value(
-              _FakeRound_3(
+            returnValue: _i8.Future<_i6.Round>.value(
+              _FakeRound_4(
                 this,
                 Invocation.method(#repeatRoundAndRevertScores, [], {
                   #resetRound: resetRound,
@@ -282,8 +294,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i5.Round>.value(
-              _FakeRound_3(
+            returnValueForMissingStub: _i8.Future<_i6.Round>.value(
+              _FakeRound_4(
                 this,
                 Invocation.method(#repeatRoundAndRevertScores, [], {
                   #resetRound: resetRound,
@@ -292,11 +304,11 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               ),
             ),
           )
-          as _i7.Future<_i5.Round>);
+          as _i8.Future<_i6.Round>);
 
   @override
-  _i7.Future<_i5.Round> advanceToNextRound({
-    required _i5.Round? nextRound,
+  _i8.Future<_i6.Round> advanceToNextRound({
+    required _i6.Round? nextRound,
     required int? nextRoundNumber,
   }) =>
       (super.noSuchMethod(
@@ -304,8 +316,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               #nextRound: nextRound,
               #nextRoundNumber: nextRoundNumber,
             }),
-            returnValue: _i7.Future<_i5.Round>.value(
-              _FakeRound_3(
+            returnValue: _i8.Future<_i6.Round>.value(
+              _FakeRound_4(
                 this,
                 Invocation.method(#advanceToNextRound, [], {
                   #nextRound: nextRound,
@@ -313,8 +325,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i5.Round>.value(
-              _FakeRound_3(
+            returnValueForMissingStub: _i8.Future<_i6.Round>.value(
+              _FakeRound_4(
                 this,
                 Invocation.method(#advanceToNextRound, [], {
                   #nextRound: nextRound,
@@ -323,10 +335,10 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               ),
             ),
           )
-          as _i7.Future<_i5.Round>);
+          as _i8.Future<_i6.Round>);
 
   @override
-  _i7.Future<_i3.Game> finishGame({
+  _i8.Future<_i4.Game> finishGame({
     required String? gameId,
     required DateTime? finishedAt,
   }) =>
@@ -335,8 +347,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               #gameId: gameId,
               #finishedAt: finishedAt,
             }),
-            returnValue: _i7.Future<_i3.Game>.value(
-              _FakeGame_1(
+            returnValue: _i8.Future<_i4.Game>.value(
+              _FakeGame_2(
                 this,
                 Invocation.method(#finishGame, [], {
                   #gameId: gameId,
@@ -344,8 +356,8 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
                 }),
               ),
             ),
-            returnValueForMissingStub: _i7.Future<_i3.Game>.value(
-              _FakeGame_1(
+            returnValueForMissingStub: _i8.Future<_i4.Game>.value(
+              _FakeGame_2(
                 this,
                 Invocation.method(#finishGame, [], {
                   #gameId: gameId,
@@ -354,14 +366,14 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
               ),
             ),
           )
-          as _i7.Future<_i3.Game>);
+          as _i8.Future<_i4.Game>);
 
   @override
-  _i7.Future<void> deleteGame(String? gameId) =>
+  _i8.Future<void> deleteGame(String? gameId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteGame, [gameId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 }

@@ -16,12 +16,16 @@ class HistoryListLoading extends HistoryListState {
 }
 
 class HistoryListLoaded extends HistoryListState {
-  const HistoryListLoaded({required this.items});
+  const HistoryListLoaded({
+    required this.items,
+    this.cloudError = false,
+  });
 
   final List<GameHistoryItem> items;
+  final bool cloudError;
 
   @override
-  List<Object?> get props => [items];
+  List<Object?> get props => [items, cloudError];
 }
 
 class HistoryListEmpty extends HistoryListState {

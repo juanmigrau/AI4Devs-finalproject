@@ -1,9 +1,9 @@
 import '../entities/game_detail.dart';
-import '../entities/game_history_item.dart';
+import '../entities/game_history_load_result.dart';
 import '../entities/game_history_source.dart';
 
 abstract class HistoryRepository {
-  Future<List<GameHistoryItem>> getGameHistory();
+  Future<GameHistoryLoadResult> getGameHistory();
 
   Future<GameDetail> getGameDetail({
     required String gameId,

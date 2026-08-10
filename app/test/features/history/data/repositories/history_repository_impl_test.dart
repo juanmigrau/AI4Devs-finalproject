@@ -107,8 +107,9 @@ void main() {
 
     final items = await repository.getGameHistory();
 
-    expect(items, hasLength(3));
-    expect(items.map((item) => item.id), ['local-2', 'cloud-1', 'local-1']);
+    expect(items.items, hasLength(3));
+    expect(items.items.map((item) => item.id), ['local-2', 'cloud-1', 'local-1']);
+    expect(items.cloudError, isFalse);
   });
 
   test('deduplicates local items already present in cloud by cloudGameId', () async {
@@ -119,9 +120,9 @@ void main() {
 
     final items = await repository.getGameHistory();
 
-    expect(items, hasLength(1));
-    expect(items.single.id, 'cloud-1');
-    expect(items.single.source, GameHistorySource.cloud);
+    expect(items.items, hasLength(1));
+    expect(items.items.single.id, 'cloud-1');
+    expect(items.items.single.source, GameHistorySource.cloud);
   });
 
   test('excludes hidden cloud ids from merged history', () async {
@@ -135,7 +136,7 @@ void main() {
 
     final items = await repository.getGameHistory();
 
-    expect(items.map((item) => item.id), ['cloud-1', 'local-1']);
+    expect(items.items.map((item) => item.id), ['cloud-1', 'local-1']);
   });
 
   test('excludes local items whose cloudGameId is hidden', () async {
@@ -161,8 +162,8 @@ void main() {
 
     final items = await repository.getGameHistory();
 
-    expect(items, hasLength(1));
-    expect(items.single.id, 'local-1');
+    expect(items.items, hasLength(1));
+    expect(items.items.single.id, 'local-1');
   });
 
   test('returns only local items when cloud datasource is empty', () async {
@@ -173,8 +174,21 @@ void main() {
 
     final items = await repository.getGameHistory();
 
-    expect(items, hasLength(1));
-    expect(items.single.source, GameHistorySource.local);
+    expect(items.items, hasLength(1));
+    expect(items.items.single.source, GameHistorySource.local);
+    expect(items.cloudError, isFalse);
+  });
+
+  test('returns local items with cloudError when cloud datasource throws', () async {
+    when(localDatasource.getFinishedGames())
+        .thenAnswer((_) async => [olderLocal, newerLocal]);
+    when(firestoreDatasource.getFinishedCloudGames())
+        .thenThrow(Exception('failed-precondition'));
+
+    final result = await repository.getGameHistory();
+
+    expect(result.cloudError, isTrue);
+    expect(result.items.map((item) => item.id), ['local-2', 'local-1']);
   });
 
   test('deleteLocalGame delegates to game repository', () async {

@@ -3,12 +3,12 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
-import 'package:la_pocha/features/history/domain/entities/game_history_item.dart'
-    as _i4;
-import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart'
+import 'package:la_pocha/features/history/domain/entities/game_history_load_result.dart'
     as _i2;
+import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart'
+    as _i3;
 import 'package:la_pocha/features/sync/domain/usecases/retry_pending_uploads_usecase.dart'
     as _i5;
 import 'package:mockito/mockito.dart' as _i1;
@@ -28,24 +28,33 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeGameHistoryLoadResult_0 extends _i1.SmartFake
+    implements _i2.GameHistoryLoadResult {
+  _FakeGameHistoryLoadResult_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [GetGameHistoryUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGetGameHistoryUseCase extends _i1.Mock
-    implements _i2.GetGameHistoryUseCase {
+    implements _i3.GetGameHistoryUseCase {
   @override
-  _i3.Future<List<_i4.GameHistoryItem>> call() =>
+  _i4.Future<_i2.GameHistoryLoadResult> call() =>
       (super.noSuchMethod(
             Invocation.method(#call, []),
-            returnValue: _i3.Future<List<_i4.GameHistoryItem>>.value(
-              <_i4.GameHistoryItem>[],
+            returnValue: _i4.Future<_i2.GameHistoryLoadResult>.value(
+              _FakeGameHistoryLoadResult_0(this, Invocation.method(#call, [])),
             ),
             returnValueForMissingStub:
-                _i3.Future<List<_i4.GameHistoryItem>>.value(
-                  <_i4.GameHistoryItem>[],
+                _i4.Future<_i2.GameHistoryLoadResult>.value(
+                  _FakeGameHistoryLoadResult_0(
+                    this,
+                    Invocation.method(#call, []),
+                  ),
                 ),
           )
-          as _i3.Future<List<_i4.GameHistoryItem>>);
+          as _i4.Future<_i2.GameHistoryLoadResult>);
 }
 
 /// A class which mocks [RetryPendingUploadsUseCase].
@@ -54,11 +63,11 @@ class MockGetGameHistoryUseCase extends _i1.Mock
 class MockRetryPendingUploadsUseCase extends _i1.Mock
     implements _i5.RetryPendingUploadsUseCase {
   @override
-  _i3.Future<int> call() =>
+  _i4.Future<int> call() =>
       (super.noSuchMethod(
             Invocation.method(#call, []),
-            returnValue: _i3.Future<int>.value(0),
-            returnValueForMissingStub: _i3.Future<int>.value(0),
+            returnValue: _i4.Future<int>.value(0),
+            returnValueForMissingStub: _i4.Future<int>.value(0),
           )
-          as _i3.Future<int>);
+          as _i4.Future<int>);
 }

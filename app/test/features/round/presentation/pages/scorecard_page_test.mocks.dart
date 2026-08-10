@@ -5,15 +5,15 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i5;
 
-import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i7;
+import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i3;
 import 'package:la_pocha/features/game_setup/domain/usecases/cancel_game_usecase.dart'
     as _i6;
 import 'package:la_pocha/features/round/domain/entities/scorecard_row.dart'
     as _i2;
 import 'package:la_pocha/features/round/domain/usecases/get_game_scorecard_usecase.dart'
-    as _i3;
-import 'package:la_pocha/features/round/domain/usecases/repeat_round_usecase.dart'
     as _i4;
+import 'package:la_pocha/features/round/domain/usecases/repeat_round_usecase.dart'
+    as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -36,7 +36,7 @@ class _FakeGameScorecard_0 extends _i1.SmartFake implements _i2.GameScorecard {
     : super(parent, parentInvocation);
 }
 
-class _FakeRound_1 extends _i1.SmartFake implements _i7.Round {
+class _FakeRound_1 extends _i1.SmartFake implements _i3.Round {
   _FakeRound_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
@@ -45,7 +45,7 @@ class _FakeRound_1 extends _i1.SmartFake implements _i7.Round {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockGetGameScorecardUseCase extends _i1.Mock
-    implements _i3.GetGameScorecardUseCase {
+    implements _i4.GetGameScorecardUseCase {
   @override
   _i5.Future<_i2.GameScorecard> call({required String? gameId}) =>
       (super.noSuchMethod(
@@ -84,9 +84,9 @@ class MockCancelGameUseCase extends _i1.Mock implements _i6.CancelGameUseCase {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockRepeatRoundUseCase extends _i1.Mock
-    implements _i4.RepeatRoundUseCase {
+    implements _i7.RepeatRoundUseCase {
   @override
-  _i5.Future<_i7.Round> call({
+  _i5.Future<_i3.Round> call({
     required String? gameId,
     required int? roundNumber,
   }) =>
@@ -95,7 +95,7 @@ class MockRepeatRoundUseCase extends _i1.Mock
               #gameId: gameId,
               #roundNumber: roundNumber,
             }),
-            returnValue: _i5.Future<_i7.Round>.value(
+            returnValue: _i5.Future<_i3.Round>.value(
               _FakeRound_1(
                 this,
                 Invocation.method(#call, [], {
@@ -104,7 +104,7 @@ class MockRepeatRoundUseCase extends _i1.Mock
                 }),
               ),
             ),
-            returnValueForMissingStub: _i5.Future<_i7.Round>.value(
+            returnValueForMissingStub: _i5.Future<_i3.Round>.value(
               _FakeRound_1(
                 this,
                 Invocation.method(#call, [], {
@@ -114,5 +114,5 @@ class MockRepeatRoundUseCase extends _i1.Mock
               ),
             ),
           )
-          as _i5.Future<_i7.Round>);
+          as _i5.Future<_i3.Round>);
 }

@@ -102,7 +102,26 @@ class _HistoryListView extends StatelessWidget {
                 if (authState is! Authenticated) {
                   return const SizedBox.shrink();
                 }
-                return const _OfflineSyncBanner();
+                return BlocBuilder<HistoryListBloc, HistoryListState>(
+                  buildWhen: (previous, current) {
+                    final previousLoaded = previous is HistoryListLoaded;
+                    final currentLoaded = current is HistoryListLoaded;
+                    if (previousLoaded != currentLoaded) {
+                      return true;
+                    }
+                    if (previousLoaded && currentLoaded) {
+                      return previous.cloudError != current.cloudError;
+                    }
+                    return false;
+                  },
+                  builder: (context, historyState) {
+                    if (historyState is HistoryListLoaded &&
+                        historyState.cloudError) {
+                      return const _OfflineSyncBanner();
+                    }
+                    return const SizedBox.shrink();
+                  },
+                );
               },
             ),
             Expanded(
@@ -180,7 +199,7 @@ class _OfflineSyncBanner extends StatelessWidget {
     return const Padding(
       padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: WarningBanner(
-        message: 'Sin conexión: mostrando solo partidas locales.',
+        message: 'Sin conexión a la nube: mostrando solo datos locales.',
         icon: Icons.cloud_off,
       ),
     );
