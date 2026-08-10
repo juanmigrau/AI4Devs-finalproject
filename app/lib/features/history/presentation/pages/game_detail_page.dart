@@ -404,6 +404,22 @@ class _LoadedBody extends StatelessWidget {
 
             children: [
 
+              OutlinedButton.icon(
+
+                onPressed: () => context.push(
+
+                  '/games/${detail.game.id}/scorecard',
+
+                ),
+
+                icon: const Icon(Icons.table_chart_outlined),
+
+                label: const Text('Ver tabla completa'),
+
+              ),
+
+              const SizedBox(height: 8),
+
               RepeatGameButton(
 
                 gameId: detail.game.id,

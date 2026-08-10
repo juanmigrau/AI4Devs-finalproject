@@ -190,10 +190,11 @@ void main() {
     expect(find.text('Carla'), findsOneWidget);
     expect(find.text('Nueva partida'), findsOneWidget);
     expect(find.text('Repetir partida'), findsOneWidget);
+    expect(find.byIcon(Icons.table_chart_outlined), findsOneWidget);
     expect(find.byIcon(Icons.more_vert), findsNothing);
   });
 
-  testWidgets('shows sync failure snackbar with OK action', (tester) async {
+  testWidgets('shows sync failure snackbar without OK action', (tester) async {
     await pumpPage(tester);
 
     syncStates.add(
@@ -212,7 +213,8 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('OK'), findsOneWidget);
+    expect(find.text('OK'), findsNothing);
+    expect(find.byType(SnackBarAction), findsNothing);
   });
 
   testWidgets('does not show snackbar for sync in progress', (tester) async {

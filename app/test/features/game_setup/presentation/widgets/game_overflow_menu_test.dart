@@ -79,6 +79,12 @@ void main() {
             body: Text('BIDDING SCREEN'),
           ),
         ),
+        GoRoute(
+          path: '/games/:gameId/scorecard',
+          builder: (context, state) => const Scaffold(
+            body: Text('SCORECARD SCREEN'),
+          ),
+        ),
       ],
     );
     return MaterialApp.router(routerConfig: router);
@@ -89,31 +95,40 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> tapCancelIcon(WidgetTester tester) async {
-    await tester.tap(find.byIcon(Icons.stop_circle_outlined));
-    await tester.pumpAndSettle();
-  }
-
   Future<void> openMenuAndTapCancel(WidgetTester tester) async {
     await openMenu(tester);
     await tester.tap(find.text('Cancelar partida').last);
     await tester.pumpAndSettle();
   }
 
-  testWidgets('shows cancel IconButton without repeatRoundNumber', (
+  testWidgets('shows overflow menu without repeatRoundNumber', (
     tester,
   ) async {
     await tester.pumpWidget(buildApp());
-    expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
-    expect(find.byIcon(Icons.more_vert), findsNothing);
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    expect(find.byIcon(Icons.stop_circle_outlined), findsNothing);
+
+    await openMenu(tester);
+    expect(find.text('Ver tabla de puntos'), findsOneWidget);
+    expect(find.text('Cancelar partida'), findsOneWidget);
+    expect(find.text('Repetir ronda'), findsNothing);
   });
 
-  testWidgets('shows confirmation dialog when tapping cancel IconButton', (
+  testWidgets('navigates to scorecard from overflow menu', (tester) async {
+    await tester.pumpWidget(buildApp());
+    await openMenu(tester);
+    await tester.tap(find.text('Ver tabla de puntos'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SCORECARD SCREEN'), findsOneWidget);
+  });
+
+  testWidgets('shows confirmation dialog when tapping cancel in menu', (
     tester,
   ) async {
     await tester.pumpWidget(buildApp());
 
-    await tapCancelIcon(tester);
+    await openMenuAndTapCancel(tester);
 
     expect(find.text('Volver'), findsOneWidget);
     expect(
@@ -127,7 +142,7 @@ void main() {
   ) async {
     await tester.pumpWidget(buildApp());
 
-    await tapCancelIcon(tester);
+    await openMenuAndTapCancel(tester);
     await tester.tap(find.text('Volver'));
     await tester.pumpAndSettle();
 
@@ -140,7 +155,7 @@ void main() {
   ) async {
     await tester.pumpWidget(buildApp());
 
-    await tapCancelIcon(tester);
+    await openMenuAndTapCancel(tester);
     await tester.tap(find.widgetWithText(TextButton, 'Cancelar partida'));
     await tester.pumpAndSettle();
 
@@ -154,6 +169,11 @@ void main() {
     await tester.pumpWidget(buildApp(repeatRoundNumber: 1));
     expect(find.byIcon(Icons.more_vert), findsOneWidget);
     expect(find.byIcon(Icons.stop_circle_outlined), findsNothing);
+
+    await openMenu(tester);
+    expect(find.text('Ver tabla de puntos'), findsOneWidget);
+    expect(find.text('Repetir ronda'), findsOneWidget);
+    expect(find.text('Cancelar partida'), findsOneWidget);
   });
 
   testWidgets('shows repeat round confirmation dialog', (tester) async {

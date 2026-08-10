@@ -1,0 +1,177 @@
+## [original]
+
+Como jugador, quiero ver la evolución completa de la partida en formato
+tabla (al estilo del papel tradicional), para poder consultar en cualquier
+momento cómo ha ido cada ronda y comparar la evolución de todos los jugadores.
+
+## [enhanced]
+
+### Contexto y alcance
+
+Vista de consulta de la partida en formato tabla tradicional, accesible
+tanto durante la partida en curso como desde el historial. Replica la
+manera habitual de apuntar La Pocha en papel: una columna de cartas por
+ronda y dos columnas por jugador (bazas pedidas + puntuación acumulada).
+
+**Incluye:** tabla con scroll horizontal y vertical, columna de cartas
+fija (sticky), cabecera de jugadores fija, acceso desde AppBar durante
+la partida y desde detalle de historial (LPT-16), rondas ya jugadas
+(status == closed) y ronda actual en curso si existe.
+
+**Excluye:** edición de datos desde esta vista (es solo lectura),
+bazas conseguidas como columna separada (solo pedidas + acumulado).
+
+### Criterios de aceptación
+
+1. La tabla muestra una fila por ronda jugada (status == closed) más
+   la ronda actual si está en curso (status != closed).
+2. Columna izquierda fija (sticky): número de cartas de esa ronda.
+3. Cabecera fija (sticky): inicial o nombre corto de cada jugador
+   (máximo 3 caracteres para no ocupar demasiado ancho).
+4. Por cada jugador, dos columnas: bazas pedidas (P) y puntuación
+   acumulada tras esa ronda (Ac).
+5. La ronda actual en curso (no cerrada) muestra las bazas pedidas
+   si ya se han introducido, y "—" en la columna de acumulado.
+6. La tabla hace scroll horizontal (jugadores) y vertical (rondas)
+   de forma independiente, con la columna de cartas y la cabecera
+   siempre visibles.
+7. Accesible desde un IconButton en la AppBar (icono de tabla/grid)
+   en todas las pantallas del ciclo de ronda (bidding, play, scoring,
+   round_result) — abre la vista como pantalla nueva y al volver
+   regresa a la pantalla anterior.
+8. Accesible desde game_detail_page (LPT-16) con un botón
+   "Ver tabla completa".
+9. Funciona offline — lee exclusivamente de Drift.
+10. Es de solo lectura — ningún dato es editable desde esta vista.
+
+### Modelo de datos
+
+No requiere nuevos campos en Drift. Lee:
+- `Game.players[]` — nombres y seatOrder
+- `Game.roundSequence[]` — cartas por ronda
+- `Round.bids` — bazas pedidas por jugador
+- `Round.scoresDelta` — puntos de la ronda (para calcular acumulado)
+- `Round.status` — para distinguir rondas cerradas de la actual
+
+El acumulado por ronda se calcula sumando scoresDelta ronda a ronda
+(no se almacena por separado — se deriva en el use case).
+
+### Arquitectura y ficheros
+
+```
+lib/features/round/
+  domain/
+    usecases/get_game_scorecard_usecase.dart  # nuevo
+    entities/scorecard_row.dart               # nuevo
+      # ScorecardRow: { roundNumber, cardsInRound,
+      #   bids: Map<playerId, int?>,
+      #   cumulative: Map<playerId, int?> }
+  presentation/
+    pages/scorecard_page.dart                 # nuevo
+    widgets/scorecard_table.dart              # nuevo
+      # Tabla con scroll horizontal+vertical,
+      # sticky primera columna y cabecera
+```
+
+**Routing:** `/games/{gameId}/scorecard` → ScorecardPage
+
+**Acceso desde AppBar:** añadir IconButton(Icons.table_chart_outlined)
+en RoundHeader que navega a `/games/{gameId}/scorecard` con
+`context.push()` (no `go()`) para poder volver con el botón atrás.
+
+**Acceso desde historial:** añadir botón en game_detail_page que
+navega a `/games/{gameId}/scorecard`.
+
+### Implementación del scroll sticky
+
+Usar `linked_scroll_controller` (pub.dev) para sincronizar el scroll
+horizontal de la cabecera de jugadores con el cuerpo de la tabla.
+La columna de cartas se implementa como una Column fuera del scroll
+horizontal, sincronizada con el scroll vertical del cuerpo mediante
+un segundo ScrollController.
+
+Estructura de layout:
+```
+Row(
+  children: [
+    // Columna fija izquierda (cartas)
+    Column(sticky): [header vacío, ...celdas de cartas]
+
+    // Zona scrollable horizontalmente
+    Expanded(
+      SingleChildScrollView(horizontal,
+        controller: linkedScrollController.addAndGet(),
+        child: Column(
+          // Cabecera de jugadores (sticky vertical)
+          Row: [J, J, J, J] con controlador horizontal sincronizado
+
+          // Cuerpo scrollable verticalmente
+          SingleChildScrollView(vertical,
+            child: Column: [...filas de datos]
+          )
+        )
+      )
+    )
+  ]
+)
+```
+
+### Definición de hecho
+
+- [ ] Test unitario get_game_scorecard_usecase_test.dart:
+      acumulado calculado correctamente ronda a ronda.
+- [ ] Tabla visible con 3 jugadores y 3 rondas (caso mínimo).
+- [ ] Tabla visible con 8 jugadores y 18 rondas sin overflow.
+- [ ] Scroll horizontal e independiente del vertical.
+- [ ] Columna de cartas y cabecera siempre visibles al hacer scroll.
+- [ ] Acceso desde bidding_page, play_page, scoring_page,
+      round_result_page y game_detail_page.
+- [ ] flutter analyze sin errores.
+
+### Orientación de pantalla
+
+Esta es la única pantalla de la app que permite orientación landscape.
+El resto de la app fuerza portrait (ya configurado en main.dart).
+
+En ScorecardPage:
+```dart
+@override
+void initState() {
+  super.initState();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.portraitUp, // también portrait por si la tabla
+    DeviceOrientation.portraitDown, // cabe (pocos jugadores)
+  ]);
+}
+
+@override
+void dispose() {
+  // Restaurar portrait al salir
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  super.dispose();
+}
+```
+
+En landscape (844px de ancho en un A26), 8 jugadores × 2 columnas
++ 1 columna cartas = 17 columnas con ~48px cada una — legible sin
+scroll horizontal. En portrait con 4-6 jugadores también cabe.
+Para 7-8 jugadores en portrait: scroll horizontal disponible como
+fallback mediante linked_scroll_controller.
+
+### Notas de diseño
+
+- Tipografía compacta (labelSmall o más pequeña) para que quepan
+  las columnas — con 8 jugadores y 2 columnas cada uno son 16+1=17
+  columnas en total.
+- Cabecera: inicial del nombre en mayúscula + color del avatar
+  (usando playerAvatarColorForIndex ya disponible en core/utils/).
+- Fila de la ronda actual (en curso): fondo ligeramente destacado
+  (color primary con opacity 0.05) para identificarla.
+- Celdas vacías (rondas no jugadas aún): mostrar "—".
+- La columna "Ac" puede mostrar valores negativos — usar color
+  error (rojo) para valores negativos, primary (verde) para positivos.

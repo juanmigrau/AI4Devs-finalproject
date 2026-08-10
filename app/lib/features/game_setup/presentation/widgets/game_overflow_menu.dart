@@ -78,50 +78,51 @@ class _GameOverflowMenuView extends StatelessWidget {
           },
         ),
       ],
-      child: repeatRoundNumber == null
-          ? IconButton(
-              icon: const Icon(Icons.stop_circle_outlined),
-              color: Theme.of(context).colorScheme.error,
-              onPressed: () => _confirmAndCancel(context),
-            )
-          : PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-              onSelected: (value) async {
-                switch (value) {
-                  case 'repeat':
-                    final roundNumber = repeatRoundNumber;
-                    if (roundNumber == null) {
-                      return;
-                    }
-                    final cubit = context.read<RepeatRoundCubit>();
-                    final confirmed = await showRepeatRoundDialog(context);
-                    if (confirmed) {
-                      await cubit.repeat(
-                        gameId: gameId,
-                        roundNumber: roundNumber,
-                      );
-                    }
-                  case 'cancel':
-                    await _confirmAndCancel(context);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'repeat',
-                  child: Text(
-                    'Repetir ronda',
-                    style: TextStyle(color: Color(0xFFD9772E)),
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'cancel',
-                  child: Text(
-                    'Cancelar partida',
-                    style: TextStyle(color: Color(0xFFD9772E)),
-                  ),
-                ),
-              ],
+      child: PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, color: Colors.white),
+        onSelected: (value) async {
+          switch (value) {
+            case 'scorecard':
+              context.push('/games/$gameId/scorecard');
+            case 'repeat':
+              final roundNumber = repeatRoundNumber;
+              if (roundNumber == null) {
+                return;
+              }
+              final cubit = context.read<RepeatRoundCubit>();
+              final confirmed = await showRepeatRoundDialog(context);
+              if (confirmed) {
+                await cubit.repeat(
+                  gameId: gameId,
+                  roundNumber: roundNumber,
+                );
+              }
+            case 'cancel':
+              await _confirmAndCancel(context);
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'scorecard',
+            child: Text('Ver tabla de puntos'),
+          ),
+          if (repeatRoundNumber != null)
+            const PopupMenuItem(
+              value: 'repeat',
+              child: Text(
+                'Repetir ronda',
+                style: TextStyle(color: Color(0xFFD9772E)),
+              ),
             ),
+          const PopupMenuItem(
+            value: 'cancel',
+            child: Text(
+              'Cancelar partida',
+              style: TextStyle(color: Color(0xFFD9772E)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

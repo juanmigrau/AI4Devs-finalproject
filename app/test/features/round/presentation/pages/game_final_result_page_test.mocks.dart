@@ -324,6 +324,17 @@ class MockRoundRepository extends _i1.Mock implements _i8.RoundRepository {
           )
           as _i6.Future<_i4.Round?>);
 
+
+  @override
+  _i6.Future<List<_i4.Round>> getRoundsByGameId(String? gameId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getRoundsByGameId, [gameId]),
+            returnValue: _i6.Future<List<_i4.Round>>.value(<_i4.Round>[]),
+            returnValueForMissingStub: _i6.Future<List<_i4.Round>>.value(
+              <_i4.Round>[],
+            ),
+          )
+          as _i6.Future<List<_i4.Round>>);
   @override
   _i6.Future<_i4.Round> updateRound(_i4.Round? round) =>
       (super.noSuchMethod(

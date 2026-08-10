@@ -136,17 +136,13 @@ class _LoadedBody extends StatelessWidget {
             final colorScheme = Theme.of(context).colorScheme;
             rootScaffoldMessengerKey.currentState?.showSnackBar(
               SnackBar(
-                content: const Text(
+                content: Text(
                   'No se pudo sincronizar con la nube. '
                   'Puedes intentarlo de nuevo desde el historial.',
+                  style: TextStyle(color: colorScheme.onErrorContainer),
                 ),
-                duration: const Duration(seconds: 5),
+                duration: const Duration(seconds: 4),
                 backgroundColor: colorScheme.errorContainer,
-                action: SnackBarAction(
-                  label: 'OK',
-                  onPressed: () => rootScaffoldMessengerKey.currentState
-                      ?.hideCurrentSnackBar(),
-                ),
               ),
             );
           },
@@ -162,6 +158,16 @@ class _LoadedBody extends StatelessWidget {
               onPressed: () => context.go('/'),
               icon: const Icon(Icons.home, color: Colors.white),
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.table_chart_outlined,
+                  color: Colors.white,
+                ),
+                tooltip: 'Ver tabla de puntos',
+                onPressed: () => context.push('/games/$gameId/scorecard'),
+              ),
+            ],
           ),
           Expanded(
             child: ListView(
