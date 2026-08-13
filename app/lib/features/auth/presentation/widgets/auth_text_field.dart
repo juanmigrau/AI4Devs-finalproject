@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
 
-class AuthTextField extends StatelessWidget {
+class AuthTextField extends StatefulWidget {
   const AuthTextField({
     super.key,
     required this.label,
@@ -12,6 +13,8 @@ class AuthTextField extends StatelessWidget {
     this.validator,
     this.autocorrect = true,
     this.onFieldSubmitted,
+    this.prefixIcon,
+    this.maxLength,
   });
 
   final String label;
@@ -22,37 +25,76 @@ class AuthTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool autocorrect;
   final void Function(String)? onFieldSubmitted;
+  final IconData? prefixIcon;
+  final int? maxLength;
+
+  @override
+  State<AuthTextField> createState() => _AuthTextFieldState();
+}
+
+class _AuthTextFieldState extends State<AuthTextField> {
+  late bool _obscure;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscure = widget.obscureText;
+  }
+
+  @override
+  void didUpdateWidget(covariant AuthTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.obscureText != widget.obscureText && !widget.obscureText) {
+      _obscure = false;
+    }
+  }
+
+  OutlineInputBorder _border({Color? color, double width = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: color ?? AppTheme.onSurfaceVariant.withValues(alpha: 0.4),
+        width: width,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      autocorrect: autocorrect,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
+      controller: widget.controller,
+      obscureText: widget.obscureText && _obscure,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      autocorrect: widget.autocorrect,
+      validator: widget.validator,
+      onFieldSubmitted: widget.onFieldSubmitted,
+      style: theme.textTheme.bodyLarge,
+      maxLength: widget.maxLength,
+      inputFormatters: widget.maxLength != null
+          ? [LengthLimitingTextInputFormatter(widget.maxLength)]
+          : null,
       decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Colors.red),
-        ),
+        labelText: widget.label,
+        counterText: widget.maxLength != null ? '' : null,
+        prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+        suffixIcon: widget.obscureText
+            ? IconButton(
+                onPressed: () => setState(() => _obscure = !_obscure),
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              )
+            : null,
+        border: _border(),
+        enabledBorder: _border(),
+        focusedBorder: _border(color: AppTheme.primary, width: 2),
+        errorBorder: _border(color: theme.colorScheme.error),
+        focusedErrorBorder: _border(color: theme.colorScheme.error, width: 2),
       ),
     );
   }

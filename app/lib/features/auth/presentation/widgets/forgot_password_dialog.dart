@@ -78,6 +78,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           child: AuthTextField(
             label: 'Email',
             controller: _emailController,
+            prefixIcon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             autocorrect: false,

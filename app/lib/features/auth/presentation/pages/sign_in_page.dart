@@ -41,6 +41,8 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthFailure) {
@@ -67,6 +69,7 @@ class _SignInPageState extends State<SignInPage> {
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,90 +83,137 @@ class _SignInPageState extends State<SignInPage> {
                   builder: (context, state) {
                     final isLoading = state is AuthLoading;
 
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Card(
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
                               child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(
-                                      'INICIAR SESIÓN',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: AppTheme.onSurfaceVariant,
-                                            letterSpacing: 1.2,
-                                            fontWeight: FontWeight.w600,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 24),
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      const SizedBox(height: 32),
+                                      Text(
+                                        'Bienvenido de nuevo',
+                                        style: theme.textTheme.headlineSmall
+                                            ?.copyWith(
+                                          color: AppTheme.onSurface,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Inicia sesión para acceder a tu historial',
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: AppTheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 32),
+                                      AuthTextField(
+                                        label: 'Email',
+                                        controller: _emailController,
+                                        prefixIcon: Icons.email_outlined,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        textInputAction: TextInputAction.next,
+                                        autocorrect: false,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.trim().isEmpty) {
+                                            return 'Introduce tu email';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      AuthTextField(
+                                        label: 'Contraseña',
+                                        controller: _passwordController,
+                                        prefixIcon: Icons.lock_outlined,
+                                        obscureText: true,
+                                        textInputAction: TextInputAction.done,
+                                        autocorrect: false,
+                                        onFieldSubmitted: (_) => _submit(),
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.isEmpty) {
+                                            return 'Introduce tu contraseña';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton(
+                                          onPressed: isLoading
+                                              ? null
+                                              : () => showForgotPasswordDialog(
+                                                    context,
+                                                    initialEmail:
+                                                        _emailController.text,
+                                                  ),
+                                          child: Text(
+                                            '¿Olvidaste tu contraseña?',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: AppTheme.primary,
+                                            ),
                                           ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    AuthTextField(
-                                      label: 'Email',
-                                      controller: _emailController,
-                                      keyboardType: TextInputType.emailAddress,
-                                      textInputAction: TextInputAction.next,
-                                      autocorrect: false,
-                                      validator: (value) {
-                                        if (value == null ||
-                                            value.trim().isEmpty) {
-                                          return 'Introduce tu email';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    AuthTextField(
-                                      label: 'Contraseña',
-                                      controller: _passwordController,
-                                      obscureText: true,
-                                      textInputAction: TextInputAction.done,
-                                      autocorrect: false,
-                                      onFieldSubmitted: (_) => _submit(),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Introduce tu contraseña';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      PrimaryButton(
+                                        label: 'Entrar',
+                                        isLoading: isLoading,
+                                        onPressed: _submit,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '¿No tienes cuenta?',
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                              color: AppTheme.onSurfaceVariant,
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: isLoading
+                                                ? null
+                                                : () => context
+                                                    .push('/auth/sign-up'),
+                                            child: Text(
+                                              'Regístrate',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                color: AppTheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 24),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            PrimaryButton(
-                              label: 'Entrar',
-                              isLoading: isLoading,
-                              onPressed: _submit,
-                            ),
-                            const SizedBox(height: 12),
-                            TextButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () => showForgotPasswordDialog(
-                                        context,
-                                        initialEmail: _emailController.text,
-                                      ),
-                              child: const Text('¿Olvidaste tu contraseña?'),
-                            ),
-                            TextButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () => context.push('/auth/sign-up'),
-                              child: const Text('¿No tienes cuenta? Regístrate'),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
