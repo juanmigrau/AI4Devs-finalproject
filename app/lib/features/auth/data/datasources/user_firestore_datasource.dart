@@ -42,6 +42,25 @@ class UserFirestoreDatasource {
     return saved ?? model;
   }
 
+  Future<UserProfileModel> updateDisplayName({
+    required String uid,
+    required String displayName,
+  }) async {
+    await _users.doc(uid).set(
+      {
+        'displayName': displayName,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
+
+    final saved = await getProfile(uid);
+    if (saved == null) {
+      throw StateError('User profile not found: $uid');
+    }
+    return saved;
+  }
+
   Future<UserProfileModel> touchProfile({
     required String uid,
     required String email,

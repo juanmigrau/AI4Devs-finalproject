@@ -19,4 +19,6 @@ abstract class AuthRepository {
   Future<void> sendPasswordReset({required String email});
 
   Future<UserProfile?> getCurrentUser();
+
+  Future<UserProfile> updateDisplayName(String displayName);
 }

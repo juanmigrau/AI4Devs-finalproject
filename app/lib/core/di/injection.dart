@@ -83,11 +83,14 @@ import 'package:la_pocha/features/auth/data/datasources/user_firestore_datasourc
 import 'package:la_pocha/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:la_pocha/features/auth/domain/usecases/get_player_stats_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart';
+import 'package:la_pocha/features/auth/domain/usecases/update_display_name_usecase.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:la_pocha/features/auth/presentation/bloc/profile_bloc.dart';
 import 'package:la_pocha/features/sync/data/datasources/game_firestore_datasource.dart';
 import 'package:la_pocha/features/sync/data/repositories/game_sync_repository_impl.dart';
 import 'package:la_pocha/features/sync/domain/repositories/game_sync_repository.dart';
@@ -146,6 +149,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<SendPasswordResetUseCase>(
     () => SendPasswordResetUseCase(getIt<AuthRepository>()),
+  );
+
+  getIt.registerLazySingleton<UpdateDisplayNameUseCase>(
+    () => UpdateDisplayNameUseCase(getIt<AuthRepository>()),
   );
 
   getIt.registerLazySingleton<GameFirestoreDatasource>(
@@ -315,6 +322,21 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<GetGameDetailUseCase>(
     () => GetGameDetailUseCase(getIt<HistoryRepository>()),
+  );
+
+  getIt.registerFactory<GetPlayerStatsUseCase>(
+    () => GetPlayerStatsUseCase(
+      getGameHistory: getIt<GetGameHistoryUseCase>(),
+      getGameDetail: getIt<GetGameDetailUseCase>(),
+    ),
+  );
+
+  getIt.registerFactory<ProfileBloc>(
+    () => ProfileBloc(
+      getCurrentUser: getIt<GetCurrentUserUseCase>(),
+      getPlayerStats: getIt<GetPlayerStatsUseCase>(),
+      updateDisplayName: getIt<UpdateDisplayNameUseCase>(),
+    ),
   );
 
   getIt.registerFactory<GameClonerService>(() => const GameClonerService());

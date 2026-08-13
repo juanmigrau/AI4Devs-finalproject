@@ -52,6 +52,15 @@ final class PasswordResetRequested extends AuthEvent {
   List<Object?> get props => [email];
 }
 
+final class AuthProfileUpdated extends AuthEvent {
+  const AuthProfileUpdated(this.user);
+
+  final UserProfile user;
+
+  @override
+  List<Object?> get props => [user];
+}
+
 final class _AuthUserChanged extends AuthEvent {
   const _AuthUserChanged(this.user);
 

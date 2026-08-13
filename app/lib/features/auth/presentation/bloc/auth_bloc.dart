@@ -26,6 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpSubmitted>(_onSignUpSubmitted);
     on<SignOutRequested>(_onSignOutRequested);
     on<PasswordResetRequested>(_onPasswordResetRequested);
+    on<AuthProfileUpdated>(_onAuthProfileUpdated);
     on<_AuthUserChanged>(_onAuthUserChanged);
   }
 
@@ -106,6 +107,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const Unauthenticated());
       }
     }
+  }
+
+  void _onAuthProfileUpdated(
+    AuthProfileUpdated event,
+    Emitter<AuthState> emit,
+  ) {
+    emit(Authenticated(event.user));
   }
 
   Future<void> _onPasswordResetRequested(

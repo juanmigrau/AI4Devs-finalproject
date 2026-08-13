@@ -104,6 +104,27 @@ class AuthRepositoryImpl implements AuthRepository {
     return _resolveProfile(user);
   }
 
+  @override
+  Future<UserProfile> updateDisplayName(String displayName) async {
+    try {
+      final user = _authDatasource.currentUser;
+      if (user == null) {
+        throw const UnknownAuthFailure('No hay sesión activa.');
+      }
+
+      await _authDatasource.updateDisplayName(displayName);
+      final profile = await _userDatasource.updateDisplayName(
+        uid: user.uid,
+        displayName: displayName,
+      );
+      return profile.toEntity();
+    } on AuthFailure {
+      rethrow;
+    } catch (_) {
+      throw const UnknownAuthFailure();
+    }
+  }
+
   Future<UserProfile?> _resolveProfile(dynamic user) async {
     if (user == null) {
       return null;

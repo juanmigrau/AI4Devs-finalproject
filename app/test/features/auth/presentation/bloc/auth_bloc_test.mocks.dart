@@ -144,6 +144,25 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
             returnValueForMissingStub: _i4.Future<_i2.UserProfile?>.value(),
           )
           as _i4.Future<_i2.UserProfile?>);
+
+  @override
+  _i4.Future<_i2.UserProfile> updateDisplayName(String? displayName) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDisplayName, [displayName]),
+            returnValue: _i4.Future<_i2.UserProfile>.value(
+              _FakeUserProfile_0(
+                this,
+                Invocation.method(#updateDisplayName, [displayName]),
+              ),
+            ),
+            returnValueForMissingStub: _i4.Future<_i2.UserProfile>.value(
+              _FakeUserProfile_0(
+                this,
+                Invocation.method(#updateDisplayName, [displayName]),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.UserProfile>);
 }
 
 /// A class which mocks [SignInUseCase].

@@ -44,6 +44,17 @@ class AuthFirebaseDatasource {
     );
   }
 
+  Future<void> updateDisplayName(String displayName) {
+    return _wrapAuthCall(() async {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw const UnknownAuthFailure('No hay sesión activa.');
+      }
+      await user.updateDisplayName(displayName);
+      await user.reload();
+    });
+  }
+
   Future<T> _wrapAuthCall<T>(Future<T> Function() action) async {
     try {
       return await action();
