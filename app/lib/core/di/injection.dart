@@ -70,6 +70,8 @@ import 'package:la_pocha/features/history/domain/services/game_detail_mapper.dar
 import 'package:la_pocha/features/history/domain/usecases/delete_local_game_usecase.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_detail_usecase.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart';
+import 'package:la_pocha/features/history/domain/usecases/get_recent_games_usecase.dart';
+import 'package:la_pocha/features/home/presentation/bloc/home_bloc.dart';
 import 'package:la_pocha/features/history/domain/usecases/hide_cloud_game_usecase.dart';
 import 'package:la_pocha/features/history/domain/usecases/repeat_game_usecase.dart';
 import 'package:la_pocha/features/history/presentation/bloc/delete_game_from_history_cubit.dart';
@@ -301,6 +303,14 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<GetGameHistoryUseCase>(
     () => GetGameHistoryUseCase(getIt<HistoryRepository>()),
+  );
+
+  getIt.registerFactory<GetRecentGamesUseCase>(
+    () => GetRecentGamesUseCase(getIt<HistoryRepository>()),
+  );
+
+  getIt.registerFactory<HomeBloc>(
+    () => HomeBloc(getRecentGames: getIt<GetRecentGamesUseCase>()),
   );
 
   getIt.registerFactory<GetGameDetailUseCase>(

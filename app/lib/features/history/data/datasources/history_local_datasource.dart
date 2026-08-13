@@ -23,11 +23,14 @@ class HistoryLocalDatasource {
   final RoundLocalDatasource _roundLocalDatasource;
   final GameHistoryMapper _mapper;
 
-  Future<List<GameHistoryItem>> getFinishedGames() async {
-    final entries = await (_database.select(_database.games)
-          ..where((table) => table.status.equals('finished'))
-          ..orderBy([(table) => OrderingTerm.desc(table.finishedAt)]))
-        .get();
+  Future<List<GameHistoryItem>> getFinishedGames({int? limit}) async {
+    final query = _database.select(_database.games)
+      ..where((table) => table.status.equals('finished'))
+      ..orderBy([(table) => OrderingTerm.desc(table.finishedAt)]);
+    if (limit != null) {
+      query.limit(limit);
+    }
+    final entries = await query.get();
 
     return entries
         .map(GameMapper.toDomain)

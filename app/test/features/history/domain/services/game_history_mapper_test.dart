@@ -73,5 +73,39 @@ void main() {
       expect(item, isNotNull);
       expect(item!.isSyncPending, isTrue);
     });
+
+    group('formatRelativeFinishedAt', () {
+      final now = DateTime(2026, 8, 13, 18, 0);
+
+      test('formats today as Hoy with time', () {
+        expect(
+          mapper.formatRelativeFinishedAt(
+            DateTime(2026, 8, 13, 20, 14),
+            now: now,
+          ),
+          'Hoy, 20:14',
+        );
+      });
+
+      test('formats yesterday as Ayer with time', () {
+        expect(
+          mapper.formatRelativeFinishedAt(
+            DateTime(2026, 8, 12, 19, 2),
+            now: now,
+          ),
+          'Ayer, 19:02',
+        );
+      });
+
+      test('formats older dates as short day month and time', () {
+        expect(
+          mapper.formatRelativeFinishedAt(
+            DateTime(2026, 8, 12, 21, 30),
+            now: DateTime(2026, 8, 14, 10),
+          ),
+          '12 ago, 21:30',
+        );
+      });
+    });
   });
 }

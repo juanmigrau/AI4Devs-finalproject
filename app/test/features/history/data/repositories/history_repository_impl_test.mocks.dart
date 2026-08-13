@@ -60,9 +60,9 @@ class _FakeRound_2 extends _i1.SmartFake implements _i4.Round {
 class MockHistoryLocalDatasource extends _i1.Mock
     implements _i5.HistoryLocalDatasource {
   @override
-  _i6.Future<List<_i7.GameHistoryItem>> getFinishedGames() =>
+  _i6.Future<List<_i7.GameHistoryItem>> getFinishedGames({int? limit}) =>
       (super.noSuchMethod(
-            Invocation.method(#getFinishedGames, []),
+            Invocation.method(#getFinishedGames, [], {#limit: limit}),
             returnValue: _i6.Future<List<_i7.GameHistoryItem>>.value(
               <_i7.GameHistoryItem>[],
             ),

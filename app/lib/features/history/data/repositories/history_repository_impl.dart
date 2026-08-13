@@ -25,6 +25,11 @@ class HistoryRepositoryImpl implements HistoryRepository {
   final GameDetailMapper _gameDetailMapper;
 
   @override
+  Future<List<GameHistoryItem>> getRecentFinishedGames({int limit = 3}) {
+    return _localDatasource.getFinishedGames(limit: limit);
+  }
+
+  @override
   Future<GameHistoryLoadResult> getGameHistory() async {
     final localItems = await _localDatasource.getFinishedGames();
 
@@ -50,8 +55,9 @@ class HistoryRepositoryImpl implements HistoryRepository {
     required GameHistorySource source,
   }) async {
     final data = switch (source) {
-      GameHistorySource.local =>
-        await _localDatasource.loadFinishedGameDetail(gameId),
+      GameHistorySource.local => await _localDatasource.loadFinishedGameDetail(
+        gameId,
+      ),
       GameHistorySource.cloud =>
         await _firestoreDatasource.loadFinishedGameDetail(gameId),
     };

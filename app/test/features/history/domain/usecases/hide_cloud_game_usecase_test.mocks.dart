@@ -7,22 +7,22 @@ import 'dart:async' as _i8;
 
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart' as _i4;
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart'
-    as _i11;
+    as _i12;
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart' as _i6;
 import 'package:la_pocha/features/game_setup/domain/entities/start_game_result.dart'
     as _i5;
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart'
-    as _i10;
+    as _i11;
 import 'package:la_pocha/features/history/data/datasources/history_firestore_datasource.dart'
-    as _i12;
+    as _i13;
 import 'package:la_pocha/features/history/domain/entities/game_detail.dart'
     as _i3;
 import 'package:la_pocha/features/history/domain/entities/game_history_item.dart'
-    as _i13;
+    as _i9;
 import 'package:la_pocha/features/history/domain/entities/game_history_load_result.dart'
     as _i2;
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart'
-    as _i9;
+    as _i10;
 import 'package:la_pocha/features/history/domain/repositories/history_repository.dart'
     as _i7;
 import 'package:mockito/mockito.dart' as _i1;
@@ -94,9 +94,25 @@ class MockHistoryRepository extends _i1.Mock implements _i7.HistoryRepository {
           as _i8.Future<_i2.GameHistoryLoadResult>);
 
   @override
+  _i8.Future<List<_i9.GameHistoryItem>> getRecentFinishedGames({
+    int? limit = 3,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getRecentFinishedGames, [], {#limit: limit}),
+            returnValue: _i8.Future<List<_i9.GameHistoryItem>>.value(
+              <_i9.GameHistoryItem>[],
+            ),
+            returnValueForMissingStub:
+                _i8.Future<List<_i9.GameHistoryItem>>.value(
+                  <_i9.GameHistoryItem>[],
+                ),
+          )
+          as _i8.Future<List<_i9.GameHistoryItem>>);
+
+  @override
   _i8.Future<_i3.GameDetail> getGameDetail({
     required String? gameId,
-    required _i9.GameHistorySource? source,
+    required _i10.GameHistorySource? source,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getGameDetail, [], {
@@ -146,7 +162,7 @@ class MockHistoryRepository extends _i1.Mock implements _i7.HistoryRepository {
 /// A class which mocks [GameRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
+class MockGameRepository extends _i1.Mock implements _i11.GameRepository {
   @override
   _i8.Future<_i4.Game> saveDraft(_i4.Game? game) =>
       (super.noSuchMethod(
@@ -181,7 +197,7 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
   @override
   _i8.Future<_i4.Game> updateGamePlayers(
     String? gameId,
-    List<_i11.PlayerEmbed>? players,
+    List<_i12.PlayerEmbed>? players,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#updateGamePlayers, [gameId, players]),
@@ -203,7 +219,7 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
   @override
   _i8.Future<_i5.StartGameResult> startGame({
     required String? gameId,
-    required List<_i11.PlayerEmbed>? players,
+    required List<_i12.PlayerEmbed>? players,
     required String? firstDealerPlayerId,
     required _i6.Round? firstRound,
   }) =>
@@ -251,7 +267,7 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
   @override
   _i8.Future<_i6.Round> closeRoundAndUpdateScores({
     required _i6.Round? closedRound,
-    required List<_i11.PlayerEmbed>? updatedPlayers,
+    required List<_i12.PlayerEmbed>? updatedPlayers,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#closeRoundAndUpdateScores, [], {
@@ -282,7 +298,7 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
   @override
   _i8.Future<_i6.Round> repeatRoundAndRevertScores({
     required _i6.Round? resetRound,
-    required List<_i11.PlayerEmbed>? updatedPlayers,
+    required List<_i12.PlayerEmbed>? updatedPlayers,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#repeatRoundAndRevertScores, [], {
@@ -386,20 +402,20 @@ class MockGameRepository extends _i1.Mock implements _i10.GameRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockHistoryFirestoreDatasource extends _i1.Mock
-    implements _i12.HistoryFirestoreDatasource {
+    implements _i13.HistoryFirestoreDatasource {
   @override
-  _i8.Future<List<_i13.GameHistoryItem>> getFinishedCloudGames() =>
+  _i8.Future<List<_i9.GameHistoryItem>> getFinishedCloudGames() =>
       (super.noSuchMethod(
             Invocation.method(#getFinishedCloudGames, []),
-            returnValue: _i8.Future<List<_i13.GameHistoryItem>>.value(
-              <_i13.GameHistoryItem>[],
+            returnValue: _i8.Future<List<_i9.GameHistoryItem>>.value(
+              <_i9.GameHistoryItem>[],
             ),
             returnValueForMissingStub:
-                _i8.Future<List<_i13.GameHistoryItem>>.value(
-                  <_i13.GameHistoryItem>[],
+                _i8.Future<List<_i9.GameHistoryItem>>.value(
+                  <_i9.GameHistoryItem>[],
                 ),
           )
-          as _i8.Future<List<_i13.GameHistoryItem>>);
+          as _i8.Future<List<_i9.GameHistoryItem>>);
 
   @override
   _i8.Future<({_i4.Game game, List<_i6.Round> rounds})> loadFinishedGameDetail(

@@ -30,14 +30,18 @@ void main() {
     required DateTime finishedAt,
     required List<PlayerEmbed> players,
   }) async {
-    await database.into(database.games).insert(
+    await database
+        .into(database.games)
+        .insert(
           GamesCompanion.insert(
             id: id,
             status: 'finished',
             playerCount: players.length,
             totalCards: 40,
             maxCardsPerRound: 10,
-            roundSequence: const [RoundDefinition(roundNumber: 1, cardsPerPlayer: 4)],
+            roundSequence: const [
+              RoundDefinition(roundNumber: 1, cardsPerPlayer: 4),
+            ],
             players: Value(players),
             finishedAt: Value(finishedAt),
             createdAt: finishedAt,
@@ -69,14 +73,18 @@ void main() {
       finishedAt: DateTime(2026, 2, 1, 10),
       players: players,
     );
-    await database.into(database.games).insert(
+    await database
+        .into(database.games)
+        .insert(
           GamesCompanion.insert(
             id: 'in-progress',
             status: 'in_progress',
             playerCount: 4,
             totalCards: 40,
             maxCardsPerRound: 10,
-            roundSequence: const [RoundDefinition(roundNumber: 1, cardsPerPlayer: 4)],
+            roundSequence: const [
+              RoundDefinition(roundNumber: 1, cardsPerPlayer: 4),
+            ],
             createdAt: DateTime(2026),
             updatedAt: DateTime(2026),
           ),
@@ -89,5 +97,44 @@ void main() {
     expect(items.last.id, 'older');
     expect(items.first.source, GameHistorySource.local);
     expect(items.first.displayLabel, contains('Ana'));
+  });
+
+  test('limits finished games to the most recent N', () async {
+    final players = [
+      PlayerEmbed(
+        id: 'p1',
+        displayName: 'Ana',
+        isGuest: true,
+        userId: null,
+        seatOrder: 1,
+        totalScore: 10,
+        joinedAt: DateTime(2026),
+      ),
+    ];
+
+    await insertFinishedGame(
+      id: 'oldest',
+      finishedAt: DateTime(2026, 1, 1, 10),
+      players: players,
+    );
+    await insertFinishedGame(
+      id: 'older',
+      finishedAt: DateTime(2026, 2, 1, 10),
+      players: players,
+    );
+    await insertFinishedGame(
+      id: 'newer',
+      finishedAt: DateTime(2026, 3, 1, 10),
+      players: players,
+    );
+    await insertFinishedGame(
+      id: 'newest',
+      finishedAt: DateTime(2026, 4, 1, 10),
+      players: players,
+    );
+
+    final items = await datasource.getFinishedGames(limit: 3);
+
+    expect(items.map((item) => item.id), ['newest', 'newer', 'older']);
   });
 }
