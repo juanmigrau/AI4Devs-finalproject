@@ -21,56 +21,92 @@ void main() {
       MaterialApp(
         theme: AppTheme.light,
         home: Scaffold(
-          body: GameHistoryTile(
-            item: item,
-            onTap: () {},
-          ),
+          body: GameHistoryTile(item: item, onTap: () {}),
         ),
       ),
     );
 
     expect(find.text('4 jul 2026, 22:00'), findsOneWidget);
     expect(find.text('Ana, Carlos'), findsOneWidget);
-    expect(
-      find.text('4 jugadores · Ganador: Ana (42 pts)'),
-      findsOneWidget,
-    );
+    expect(find.text('4 jugadores · Ganador: Ana (42 pts)'), findsOneWidget);
     expect(find.text('Local'), findsOneWidget);
     expect(find.byIcon(Icons.phone_android), findsOneWidget);
   });
 
-  testWidgets('shows detail and repeat actions in overflow menu',
-      (tester) async {
-    var detailCalled = false;
-    var repeatCalled = false;
+  testWidgets('does not show overflow menu', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: GameHistoryTile(item: item, onTap: () {}),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.more_vert), findsNothing);
+    expect(find.byType(PopupMenuButton<String>), findsNothing);
+    expect(find.text('Ver detalle'), findsNothing);
+    expect(find.text('Repetir partida'), findsNothing);
+  });
+
+  testWidgets('calls onTap when tapping any part of the tile', (tester) async {
+    var tapCount = 0;
 
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
         home: Scaffold(
-          body: GameHistoryTile(
-            item: item,
-            onTap: () => detailCalled = true,
-            onRepeat: () => repeatCalled = true,
-            onDelete: () {},
+          body: GameHistoryTile(item: item, onTap: () => tapCount++),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('4 jul 2026, 22:00'));
+    await tester.pump();
+    expect(tapCount, 1);
+
+    await tester.tap(find.text('Ana, Carlos'));
+    await tester.pump();
+    expect(tapCount, 2);
+
+    await tester.tap(find.text('Local'));
+    await tester.pump();
+    expect(tapCount, 3);
+
+    await tester.tap(find.text('4 jugadores · Ganador: Ana (42 pts)'));
+    await tester.pump();
+    expect(tapCount, 4);
+  });
+
+  testWidgets('wraps long player names without overflow', (tester) async {
+    const playerNames =
+        'AlejandroMaximiliano, BartolomeConstancio, '
+        'CristobalHernandez, DomingaValentina, '
+        'EsperanzaSoledad, FranciscoJavierLuis, '
+        'GuadalupeAntonia, HerminiaDoloresPaz';
+    final longNamesItem = GameHistoryItem(
+      id: 'game-2',
+      source: GameHistorySource.local,
+      finishedAt: DateTime(2026, 7, 4, 22, 0),
+      playerCount: 8,
+      displayLabel: '4 jul 2026, 22:00 — $playerNames',
+      winnerName: 'AlejandroMaximiliano',
+      winnerScore: 42,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: SizedBox(
+            width: 360,
+            child: GameHistoryTile(item: longNamesItem, onTap: () {}),
           ),
         ),
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Ver detalle'), findsOneWidget);
-    expect(find.text('Repetir partida'), findsOneWidget);
-
-    await tester.tap(find.text('Ver detalle'));
-    await tester.pumpAndSettle();
-    expect(detailCalled, isTrue);
-
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Repetir partida'));
-    expect(repeatCalled, isTrue);
+    expect(find.text(playerNames), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

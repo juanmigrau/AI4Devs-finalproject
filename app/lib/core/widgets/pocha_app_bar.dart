@@ -67,33 +67,36 @@ class PochaAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleStyle = (expanded
-            ? Theme.of(context).textTheme.headlineSmall
-            : Theme.of(context).textTheme.titleLarge)
-        ?.copyWith(
-      color: Colors.white,
-      fontWeight: FontWeight.bold,
-    );
+    final titleStyle =
+        (expanded
+                ? Theme.of(context).textTheme.headlineSmall
+                : Theme.of(context).textTheme.titleLarge)
+            ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold);
 
     final showDefaultBack = leading == null && onBack != null;
-    final resolvedLeading = leading ??
+    final resolvedLeading =
+        leading ??
         (showDefaultBack
             ? IconButton(
                 onPressed: () => _handleBack(context),
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(4),
+                  minimumSize: const Size(48, 48),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
               )
             : null);
 
     final bar = Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.primary,
-      ),
+      decoration: const BoxDecoration(color: AppTheme.primary),
       padding: expanded
-          ? const EdgeInsets.all(24)
-          : const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          ? const EdgeInsets.fromLTRB(4, 24, 24, 24)
+          : const EdgeInsets.fromLTRB(4, 16, 8, 16),
       child: Row(
-        crossAxisAlignment:
-            subtitle != null ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment: subtitle != null
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           ?resolvedLeading,
           Expanded(
@@ -106,8 +109,8 @@ class PochaAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Text(
                     subtitle!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
                   ),
               ],
             ),
@@ -119,14 +122,11 @@ class PochaAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (expanded) {
       return Container(
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        margin: const EdgeInsets.fromLTRB(4, 16, 16, 16),
         child: bar,
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-      child: bar,
-    );
+    return Padding(padding: const EdgeInsets.fromLTRB(4, 8, 16, 0), child: bar);
   }
 }

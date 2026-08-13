@@ -3,11 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
-import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
+import 'package:la_pocha/core/widgets/final_standings_list.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/core/widgets/root_scaffold_messenger_key.dart';
 import 'package:la_pocha/core/widgets/warning_banner.dart';
+import 'package:la_pocha/core/widgets/winner_card.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/repositories/round_repository.dart';
@@ -48,7 +49,8 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
       throw StateError('Game not found: ${widget.gameId}');
     }
 
-    final lastRoundNumber = game.currentRoundNumber ?? game.roundSequence.length;
+    final lastRoundNumber =
+        game.currentRoundNumber ?? game.roundSequence.length;
     final lastRound = await roundRepository.getRoundByGameAndNumber(
       widget.gameId,
       lastRoundNumber,
@@ -83,18 +85,13 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text(
-                      mapExceptionToUserMessage(snapshot.error!),
-                    ),
+                    child: Text(mapExceptionToUserMessage(snapshot.error!)),
                   ),
                 );
               }
 
               final data = snapshot.data!;
-              return _LoadedBody(
-                gameId: widget.gameId,
-                data: data,
-              );
+              return _LoadedBody(gameId: widget.gameId, data: data);
             },
           ),
         ),
@@ -104,10 +101,7 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
 }
 
 class _LoadedBody extends StatelessWidget {
-  const _LoadedBody({
-    required this.gameId,
-    required this.data,
-  });
+  const _LoadedBody({required this.gameId, required this.data});
 
   final String gameId;
   final _FinalResultData data;
@@ -121,9 +115,9 @@ class _LoadedBody extends StatelessWidget {
             if (state is RepeatGameSuccess) {
               context.go('/games/${state.newGameId}/setup');
             } else if (state is RepeatGameFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
         ),
@@ -176,11 +170,11 @@ class _LoadedBody extends StatelessWidget {
                 const _SignUpBanner(),
                 if (data.entries.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _WinnerCard(entry: data.entries.first),
+                  WinnerCard(entry: data.entries.first),
                 ],
                 if (data.entries.length > 1) ...[
                   const SizedBox(height: 16),
-                  _RestOfPlayersList(entries: data.entries.skip(1).toList()),
+                  FinalStandingsList(entries: data.entries.skip(1).toList()),
                 ],
               ],
             ),
@@ -200,184 +194,6 @@ class _LoadedBody extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _WinnerCard extends StatelessWidget {
-  const _WinnerCard({required this.entry});
-
-  final RankingEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final player = entry.player;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          const Text('🏆', style: TextStyle(fontSize: 32)),
-          const SizedBox(width: 12),
-          PlayerInitialAvatar(
-            name: player.displayName,
-            colorIndex: player.seatOrder,
-            radius: 28,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  player.displayName,
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  '${entry.totalScore} puntos',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer.withValues(
-                      alpha: 0.8,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RestOfPlayersList extends StatelessWidget {
-  const _RestOfPlayersList({required this.entries});
-
-  final List<RankingEntry> entries;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            children: [
-              const SizedBox(width: 24),
-              const Expanded(flex: 3, child: SizedBox()),
-              SizedBox(
-                width: 52,
-                child: Text(
-                  'Total',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              for (var index = 0; index < entries.length; index++) ...[
-                if (index > 0)
-                  Divider(
-                    height: 1,
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.6),
-                  ),
-                _FinalStandingRow(entry: entries[index]),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FinalStandingRow extends StatelessWidget {
-  const _FinalStandingRow({required this.entry});
-
-  final RankingEntry entry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final player = entry.player;
-
-    return SizedBox(
-      height: 52,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 24,
-              child: Text(
-                '${entry.rank}',
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Row(
-                children: [
-                  PlayerInitialAvatar(
-                    name: player.displayName,
-                    colorIndex: player.seatOrder,
-                    radius: 14,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      player.displayName,
-                      style: textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: 52,
-              child: Text(
-                '${entry.totalScore}',
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -415,9 +231,9 @@ class _RepeatGameOutlinedButton extends StatelessWidget {
     }
 
     await context.read<RepeatGameCubit>().repeat(
-          gameId: gameId,
-          source: GameHistorySource.local,
-        );
+      gameId: gameId,
+      source: GameHistorySource.local,
+    );
   }
 }
 
@@ -434,8 +250,7 @@ class _SignUpBanner extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(top: 8),
           child: WarningBanner(
-            message:
-                'Crea una cuenta para guardar y compartir esta partida',
+            message: 'Crea una cuenta para guardar y compartir esta partida',
             icon: Icons.cloud_upload_outlined,
             onTap: () => context.push('/auth/sign-up'),
           ),
@@ -446,10 +261,7 @@ class _SignUpBanner extends StatelessWidget {
 }
 
 class _FinalResultData {
-  const _FinalResultData({
-    required this.entries,
-    required this.roundCount,
-  });
+  const _FinalResultData({required this.entries, required this.roundCount});
 
   final List<RankingEntry> entries;
   final int roundCount;

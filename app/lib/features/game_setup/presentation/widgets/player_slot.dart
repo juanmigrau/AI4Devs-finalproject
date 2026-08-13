@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 
@@ -58,9 +59,7 @@ class PlayerSlot extends StatelessWidget {
       );
     }
 
-    return _EmptyPlayerSlot(
-      onTap: isBusy ? null : onActivateEdit,
-    );
+    return _EmptyPlayerSlot(onTap: isBusy ? null : onActivateEdit);
   }
 }
 
@@ -81,10 +80,7 @@ class _EmptyPlayerSlot extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Row(
             children: [
-              Icon(
-                Icons.add_circle_outline,
-                color: colors.onSurfaceVariant,
-              ),
+              Icon(Icons.add_circle_outline, color: colors.onSurfaceVariant),
               const SizedBox(width: 12),
               Text(
                 'Añadir jugador',
@@ -167,6 +163,7 @@ class _InlineEditPlayerSlotState extends State<_InlineEditPlayerSlot> {
               autofocus: true,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _onSubmit(),
+              inputFormatters: [LengthLimitingTextInputFormatter(20)],
               decoration: InputDecoration(
                 hintText: 'Nombre del jugador',
                 isDense: true,
@@ -181,10 +178,7 @@ class _InlineEditPlayerSlotState extends State<_InlineEditPlayerSlot> {
           ),
           IconButton(
             onPressed: widget.isBusy ? null : _onSubmit,
-            icon: Icon(
-              Icons.check_circle,
-              color: colors.primary,
-            ),
+            icon: Icon(Icons.check_circle, color: colors.primary),
           ),
         ],
       ),

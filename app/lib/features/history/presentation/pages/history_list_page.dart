@@ -9,11 +9,9 @@ import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_item.dart';
 import 'package:la_pocha/features/history/presentation/bloc/delete_game_from_history_cubit.dart';
 import 'package:la_pocha/features/history/presentation/bloc/history_list_bloc.dart';
-import 'package:la_pocha/features/history/presentation/bloc/repeat_game_cubit.dart';
 import 'package:la_pocha/features/history/presentation/widgets/delete_game_dialog.dart';
 import 'package:la_pocha/features/history/presentation/widgets/delete_game_slidable.dart';
 import 'package:la_pocha/features/history/presentation/widgets/empty_history_view.dart';
-import 'package:la_pocha/features/history/presentation/widgets/repeat_game_button.dart';
 
 class HistoryListPage extends StatelessWidget {
   const HistoryListPage({super.key});
@@ -27,7 +25,6 @@ class HistoryListPage extends StatelessWidget {
               getIt<HistoryListBloc>()..add(const HistoryListStarted()),
         ),
         BlocProvider(create: (_) => getIt<DeleteGameFromHistoryCubit>()),
-        BlocProvider(create: (_) => getIt<RepeatGameCubit>()),
       ],
       child: const _HistoryListView(),
     );
@@ -37,11 +34,11 @@ class HistoryListPage extends StatelessWidget {
 class _HistoryListView extends StatelessWidget {
   const _HistoryListView();
 
-  Future<void> _requestDelete(BuildContext context, GameHistoryItem item) async {
-    final confirmed = await showDeleteGameDialog(
-      context,
-      source: item.source,
-    );
+  Future<void> _requestDelete(
+    BuildContext context,
+    GameHistoryItem item,
+  ) async {
+    final confirmed = await showDeleteGameDialog(context, source: item.source);
     if (!confirmed || !context.mounted) {
       return;
     }
@@ -50,106 +47,80 @@ class _HistoryListView extends StatelessWidget {
     await cubit.delete(gameId: item.id, source: item.source);
   }
 
-  Future<void> _requestRepeat(BuildContext context, GameHistoryItem item) async {
-    await requestRepeatGame(
-      context,
-      gameId: item.id,
-      source: item.source,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<DeleteGameFromHistoryCubit, DeleteGameFromHistoryState>(
-          listener: (context, state) {
-            if (state is DeleteGameFromHistorySuccess) {
-              context.read<HistoryListBloc>().add(
-                    HistoryListGameDeleted(state.gameId),
-                  );
-            } else if (state is DeleteGameFromHistoryFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
-            }
-          },
-        ),
-        BlocListener<RepeatGameCubit, RepeatGameState>(
-          listener: (context, state) {
-            if (state is RepeatGameSuccess) {
-              handleRepeatGameSuccess(context, state.newGameId);
-            } else if (state is RepeatGameFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
-            }
-          },
-        ),
-      ],
+    return BlocListener<DeleteGameFromHistoryCubit, DeleteGameFromHistoryState>(
+      listener: (context, state) {
+        if (state is DeleteGameFromHistorySuccess) {
+          context.read<HistoryListBloc>().add(
+            HistoryListGameDeleted(state.gameId),
+          );
+        } else if (state is DeleteGameFromHistoryFailure) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
       child: Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            PochaAppBar(
-              title: 'Historial',
-              expanded: true,
-              onBack: () => context.pop(),
-            ),
-            BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, authState) {
-                if (authState is! Authenticated) {
-                  return const SizedBox.shrink();
-                }
-                return BlocBuilder<HistoryListBloc, HistoryListState>(
-                  buildWhen: (previous, current) {
-                    final previousLoaded = previous is HistoryListLoaded;
-                    final currentLoaded = current is HistoryListLoaded;
-                    if (previousLoaded != currentLoaded) {
-                      return true;
-                    }
-                    if (previousLoaded && currentLoaded) {
-                      return previous.cloudError != current.cloudError;
-                    }
-                    return false;
-                  },
-                  builder: (context, historyState) {
-                    if (historyState is HistoryListLoaded &&
-                        historyState.cloudError) {
-                      return const _OfflineSyncBanner();
-                    }
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              PochaAppBar(
+                title: 'Historial',
+                expanded: true,
+                onBack: () => context.pop(),
+              ),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, authState) {
+                  if (authState is! Authenticated) {
                     return const SizedBox.shrink();
-                  },
-                );
-              },
-            ),
-            Expanded(
-              child: BlocBuilder<HistoryListBloc, HistoryListState>(
-                builder: (context, state) {
-                  return switch (state) {
-                    HistoryListInitial() ||
-                    HistoryListLoading() =>
-                      const Center(child: CircularProgressIndicator()),
-                    HistoryListEmpty() => const EmptyHistoryView(),
-                    HistoryListFailure(:final message) => Center(
+                  }
+                  return BlocBuilder<HistoryListBloc, HistoryListState>(
+                    buildWhen: (previous, current) {
+                      final previousLoaded = previous is HistoryListLoaded;
+                      final currentLoaded = current is HistoryListLoaded;
+                      if (previousLoaded != currentLoaded) {
+                        return true;
+                      }
+                      if (previousLoaded && currentLoaded) {
+                        return previous.cloudError != current.cloudError;
+                      }
+                      return false;
+                    },
+                    builder: (context, historyState) {
+                      if (historyState is HistoryListLoaded &&
+                          historyState.cloudError) {
+                        return const _OfflineSyncBanner();
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  );
+                },
+              ),
+              Expanded(
+                child: BlocBuilder<HistoryListBloc, HistoryListState>(
+                  builder: (context, state) {
+                    return switch (state) {
+                      HistoryListInitial() || HistoryListLoading() =>
+                        const Center(child: CircularProgressIndicator()),
+                      HistoryListEmpty() => const EmptyHistoryView(),
+                      HistoryListFailure(:final message) => Center(
                         child: Padding(
                           padding: const EdgeInsets.all(24),
                           child: Text(
                             message,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(color: AppTheme.onSurfaceVariant),
                           ),
                         ),
                       ),
-                    HistoryListLoaded(:final items) => RefreshIndicator(
+                      HistoryListLoaded(:final items) => RefreshIndicator(
                         onRefresh: () async {
-                          context
-                              .read<HistoryListBloc>()
-                              .add(const HistoryListRefreshed());
+                          context.read<HistoryListBloc>().add(
+                            const HistoryListRefreshed(),
+                          );
                           await context
                               .read<HistoryListBloc>()
                               .stream
@@ -163,7 +134,8 @@ class _HistoryListView extends StatelessWidget {
                         child: ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                           itemCount: items.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 12),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final item = items[index];
                             return DeleteGameSlidable(
@@ -171,21 +143,19 @@ class _HistoryListView extends StatelessWidget {
                               onTap: () => context.push(
                                 '/history/${item.id}?source=${item.source.name}',
                               ),
-                              onRepeatRequested: () =>
-                                  _requestRepeat(context, item),
                               onDeleteRequested: () =>
                                   _requestDelete(context, item),
                             );
                           },
                         ),
                       ),
-                  };
-                },
+                    };
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

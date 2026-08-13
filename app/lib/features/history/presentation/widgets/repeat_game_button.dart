@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/presentation/bloc/repeat_game_cubit.dart';
 import 'package:la_pocha/features/history/presentation/widgets/repeat_game_dialog.dart';
@@ -28,10 +29,7 @@ Future<void> requestRepeatGame(
     return;
   }
 
-  await context.read<RepeatGameCubit>().repeat(
-        gameId: gameId,
-        source: source,
-      );
+  await context.read<RepeatGameCubit>().repeat(gameId: gameId, source: source);
 }
 
 class RepeatGameButton extends StatelessWidget {
@@ -50,22 +48,11 @@ class RepeatGameButton extends StatelessWidget {
       builder: (context, state) {
         final isLoading = state is RepeatGameInProgress;
 
-        return FilledButton.icon(
-          onPressed: isLoading
-              ? null
-              : () => requestRepeatGame(
-                    context,
-                    gameId: gameId,
-                    source: source,
-                  ),
-          icon: isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.replay),
-          label: const Text('Repetir partida'),
+        return PrimaryButton(
+          label: 'Repetir partida',
+          isLoading: isLoading,
+          onPressed: () =>
+              requestRepeatGame(context, gameId: gameId, source: source),
         );
       },
     );
