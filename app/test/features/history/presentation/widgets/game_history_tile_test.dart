@@ -29,14 +29,19 @@ void main() {
       ),
     );
 
-    expect(find.text('4 jul 2026, 22:00 — Ana, Carlos'), findsOneWidget);
-    expect(find.text('4 jugadores'), findsOneWidget);
-    expect(find.text('Ganador: Ana (42 pts)'), findsOneWidget);
+    expect(find.text('4 jul 2026, 22:00'), findsOneWidget);
+    expect(find.text('Ana, Carlos'), findsOneWidget);
+    expect(
+      find.text('4 jugadores · Ganador: Ana (42 pts)'),
+      findsOneWidget,
+    );
     expect(find.text('Local'), findsOneWidget);
-    expect(find.byIcon(Icons.smartphone), findsOneWidget);
+    expect(find.byIcon(Icons.phone_android), findsOneWidget);
   });
 
-  testWidgets('shows repeat action in overflow menu', (tester) async {
+  testWidgets('shows detail and repeat actions in overflow menu',
+      (tester) async {
+    var detailCalled = false;
     var repeatCalled = false;
 
     await tester.pumpWidget(
@@ -45,7 +50,7 @@ void main() {
         home: Scaffold(
           body: GameHistoryTile(
             item: item,
-            onTap: () {},
+            onTap: () => detailCalled = true,
             onRepeat: () => repeatCalled = true,
             onDelete: () {},
           ),
@@ -56,7 +61,15 @@ void main() {
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
 
+    expect(find.text('Ver detalle'), findsOneWidget);
     expect(find.text('Repetir partida'), findsOneWidget);
+
+    await tester.tap(find.text('Ver detalle'));
+    await tester.pumpAndSettle();
+    expect(detailCalled, isTrue);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Repetir partida'));
     expect(repeatCalled, isTrue);
   });
