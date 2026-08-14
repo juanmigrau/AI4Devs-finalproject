@@ -26,8 +26,9 @@ service cloud.firestore {
     }
 
     match /games/{gameId}/rounds/{roundNumber} {
+      // getAfter: the parent game may be created in the same batch.
       allow create, update: if request.auth != null
-        && get(/databases/$(database)/documents/games/$(gameId)).data.hostId
+        && getAfter(/databases/$(database)/documents/games/$(gameId)).data.hostId
            == request.auth.uid;
 
       allow read: if request.auth != null && (
