@@ -10,6 +10,7 @@ class PlayerSlot extends StatelessWidget {
     this.player,
     this.isEditing = false,
     this.isFavorite = false,
+    this.showFavoriteButton = true,
     this.isBusy = false,
     this.onActivateEdit,
     this.onCancelEdit,
@@ -22,6 +23,7 @@ class PlayerSlot extends StatelessWidget {
   final PlayerEmbed? player;
   final bool isEditing;
   final bool isFavorite;
+  final bool showFavoriteButton;
   final bool isBusy;
   final VoidCallback? onActivateEdit;
   final VoidCallback? onCancelEdit;
@@ -45,6 +47,7 @@ class PlayerSlot extends StatelessWidget {
         player: player!,
         colorIndex: player!.seatOrder,
         isFavorite: isFavorite,
+        showFavoriteButton: showFavoriteButton,
         onTap: isBusy ? null : onActivateEdit,
         onToggleFavorite: isBusy ? null : onToggleFavorite,
         onRemove: isBusy ? null : onRemove,
@@ -191,6 +194,7 @@ class _FilledPlayerSlot extends StatelessWidget {
     required this.player,
     required this.colorIndex,
     required this.isFavorite,
+    required this.showFavoriteButton,
     this.onTap,
     this.onToggleFavorite,
     this.onRemove,
@@ -199,6 +203,7 @@ class _FilledPlayerSlot extends StatelessWidget {
   final PlayerEmbed player;
   final int colorIndex;
   final bool isFavorite;
+  final bool showFavoriteButton;
   final VoidCallback? onTap;
   final VoidCallback? onToggleFavorite;
   final VoidCallback? onRemove;
@@ -242,11 +247,14 @@ class _FilledPlayerSlot extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: onToggleFavorite,
-                icon: Icon(isFavorite ? Icons.star : Icons.star_border),
-                color: isFavorite ? Colors.amber : colors.onSurfaceVariant,
-              ),
+              if (showFavoriteButton)
+                IconButton(
+                  onPressed: onToggleFavorite,
+                  icon: Icon(isFavorite ? Icons.star : Icons.star_border),
+                  color: isFavorite ? Colors.amber : colors.onSurfaceVariant,
+                )
+              else
+                const SizedBox.shrink(),
               IconButton(
                 onPressed: onRemove,
                 icon: const Icon(Icons.close),

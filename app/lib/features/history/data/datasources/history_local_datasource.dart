@@ -24,14 +24,27 @@ class HistoryLocalDatasource {
   final GameHistoryMapper _mapper;
 
   Future<List<GameHistoryItem>> getFinishedGames({int? limit}) async {
+    final entries = await _buildFinishedGamesQuery(limit: limit).get();
+    return _mapEntries(entries);
+  }
+
+  Stream<List<GameHistoryItem>> watchFinishedGames({int? limit}) {
+    return _buildFinishedGamesQuery(limit: limit).watch().map(_mapEntries);
+  }
+
+  SimpleSelectStatement<$GamesTable, GameEntry> _buildFinishedGamesQuery({
+    int? limit,
+  }) {
     final query = _database.select(_database.games)
       ..where((table) => table.status.equals('finished'))
       ..orderBy([(table) => OrderingTerm.desc(table.finishedAt)]);
     if (limit != null) {
       query.limit(limit);
     }
-    final entries = await query.get();
+    return query;
+  }
 
+  List<GameHistoryItem> _mapEntries(List<GameEntry> entries) {
     return entries
         .map(GameMapper.toDomain)
         .map(_mapper.fromLocalGame)

@@ -46,11 +46,12 @@ void main() {
     'emits loaded when history has items',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenAnswer(
-        (_) async => GameHistoryLoadResult(items: items),
+      when(getGameHistory.watch()).thenAnswer(
+        (_) => Stream.value(GameHistoryLoadResult(items: items)),
       );
     },
     act: (bloc) => bloc.add(const HistoryListStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [
       const HistoryListLoading(),
       HistoryListLoaded(items: items),
@@ -61,11 +62,14 @@ void main() {
     'emits loaded with cloudError when cloud load failed',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenAnswer(
-        (_) async => GameHistoryLoadResult(items: items, cloudError: true),
+      when(getGameHistory.watch()).thenAnswer(
+        (_) => Stream.value(
+          GameHistoryLoadResult(items: items, cloudError: true),
+        ),
       );
     },
     act: (bloc) => bloc.add(const HistoryListStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [
       const HistoryListLoading(),
       HistoryListLoaded(items: items, cloudError: true),
@@ -76,11 +80,12 @@ void main() {
     'emits empty when history has no items',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenAnswer(
-        (_) async => const GameHistoryLoadResult(items: []),
+      when(getGameHistory.watch()).thenAnswer(
+        (_) => Stream.value(const GameHistoryLoadResult(items: [])),
       );
     },
     act: (bloc) => bloc.add(const HistoryListStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [
       const HistoryListLoading(),
       const HistoryListEmpty(),
@@ -104,12 +109,15 @@ void main() {
   );
 
   blocTest<HistoryListBloc, HistoryListState>(
-    'emits failure without DEBUG details when use case throws',
+    'emits failure without DEBUG details when watch stream errors',
     build: buildBloc,
     setUp: () {
-      when(getGameHistory()).thenThrow(Exception('network error'));
+      when(getGameHistory.watch()).thenAnswer(
+        (_) => Stream.error(Exception('network error')),
+      );
     },
     act: (bloc) => bloc.add(const HistoryListStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [
       const HistoryListLoading(),
       isA<HistoryListFailure>().having(
@@ -117,6 +125,26 @@ void main() {
         'message',
         isNot(contains('[DEBUG]')),
       ),
+    ],
+  );
+
+  blocTest<HistoryListBloc, HistoryListState>(
+    'updates list when watch emits again after a deletion',
+    build: buildBloc,
+    setUp: () {
+      when(getGameHistory.watch()).thenAnswer(
+        (_) => Stream.fromIterable([
+          GameHistoryLoadResult(items: items),
+          const GameHistoryLoadResult(items: []),
+        ]),
+      );
+    },
+    act: (bloc) => bloc.add(const HistoryListStarted()),
+    wait: const Duration(milliseconds: 10),
+    expect: () => [
+      const HistoryListLoading(),
+      HistoryListLoaded(items: items),
+      const HistoryListEmpty(),
     ],
   );
 

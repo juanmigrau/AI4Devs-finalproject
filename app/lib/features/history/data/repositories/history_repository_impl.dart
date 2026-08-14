@@ -30,6 +30,11 @@ class HistoryRepositoryImpl implements HistoryRepository {
   }
 
   @override
+  Stream<List<GameHistoryItem>> watchRecentFinishedGames({int limit = 3}) {
+    return _localDatasource.watchFinishedGames(limit: limit);
+  }
+
+  @override
   Future<GameHistoryLoadResult> getGameHistory() async {
     final localItems = await _localDatasource.getFinishedGames();
 
@@ -47,6 +52,11 @@ class HistoryRepositoryImpl implements HistoryRepository {
     final filtered = _filterHiddenItems(merged, hiddenIds);
 
     return GameHistoryLoadResult(items: filtered, cloudError: cloudError);
+  }
+
+  @override
+  Stream<GameHistoryLoadResult> watchGameHistory() {
+    return _localDatasource.watchFinishedGames().asyncMap((_) => getGameHistory());
   }
 
   @override

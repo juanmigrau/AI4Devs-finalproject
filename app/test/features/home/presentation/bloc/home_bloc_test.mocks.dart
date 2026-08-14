@@ -32,16 +32,12 @@ import 'package:mockito/mockito.dart' as _i1;
 class MockGetRecentGamesUseCase extends _i1.Mock
     implements _i2.GetRecentGamesUseCase {
   @override
-  _i3.Future<List<_i4.GameHistoryItem>> call({int? limit = 3}) =>
+  _i3.Stream<List<_i4.GameHistoryItem>> call({int? limit = 3}) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {#limit: limit}),
-            returnValue: _i3.Future<List<_i4.GameHistoryItem>>.value(
-              <_i4.GameHistoryItem>[],
-            ),
+            returnValue: _i3.Stream<List<_i4.GameHistoryItem>>.empty(),
             returnValueForMissingStub:
-                _i3.Future<List<_i4.GameHistoryItem>>.value(
-                  <_i4.GameHistoryItem>[],
-                ),
+                _i3.Stream<List<_i4.GameHistoryItem>>.empty(),
           )
-          as _i3.Future<List<_i4.GameHistoryItem>>);
+          as _i3.Stream<List<_i4.GameHistoryItem>>);
 }

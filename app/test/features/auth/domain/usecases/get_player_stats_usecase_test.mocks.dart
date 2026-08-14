@@ -64,6 +64,16 @@ class MockGetGameHistoryUseCase extends _i1.Mock
                 ),
           )
           as _i5.Future<_i2.GameHistoryLoadResult>);
+
+  @override
+  _i5.Stream<_i2.GameHistoryLoadResult> watch() =>
+      (super.noSuchMethod(
+            Invocation.method(#watch, []),
+            returnValue: _i5.Stream<_i2.GameHistoryLoadResult>.empty(),
+            returnValueForMissingStub:
+                _i5.Stream<_i2.GameHistoryLoadResult>.empty(),
+          )
+          as _i5.Stream<_i2.GameHistoryLoadResult>);
 }
 
 /// A class which mocks [GetGameDetailUseCase].

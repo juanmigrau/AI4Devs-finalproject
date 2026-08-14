@@ -35,9 +35,10 @@ void main() {
     'emits loaded when there are recent games',
     build: buildBloc,
     setUp: () {
-      when(getRecentGames()).thenAnswer((_) async => items);
+      when(getRecentGames()).thenAnswer((_) => Stream.value(items));
     },
     act: (bloc) => bloc.add(const HomeStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [const HomeLoading(), HomeLoaded(recentGames: items)],
   );
 
@@ -45,19 +46,23 @@ void main() {
     'emits empty when there are no recent games',
     build: buildBloc,
     setUp: () {
-      when(getRecentGames()).thenAnswer((_) async => []);
+      when(getRecentGames()).thenAnswer((_) => Stream.value([]));
     },
     act: (bloc) => bloc.add(const HomeStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [const HomeLoading(), const HomeEmpty()],
   );
 
   blocTest<HomeBloc, HomeState>(
-    'emits failure when the use case throws',
+    'emits failure when the use case stream errors',
     build: buildBloc,
     setUp: () {
-      when(getRecentGames()).thenThrow(Exception('network error'));
+      when(getRecentGames()).thenAnswer(
+        (_) => Stream.error(Exception('network error')),
+      );
     },
     act: (bloc) => bloc.add(const HomeStarted()),
+    wait: const Duration(milliseconds: 10),
     expect: () => [
       const HomeLoading(),
       isA<HomeFailure>().having(
@@ -65,6 +70,26 @@ void main() {
         'message',
         isNot(contains('[DEBUG]')),
       ),
+    ],
+  );
+
+  blocTest<HomeBloc, HomeState>(
+    'updates list when watch emits again after a deletion',
+    build: buildBloc,
+    setUp: () {
+      when(getRecentGames()).thenAnswer(
+        (_) => Stream.fromIterable([
+          items,
+          <GameHistoryItem>[],
+        ]),
+      );
+    },
+    act: (bloc) => bloc.add(const HomeStarted()),
+    wait: const Duration(milliseconds: 10),
+    expect: () => [
+      const HomeLoading(),
+      HomeLoaded(recentGames: items),
+      const HomeEmpty(),
     ],
   );
 }

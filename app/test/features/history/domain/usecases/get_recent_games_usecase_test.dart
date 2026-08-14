@@ -30,25 +30,25 @@ void main() {
     useCase = GetRecentGamesUseCase(repository);
   });
 
-  test('returns recent finished games with default limit of 3', () async {
+  test('watches recent finished games with default limit of 3', () async {
     when(
-      repository.getRecentFinishedGames(limit: 3),
-    ).thenAnswer((_) async => items);
+      repository.watchRecentFinishedGames(limit: 3),
+    ).thenAnswer((_) => Stream.value(items));
 
-    final result = await useCase();
+    final result = await useCase().first;
 
     expect(result, items);
-    verify(repository.getRecentFinishedGames(limit: 3)).called(1);
+    verify(repository.watchRecentFinishedGames(limit: 3)).called(1);
   });
 
   test('forwards a custom limit to the repository', () async {
     when(
-      repository.getRecentFinishedGames(limit: 1),
-    ).thenAnswer((_) async => items);
+      repository.watchRecentFinishedGames(limit: 1),
+    ).thenAnswer((_) => Stream.value(items));
 
-    final result = await useCase(limit: 1);
+    final result = await useCase(limit: 1).first;
 
     expect(result, items);
-    verify(repository.getRecentFinishedGames(limit: 1)).called(1);
+    verify(repository.watchRecentFinishedGames(limit: 1)).called(1);
   });
 }

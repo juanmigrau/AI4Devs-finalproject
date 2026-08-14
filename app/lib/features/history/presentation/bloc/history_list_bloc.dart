@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_item.dart';
+import 'package:la_pocha/features/history/domain/entities/game_history_load_result.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart';
 import 'package:la_pocha/features/sync/domain/usecases/retry_pending_uploads_usecase.dart';
 
@@ -16,16 +19,25 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
     on<HistoryListStarted>(_onStarted);
     on<HistoryListRefreshed>(_onRefreshed);
     on<HistoryListGameDeleted>(_onGameDeleted);
+    on<_HistoryListWatchData>(_onWatchData);
+    on<_HistoryListWatchFailed>(_onWatchFailed);
   }
 
   final GetGameHistoryUseCase _getGameHistory;
   final RetryPendingUploadsUseCase _retryPendingUploads;
+  StreamSubscription<GameHistoryLoadResult>? _subscription;
 
   Future<void> _onStarted(
     HistoryListStarted event,
     Emitter<HistoryListState> emit,
   ) async {
-    await _loadHistory(emit);
+    emit(const HistoryListLoading());
+    try {
+      await _retryPendingUploads();
+      await _listenToWatch();
+    } catch (error) {
+      emit(HistoryListFailure(message: mapExceptionToUserMessage(error)));
+    }
   }
 
   Future<void> _onRefreshed(
@@ -33,7 +45,13 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
     Emitter<HistoryListState> emit,
   ) async {
     // Retry pending uploads when auth and upload are available.
-    await _loadHistory(emit, showLoading: false);
+    try {
+      await _retryPendingUploads();
+      final result = await _getGameHistory();
+      _emitHistoryResult(result, emit);
+    } catch (error) {
+      emit(HistoryListFailure(message: mapExceptionToUserMessage(error)));
+    }
   }
 
   void _onGameDeleted(
@@ -65,31 +83,48 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
     );
   }
 
-  Future<void> _loadHistory(
-    Emitter<HistoryListState> emit, {
-    bool showLoading = true,
-  }) async {
-    if (showLoading) {
-      emit(const HistoryListLoading());
-    }
+  void _onWatchData(
+    _HistoryListWatchData event,
+    Emitter<HistoryListState> emit,
+  ) {
+    _emitHistoryResult(event.result, emit);
+  }
 
-    try {
-      await _retryPendingUploads();
-      final result = await _getGameHistory();
-      if (result.items.isEmpty) {
-        emit(const HistoryListEmpty());
-        return;
-      }
-      emit(
-        HistoryListLoaded(
-          items: result.items,
-          cloudError: result.cloudError,
-        ),
-      );
-    } catch (error) {
-      emit(
-        HistoryListFailure(message: mapExceptionToUserMessage(error)),
-      );
+  void _onWatchFailed(
+    _HistoryListWatchFailed event,
+    Emitter<HistoryListState> emit,
+  ) {
+    emit(HistoryListFailure(message: mapExceptionToUserMessage(event.error)));
+  }
+
+  Future<void> _listenToWatch() async {
+    await _subscription?.cancel();
+    _subscription = _getGameHistory.watch().listen(
+      (result) => add(_HistoryListWatchData(result)),
+      onError: (Object error, StackTrace _) =>
+          add(_HistoryListWatchFailed(error)),
+    );
+  }
+
+  void _emitHistoryResult(
+    GameHistoryLoadResult result,
+    Emitter<HistoryListState> emit,
+  ) {
+    if (result.items.isEmpty) {
+      emit(const HistoryListEmpty());
+      return;
     }
+    emit(
+      HistoryListLoaded(
+        items: result.items,
+        cloudError: result.cloudError,
+      ),
+    );
+  }
+
+  @override
+  Future<void> close() async {
+    await _subscription?.cancel();
+    return super.close();
   }
 }

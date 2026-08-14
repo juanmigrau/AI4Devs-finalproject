@@ -7,4 +7,6 @@ class GetGameHistoryUseCase {
   final HistoryRepository _repository;
 
   Future<GameHistoryLoadResult> call() => _repository.getGameHistory();
+
+  Stream<GameHistoryLoadResult> watch() => _repository.watchGameHistory();
 }

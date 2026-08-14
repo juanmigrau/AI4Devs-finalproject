@@ -68,6 +68,16 @@ class MockHistoryRepository extends _i1.Mock implements _i4.HistoryRepository {
           as _i5.Future<_i2.GameHistoryLoadResult>);
 
   @override
+  _i5.Stream<_i2.GameHistoryLoadResult> watchGameHistory() =>
+      (super.noSuchMethod(
+            Invocation.method(#watchGameHistory, []),
+            returnValue: _i5.Stream<_i2.GameHistoryLoadResult>.empty(),
+            returnValueForMissingStub:
+                _i5.Stream<_i2.GameHistoryLoadResult>.empty(),
+          )
+          as _i5.Stream<_i2.GameHistoryLoadResult>);
+
+  @override
   _i5.Future<List<_i6.GameHistoryItem>> getRecentFinishedGames({
     int? limit = 3,
   }) =>
@@ -82,6 +92,18 @@ class MockHistoryRepository extends _i1.Mock implements _i4.HistoryRepository {
                 ),
           )
           as _i5.Future<List<_i6.GameHistoryItem>>);
+
+  @override
+  _i5.Stream<List<_i6.GameHistoryItem>> watchRecentFinishedGames({
+    int? limit = 3,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchRecentFinishedGames, [], {#limit: limit}),
+            returnValue: _i5.Stream<List<_i6.GameHistoryItem>>.empty(),
+            returnValueForMissingStub:
+                _i5.Stream<List<_i6.GameHistoryItem>>.empty(),
+          )
+          as _i5.Stream<List<_i6.GameHistoryItem>>);
 
   @override
   _i5.Future<_i3.GameDetail> getGameDetail({

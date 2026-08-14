@@ -10,3 +10,21 @@ sealed class HomeEvent extends Equatable {
 class HomeStarted extends HomeEvent {
   const HomeStarted();
 }
+
+class _HomeWatchData extends HomeEvent {
+  const _HomeWatchData(this.recentGames);
+
+  final List<GameHistoryItem> recentGames;
+
+  @override
+  List<Object?> get props => [recentGames];
+}
+
+class _HomeWatchFailed extends HomeEvent {
+  const _HomeWatchFailed(this.error);
+
+  final Object error;
+
+  @override
+  List<Object?> get props => [error];
+}

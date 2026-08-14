@@ -6,7 +6,11 @@ import '../entities/game_history_source.dart';
 abstract class HistoryRepository {
   Future<GameHistoryLoadResult> getGameHistory();
 
+  Stream<GameHistoryLoadResult> watchGameHistory();
+
   Future<List<GameHistoryItem>> getRecentFinishedGames({int limit = 3});
+
+  Stream<List<GameHistoryItem>> watchRecentFinishedGames({int limit = 3});
 
   Future<GameDetail> getGameDetail({
     required String gameId,

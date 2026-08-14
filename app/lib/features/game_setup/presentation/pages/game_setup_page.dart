@@ -118,11 +118,10 @@ class _LoadedBody extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Text(
-                'Reparte:',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+              Icon(
+                Icons.style,
+                color: Theme.of(context).colorScheme.primary,
+                size: 16,
               ),
               const SizedBox(width: 8),
               Text(

@@ -10,6 +10,7 @@ class PlayersRosterSection extends StatelessWidget {
     required this.activeEditIndex,
     required this.isLoading,
     required this.isFavoritePlayer,
+    this.currentUserId,
     this.onEmptySlotEditActivated,
     this.onPlayerEditActivated,
     this.onEditCancelled,
@@ -24,6 +25,7 @@ class PlayersRosterSection extends StatelessWidget {
   final int? activeEditIndex;
   final bool isLoading;
   final bool Function(PlayerEmbed player) isFavoritePlayer;
+  final String? currentUserId;
   final ValueChanged<int>? onEmptySlotEditActivated;
   final ValueChanged<String>? onPlayerEditActivated;
   final VoidCallback? onEditCancelled;
@@ -55,11 +57,14 @@ class PlayersRosterSection extends StatelessWidget {
           child: Column(
             children: List.generate(playerCount, (index) {
               final player = index < players.length ? players[index] : null;
+              final showFavoriteButton =
+                  player == null || player.userId != currentUserId;
               final slot = PlayerSlot(
                 index: index,
                 player: player,
                 isEditing: activeEditIndex == index,
                 isFavorite: player != null && isFavoritePlayer(player),
+                showFavoriteButton: showFavoriteButton,
                 isBusy: isLoading,
                 onActivateEdit: () {
                   if (player != null) {
@@ -76,9 +81,11 @@ class PlayersRosterSection extends StatelessWidget {
                     onEmptySlotNameConfirmed?.call(index, name);
                   }
                 },
-                onToggleFavorite:
-                    player == null ? null : () => onFavoriteToggle?.call(player.id),
-                onRemove: player == null ? null : () => onRemovePlayer?.call(player.id),
+                onToggleFavorite: player == null || !showFavoriteButton
+                    ? null
+                    : () => onFavoriteToggle?.call(player.id),
+                onRemove:
+                    player == null ? null : () => onRemovePlayer?.call(player.id),
               );
 
               if (index == playerCount - 1) {

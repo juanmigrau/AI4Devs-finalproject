@@ -84,10 +84,10 @@ class BiddingPlayerRow extends StatelessWidget {
                         ),
                         if (isDealer) ...[
                           const SizedBox(width: 6),
-                          const Icon(
+                          Icon(
                             Icons.style,
-                            color: AppTheme.onSurfaceVariant,
-                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 16,
                           ),
                         ],
                       ],

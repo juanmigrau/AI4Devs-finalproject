@@ -55,6 +55,16 @@ class MockGetGameHistoryUseCase extends _i1.Mock
                 ),
           )
           as _i4.Future<_i2.GameHistoryLoadResult>);
+
+  @override
+  _i4.Stream<_i2.GameHistoryLoadResult> watch() =>
+      (super.noSuchMethod(
+            Invocation.method(#watch, []),
+            returnValue: _i4.Stream<_i2.GameHistoryLoadResult>.empty(),
+            returnValueForMissingStub:
+                _i4.Stream<_i2.GameHistoryLoadResult>.empty(),
+          )
+          as _i4.Stream<_i2.GameHistoryLoadResult>);
 }
 
 /// A class which mocks [RetryPendingUploadsUseCase].

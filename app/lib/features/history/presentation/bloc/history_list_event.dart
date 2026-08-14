@@ -23,3 +23,21 @@ class HistoryListGameDeleted extends HistoryListEvent {
   @override
   List<Object?> get props => [gameId];
 }
+
+class _HistoryListWatchData extends HistoryListEvent {
+  const _HistoryListWatchData(this.result);
+
+  final GameHistoryLoadResult result;
+
+  @override
+  List<Object?> get props => [result];
+}
+
+class _HistoryListWatchFailed extends HistoryListEvent {
+  const _HistoryListWatchFailed(this.error);
+
+  final Object error;
+
+  @override
+  List<Object?> get props => [error];
+}

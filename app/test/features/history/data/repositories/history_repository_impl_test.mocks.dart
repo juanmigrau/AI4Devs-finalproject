@@ -74,6 +74,16 @@ class MockHistoryLocalDatasource extends _i1.Mock
           as _i6.Future<List<_i7.GameHistoryItem>>);
 
   @override
+  _i6.Stream<List<_i7.GameHistoryItem>> watchFinishedGames({int? limit}) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchFinishedGames, [], {#limit: limit}),
+            returnValue: _i6.Stream<List<_i7.GameHistoryItem>>.empty(),
+            returnValueForMissingStub:
+                _i6.Stream<List<_i7.GameHistoryItem>>.empty(),
+          )
+          as _i6.Stream<List<_i7.GameHistoryItem>>);
+
+  @override
   _i6.Future<({_i2.Game game, List<_i4.Round> rounds})> loadFinishedGameDetail(
     String? gameId,
   ) =>

@@ -291,7 +291,7 @@ class _StatsSection extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'Juega tu primera partida para ver tus estadísticas',
+                'Tus estadísticas aparecerán aquí cuando juegues partidas con sesión iniciada. Las partidas jugadas como invitado no se contabilizan.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.onSurfaceVariant,
