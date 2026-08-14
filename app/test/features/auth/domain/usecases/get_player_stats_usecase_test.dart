@@ -15,6 +15,7 @@ import 'package:la_pocha/features/history/domain/entities/round_summary.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_detail_usecase.dart';
 import 'package:la_pocha/features/history/domain/usecases/get_game_history_usecase.dart';
 import 'package:la_pocha/features/round/domain/entities/ranking_entry.dart';
+import 'package:la_pocha/features/sync/domain/entities/sync_status.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -41,103 +42,101 @@ void main() {
     });
 
     test('returns empty stats when history has no games', () async {
-      when(getGameHistory()).thenAnswer(
-        (_) async => const GameHistoryLoadResult(items: []),
-      );
+      when(
+        getGameHistory(),
+      ).thenAnswer((_) async => const GameHistoryLoadResult(items: []));
 
       final stats = await useCase(userId: userId);
 
       expect(stats, const PlayerStats.empty());
       verifyNever(
-        getGameDetail(
-          gameId: anyNamed('gameId'),
-          source: anyNamed('source'),
-        ),
+        getGameDetail(gameId: anyNamed('gameId'), source: anyNamed('source')),
       );
     });
 
-    test('computes wins, percentages, streaks, bid accuracy and partner',
-        () async {
-      final day1 = DateTime(2026, 8, 1);
-      final day2 = DateTime(2026, 8, 2);
-      final day3 = DateTime(2026, 8, 3);
+    test(
+      'computes wins, percentages, streaks, bid accuracy and partner',
+      () async {
+        final day1 = DateTime(2026, 8, 1);
+        final day2 = DateTime(2026, 8, 2);
+        final day3 = DateTime(2026, 8, 3);
 
-      final historyItems = [
-        _historyItem('g3', day3),
-        _historyItem('g2', day2),
-        _historyItem('g1', day1),
-      ];
+        final historyItems = [
+          _historyItem('g3', day3),
+          _historyItem('g2', day2),
+          _historyItem('g1', day1),
+        ];
 
-      when(getGameHistory()).thenAnswer(
-        (_) async => GameHistoryLoadResult(items: historyItems),
-      );
+        when(
+          getGameHistory(),
+        ).thenAnswer((_) async => GameHistoryLoadResult(items: historyItems));
 
-      // Newest: win with accurate bid
-      when(
-        getGameDetail(gameId: 'g3', source: GameHistorySource.local),
-      ).thenAnswer(
-        (_) async => _detail(
-          id: 'g3',
-          finishedAt: day3,
-          selfScore: 100,
-          selfRank: 1,
-          partnerName: 'Luis',
-          partnerUserId: 'partner-1',
-          bid: 2,
-          tricks: 2,
-        ),
-      );
-      // Middle: loss, inaccurate bid
-      when(
-        getGameDetail(gameId: 'g2', source: GameHistorySource.local),
-      ).thenAnswer(
-        (_) async => _detail(
-          id: 'g2',
-          finishedAt: day2,
-          selfScore: -10,
-          selfRank: 2,
-          partnerName: 'Luis',
-          partnerUserId: 'partner-1',
-          bid: 1,
-          tricks: 0,
-        ),
-      );
-      // Oldest: win
-      when(
-        getGameDetail(gameId: 'g1', source: GameHistorySource.local),
-      ).thenAnswer(
-        (_) async => _detail(
-          id: 'g1',
-          finishedAt: day1,
-          selfScore: 50,
-          selfRank: 1,
-          partnerName: 'Ana',
-          partnerUserId: 'partner-2',
-          bid: 3,
-          tricks: 3,
-        ),
-      );
+        // Newest: win with accurate bid
+        when(
+          getGameDetail(gameId: 'g3', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g3',
+            finishedAt: day3,
+            selfScore: 100,
+            selfRank: 1,
+            partnerName: 'Luis',
+            partnerUserId: 'partner-1',
+            bid: 2,
+            tricks: 2,
+          ),
+        );
+        // Middle: loss, inaccurate bid
+        when(
+          getGameDetail(gameId: 'g2', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g2',
+            finishedAt: day2,
+            selfScore: -10,
+            selfRank: 2,
+            partnerName: 'Luis',
+            partnerUserId: 'partner-1',
+            bid: 1,
+            tricks: 0,
+          ),
+        );
+        // Oldest: win
+        when(
+          getGameDetail(gameId: 'g1', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g1',
+            finishedAt: day1,
+            selfScore: 50,
+            selfRank: 1,
+            partnerName: 'Ana',
+            partnerUserId: 'partner-2',
+            bid: 3,
+            tricks: 3,
+          ),
+        );
 
-      final stats = await useCase(userId: userId);
+        final stats = await useCase(userId: userId);
 
-      expect(stats.totalGames, 3);
-      expect(stats.wins, 2);
-      expect(stats.winPercentage, closeTo(66.666, 0.01));
-      expect(stats.averagePosition, closeTo(1.333, 0.01));
-      expect(stats.bidAccuracyPercentage, closeTo(66.666, 0.01));
-      expect(stats.recordScore, 100);
-      expect(stats.worstScore, -10);
-      expect(stats.currentWinStreak, 1);
-      expect(stats.bestWinStreak, 1);
-      expect(stats.mostFrequentPartner, 'Luis');
-    });
+        expect(stats.totalGames, 3);
+        expect(stats.wins, 2);
+        expect(stats.winPercentage, closeTo(66.666, 0.01));
+        expect(stats.averagePosition, closeTo(1.333, 0.01));
+        expect(stats.bidAccuracyPercentage, closeTo(66.666, 0.01));
+        expect(stats.recordScore, 100);
+        expect(stats.worstScore, -10);
+        expect(stats.currentWinStreak, 1);
+        expect(stats.bestWinStreak, 1);
+        expect(stats.mostFrequentPartner, 'Luis');
+      },
+    );
 
     test('excludes own userId from mostFrequentPartner', () async {
       final finishedAt = DateTime(2026, 8, 5);
       when(getGameHistory()).thenAnswer(
-        (_) async => GameHistoryLoadResult(
-          items: [_historyItem('g1', finishedAt)],
-        ),
+        (_) async =>
+            GameHistoryLoadResult(items: [_historyItem('g1', finishedAt)]),
       );
       when(
         getGameDetail(gameId: 'g1', source: GameHistorySource.local),
@@ -163,9 +162,8 @@ void main() {
     test('skips games where current user is not a player', () async {
       final finishedAt = DateTime(2026, 8, 5);
       when(getGameHistory()).thenAnswer(
-        (_) async => GameHistoryLoadResult(
-          items: [_historyItem('g1', finishedAt)],
-        ),
+        (_) async =>
+            GameHistoryLoadResult(items: [_historyItem('g1', finishedAt)]),
       );
       when(
         getGameDetail(gameId: 'g1', source: GameHistorySource.local),
@@ -209,32 +207,156 @@ void main() {
         required String id,
         required DateTime at,
         required int rank,
-      }) async =>
-          _detail(
-            id: id,
-            finishedAt: at,
-            selfScore: rank == 1 ? 80 : 20,
-            selfRank: rank,
-            partnerName: 'P',
-            partnerUserId: 'p1',
-            bid: 1,
-            tricks: 1,
-          );
+      }) async => _detail(
+        id: id,
+        finishedAt: at,
+        selfScore: rank == 1 ? 80 : 20,
+        selfRank: rank,
+        partnerName: 'P',
+        partnerUserId: 'p1',
+        bid: 1,
+        tricks: 1,
+      );
 
-      when(getGameDetail(gameId: 'g1', source: GameHistorySource.local))
-          .thenAnswer((_) => detail(id: 'g1', at: d1, rank: 1));
-      when(getGameDetail(gameId: 'g2', source: GameHistorySource.local))
-          .thenAnswer((_) => detail(id: 'g2', at: d2, rank: 1));
-      when(getGameDetail(gameId: 'g3', source: GameHistorySource.local))
-          .thenAnswer((_) => detail(id: 'g3', at: d3, rank: 2));
-      when(getGameDetail(gameId: 'g4', source: GameHistorySource.local))
-          .thenAnswer((_) => detail(id: 'g4', at: d4, rank: 1));
+      when(
+        getGameDetail(gameId: 'g1', source: GameHistorySource.local),
+      ).thenAnswer((_) => detail(id: 'g1', at: d1, rank: 1));
+      when(
+        getGameDetail(gameId: 'g2', source: GameHistorySource.local),
+      ).thenAnswer((_) => detail(id: 'g2', at: d2, rank: 1));
+      when(
+        getGameDetail(gameId: 'g3', source: GameHistorySource.local),
+      ).thenAnswer((_) => detail(id: 'g3', at: d3, rank: 2));
+      when(
+        getGameDetail(gameId: 'g4', source: GameHistorySource.local),
+      ).thenAnswer((_) => detail(id: 'g4', at: d4, rank: 1));
 
       final stats = await useCase(userId: userId);
 
       expect(stats.currentWinStreak, 1);
       expect(stats.bestWinStreak, 2);
     });
+
+    test(
+      'returns empty stats for local games that only match displayName',
+      () async {
+        final finishedAt = DateTime(2026, 8, 14);
+        when(getGameHistory()).thenAnswer(
+          (_) async => GameHistoryLoadResult(
+            items: [_historyItem('g-local', finishedAt)],
+          ),
+        );
+        when(
+          getGameDetail(gameId: 'g-local', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g-local',
+            finishedAt: finishedAt,
+            selfScore: 80,
+            selfRank: 1,
+            partnerName: 'Luis',
+            partnerUserId: null,
+            bid: 2,
+            tricks: 2,
+            guestSelf: true,
+            selfDisplayName: 'Ana',
+            syncStatus: SyncStatus.local,
+          ),
+        );
+
+        final stats = await useCase(userId: userId);
+
+        expect(stats, const PlayerStats.empty());
+        expect(stats.totalGames, 0);
+      },
+    );
+
+    test(
+      'does not infer identity from syncStatus when userId is absent',
+      () async {
+        final finishedAt = DateTime(2026, 8, 14);
+        when(getGameHistory()).thenAnswer(
+          (_) async => GameHistoryLoadResult(
+            items: [_historyItem('g-pending', finishedAt)],
+          ),
+        );
+        when(
+          getGameDetail(gameId: 'g-pending', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g-pending',
+            finishedAt: finishedAt,
+            selfScore: 40,
+            selfRank: 1,
+            partnerName: 'Bob',
+            partnerUserId: null,
+            bid: 1,
+            tricks: 1,
+            guestSelf: true,
+            selfDisplayName: 'Me',
+            syncStatus: SyncStatus.pending,
+          ),
+        );
+
+        final stats = await useCase(userId: userId);
+
+        expect(stats, const PlayerStats.empty());
+      },
+    );
+
+    test(
+      'counts only games where the authenticated userId is in the roster',
+      () async {
+        final guestAt = DateTime(2026, 8, 13);
+        final registeredAt = DateTime(2026, 8, 14);
+        when(getGameHistory()).thenAnswer(
+          (_) async => GameHistoryLoadResult(
+            items: [
+              _historyItem('g-guest', guestAt),
+              _historyItem('g-auth', registeredAt),
+            ],
+          ),
+        );
+        when(
+          getGameDetail(gameId: 'g-guest', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g-guest',
+            finishedAt: guestAt,
+            selfScore: 90,
+            selfRank: 1,
+            partnerName: 'Luis',
+            partnerUserId: null,
+            bid: 2,
+            tricks: 2,
+            guestSelf: true,
+            selfDisplayName: 'Me',
+            syncStatus: SyncStatus.local,
+          ),
+        );
+        when(
+          getGameDetail(gameId: 'g-auth', source: GameHistorySource.local),
+        ).thenAnswer(
+          (_) async => _detail(
+            id: 'g-auth',
+            finishedAt: registeredAt,
+            selfScore: 30,
+            selfRank: 2,
+            partnerName: 'Ana',
+            partnerUserId: 'partner-2',
+            bid: 1,
+            tricks: 0,
+          ),
+        );
+
+        final stats = await useCase(userId: userId);
+
+        expect(stats.totalGames, 1);
+        expect(stats.wins, 0);
+        expect(stats.recordScore, 30);
+        expect(stats.mostFrequentPartner, 'Ana');
+      },
+    );
   });
 }
 
@@ -254,19 +376,26 @@ GameDetail _detail({
   required int selfScore,
   required int selfRank,
   required String partnerName,
-  required String partnerUserId,
+  required String? partnerUserId,
   required int bid,
   required int tricks,
   bool includeSelf = true,
+  bool guestSelf = false,
+  String selfDisplayName = 'Me',
+  SyncStatus? syncStatus,
 }) {
   const selfId = 'p-self';
   const partnerId = 'p-partner';
 
+  final resolvedSelfUserId = guestSelf
+      ? null
+      : (includeSelf ? 'user-1' : 'someone-else');
+
   final self = PlayerEmbed(
     id: selfId,
-    displayName: 'Me',
-    isGuest: false,
-    userId: includeSelf ? 'user-1' : 'someone-else',
+    displayName: selfDisplayName,
+    isGuest: guestSelf,
+    userId: resolvedSelfUserId,
     seatOrder: 0,
     totalScore: selfScore,
     joinedAt: finishedAt,
@@ -274,7 +403,7 @@ GameDetail _detail({
   final partner = PlayerEmbed(
     id: partnerId,
     displayName: partnerName,
-    isGuest: false,
+    isGuest: partnerUserId == null,
     userId: partnerUserId,
     seatOrder: 1,
     totalScore: selfRank == 1 ? selfScore - 10 : selfScore + 10,
@@ -337,6 +466,7 @@ GameDetail _detail({
     finishedAt: finishedAt,
     createdAt: finishedAt,
     updatedAt: finishedAt,
+    syncStatus: syncStatus,
   );
 
   return GameDetail(

@@ -1,5 +1,27 @@
 # Notas técnicas
 
+## Identidad de usuario — decisión de producto
+
+**Fecha:** 14/08/2026
+
+La app tiene dos tipos de identidad que no se vinculan
+automáticamente:
+
+- Registrado: userId (Firebase Auth UID) — estable y único
+- Invitado: displayName (string libre) — mutable y ambiguo
+
+DECISIONES:
+
+- Estadísticas: solo partidas donde userId aparece en
+  players[].userId. Sin heurísticas de nombre (eliminar
+  criterio C de GetPlayerStatsUseCase).
+- Historial local: todas las partidas del dispositivo.
+  El usuario borra manualmente las ajenas (LPT-17).
+- Vinculación post-registro: pantalla única tras primer
+  login ofreciendo reclamar partidas locales por nombre.
+- Cambio de nombre: no afecta partidas pasadas.
+  Estadísticas calculadas por userId, no por displayName.
+
 ## Mensajes de error al usuario en español
 
 **Fecha:** 29/07/2026

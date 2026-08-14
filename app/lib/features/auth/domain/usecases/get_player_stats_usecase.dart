@@ -1,4 +1,5 @@
 import 'package:la_pocha/features/auth/domain/entities/player_stats.dart';
+import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/round.dart';
 import 'package:la_pocha/features/history/domain/entities/game_detail.dart';
@@ -27,7 +28,7 @@ class GetPlayerStatsUseCase {
           gameId: item.id,
           source: item.source,
         );
-        if (_findSelf(detail.game.players, userId) != null) {
+        if (_isUserGame(detail.game, userId)) {
           details.add(detail);
         }
       } catch (_) {
@@ -125,12 +126,15 @@ class GetPlayerStatsUseCase {
       }
     }
 
-    final winsByDateDesc = sortedDesc.map((d) => _rankFor(d, userId) == 1).toList();
+    final winsByDateDesc = sortedDesc
+        .map((d) => _rankFor(d, userId) == 1)
+        .toList();
     final currentWinStreak = _currentStreak(winsByDateDesc);
 
     final sortedAsc = List<GameDetail>.from(sortedDesc).reversed.toList();
-    final winsByDateAsc =
-        sortedAsc.map((d) => _rankFor(d, userId) == 1).toList();
+    final winsByDateAsc = sortedAsc
+        .map((d) => _rankFor(d, userId) == 1)
+        .toList();
     final bestWinStreak = _bestStreak(winsByDateAsc);
 
     return PlayerStats(
@@ -145,6 +149,13 @@ class GetPlayerStatsUseCase {
       bestWinStreak: bestWinStreak,
       mostFrequentPartner: mostFrequentPartner,
     );
+  }
+
+  /// A game counts toward stats only when the authenticated [userId] is in
+  /// `players[].userId`. Display name and [Game.syncStatus] are never used
+  /// to infer identity (local guest games stay out until claimed by userId).
+  bool _isUserGame(Game game, String userId) {
+    return game.players.any((player) => player.userId == userId);
   }
 
   PlayerEmbed? _findSelf(List<PlayerEmbed> players, String userId) {
