@@ -23,6 +23,7 @@ class AddPlayersLoaded extends AddPlayersState {
     required this.favorites,
     required this.activeEditIndex,
     required this.isLoading,
+    this.currentUser,
     this.errorMessage,
   });
 
@@ -30,6 +31,7 @@ class AddPlayersLoaded extends AddPlayersState {
   final int playerCount;
   final List<PlayerEmbed> players;
   final List<FavoritePlayer> favorites;
+  final UserProfile? currentUser;
   final int? activeEditIndex;
   final bool isLoading;
   final String? errorMessage;
@@ -43,6 +45,7 @@ class AddPlayersLoaded extends AddPlayersState {
     int? playerCount,
     List<PlayerEmbed>? players,
     List<FavoritePlayer>? favorites,
+    UserProfile? currentUser,
     int? activeEditIndex,
     bool clearActiveEditIndex = false,
     bool? isLoading,
@@ -54,8 +57,10 @@ class AddPlayersLoaded extends AddPlayersState {
       playerCount: playerCount ?? this.playerCount,
       players: players ?? this.players,
       favorites: favorites ?? this.favorites,
-      activeEditIndex:
-          clearActiveEditIndex ? null : (activeEditIndex ?? this.activeEditIndex),
+      currentUser: currentUser ?? this.currentUser,
+      activeEditIndex: clearActiveEditIndex
+          ? null
+          : (activeEditIndex ?? this.activeEditIndex),
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
@@ -63,14 +68,15 @@ class AddPlayersLoaded extends AddPlayersState {
 
   @override
   List<Object?> get props => [
-        gameId,
-        playerCount,
-        players,
-        favorites,
-        activeEditIndex,
-        isLoading,
-        errorMessage,
-      ];
+    gameId,
+    playerCount,
+    players,
+    favorites,
+    currentUser,
+    activeEditIndex,
+    isLoading,
+    errorMessage,
+  ];
 }
 
 class AddPlayersFailure extends AddPlayersState {

@@ -19,19 +19,22 @@ class AddPlayerFromFavoriteUseCase {
   Future<Game> call({
     required String gameId,
     required String favoriteId,
+    FavoritePlayer? favorite,
   }) async {
-    final favorites = await _favoriteRepository.getFavorites();
-    FavoritePlayer? favorite;
-    for (final item in favorites) {
-      if (item.id == favoriteId) {
-        favorite = item;
-        break;
+    FavoritePlayer? resolvedFavorite = favorite;
+    if (resolvedFavorite == null) {
+      final favorites = await _favoriteRepository.getFavorites();
+      for (final item in favorites) {
+        if (item.id == favoriteId) {
+          resolvedFavorite = item;
+          break;
+        }
       }
     }
-    if (favorite == null) {
+    if (resolvedFavorite == null) {
       throw StateError('Favorite not found: $favoriteId');
     }
-    final selectedFavorite = favorite;
+    final selectedFavorite = resolvedFavorite;
 
     final game = await _gameRepository.getGameById(gameId);
     if (game == null) {

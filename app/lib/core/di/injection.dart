@@ -534,6 +534,7 @@ Future<void> configureDependencies() async {
     () => AddPlayersBloc(
       getGameById: getIt<GetGameByIdUseCase>(),
       getFavorites: getIt<GetFavoritesUseCase>(),
+      getCurrentUser: getIt<GetCurrentUserUseCase>(),
       addPlayer: getIt<AddPlayerUseCase>(),
       addPlayerFromFavorite: getIt<AddPlayerFromFavoriteUseCase>(),
       removePlayer: getIt<RemovePlayerUseCase>(),

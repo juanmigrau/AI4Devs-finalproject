@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
+import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
+import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
@@ -19,6 +21,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
   AddPlayersBloc({
     required this._getGameById,
     required this._getFavorites,
+    required this._getCurrentUser,
     required this._addPlayer,
     required this._addPlayerFromFavorite,
     required this._removePlayer,
@@ -39,6 +42,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
 
   final GetGameByIdUseCase _getGameById;
   final GetFavoritesUseCase _getFavorites;
+  final GetCurrentUserUseCase _getCurrentUser;
   final AddPlayerUseCase _addPlayer;
   final AddPlayerFromFavoriteUseCase _addPlayerFromFavorite;
   final RemovePlayerUseCase _removePlayer;
@@ -54,18 +58,21 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     try {
       final gameFuture = _getGameById(event.gameId);
       final favoritesFuture = _getFavorites();
+      final currentUserFuture = _getCurrentUser();
       final game = await gameFuture;
       if (game == null) {
         emit(AddPlayersFailure(message: 'Partida no encontrada'));
         return;
       }
       final favorites = await favoritesFuture;
+      final currentUser = await currentUserFuture;
       emit(
         AddPlayersLoaded(
           gameId: game.id,
           playerCount: game.playerCount,
           players: game.players,
           favorites: favorites,
+          currentUser: currentUser,
           activeEditIndex: null,
           isLoading: false,
         ),
@@ -92,10 +99,20 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
       ),
     );
     try {
-      final game = await _addPlayerFromFavorite(
-        gameId: current.gameId,
-        favoriteId: event.favorite.id,
+      final isCurrentUserChip = _isCurrentUserFavorite(
+        event.favorite,
+        current.currentUser,
       );
+      final game = isCurrentUserChip
+          ? await _addPlayerFromFavorite(
+              gameId: current.gameId,
+              favoriteId: event.favorite.id,
+              favorite: event.favorite,
+            )
+          : await _addPlayerFromFavorite(
+              gameId: current.gameId,
+              favoriteId: event.favorite.id,
+            );
       emit(
         current.copyWith(
           players: game.players,
@@ -104,11 +121,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      _emitTransientError(
-        emit,
-        current,
-        mapExceptionToUserMessage(error),
-      );
+      _emitTransientError(emit, current, mapExceptionToUserMessage(error));
     }
   }
 
@@ -158,11 +171,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      _emitTransientError(
-        emit,
-        current,
-        mapExceptionToUserMessage(error),
-      );
+      _emitTransientError(emit, current, mapExceptionToUserMessage(error));
     }
   }
 
@@ -199,11 +208,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      _emitTransientError(
-        emit,
-        current,
-        mapExceptionToUserMessage(error),
-      );
+      _emitTransientError(emit, current, mapExceptionToUserMessage(error));
     }
   }
 
@@ -221,12 +226,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     if (event.index < current.players.length) {
       return;
     }
-    emit(
-      current.copyWith(
-        activeEditIndex: event.index,
-        clearError: true,
-      ),
-    );
+    emit(current.copyWith(activeEditIndex: event.index, clearError: true));
   }
 
   void _onEditSlotCancelled(
@@ -237,12 +237,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     if (current is! AddPlayersLoaded || current.activeEditIndex == null) {
       return;
     }
-    emit(
-      current.copyWith(
-        clearActiveEditIndex: true,
-        clearError: true,
-      ),
-    );
+    emit(current.copyWith(clearActiveEditIndex: true, clearError: true));
   }
 
   Future<void> _onPlayerNameConfirmed(
@@ -258,11 +253,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     }
     final trimmedName = event.name.trim();
     if (trimmedName.isEmpty) {
-      _emitTransientError(
-        emit,
-        current,
-        'El nombre no puede estar vacío',
-      );
+      _emitTransientError(emit, current, 'El nombre no puede estar vacío');
       return;
     }
 
@@ -278,11 +269,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      _emitTransientError(
-        emit,
-        current,
-        mapExceptionToUserMessage(error),
-      );
+      _emitTransientError(emit, current, mapExceptionToUserMessage(error));
     }
   }
 
@@ -294,16 +281,13 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     if (current is! AddPlayersLoaded) {
       return;
     }
-    final index = current.players.indexWhere((player) => player.id == event.playerId);
+    final index = current.players.indexWhere(
+      (player) => player.id == event.playerId,
+    );
     if (index < 0) {
       return;
     }
-    emit(
-      current.copyWith(
-        activeEditIndex: index,
-        clearError: true,
-      ),
-    );
+    emit(current.copyWith(activeEditIndex: index, clearError: true));
   }
 
   Future<void> _onPlayerNameUpdated(
@@ -328,11 +312,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
 
     final trimmedName = event.newName.trim();
     if (trimmedName.isEmpty) {
-      _emitTransientError(
-        emit,
-        current,
-        'El nombre no puede estar vacío',
-      );
+      _emitTransientError(emit, current, 'El nombre no puede estar vacío');
       return;
     }
 
@@ -357,11 +337,7 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
         ),
       );
     } catch (error) {
-      _emitTransientError(
-        emit,
-        current,
-        mapExceptionToUserMessage(error),
-      );
+      _emitTransientError(emit, current, mapExceptionToUserMessage(error));
     }
   }
 
@@ -376,6 +352,16 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     emit(current.copyWith(isLoading: false, clearError: true));
   }
 
+  bool _isCurrentUserFavorite(
+    FavoritePlayer favorite,
+    UserProfile? currentUser,
+  ) {
+    if (currentUser == null) {
+      return false;
+    }
+    return favorite.userId == currentUser.uid;
+  }
+
   FavoritePlayer? _findFavoriteForPlayer({
     required PlayerEmbed player,
     required List<FavoritePlayer> favorites,
@@ -386,7 +372,8 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
       }
       if (player.userId == null &&
           favorite.userId == null &&
-          favorite.displayName.toLowerCase() == player.displayName.toLowerCase()) {
+          favorite.displayName.toLowerCase() ==
+              player.displayName.toLowerCase()) {
         return favorite;
       }
     }

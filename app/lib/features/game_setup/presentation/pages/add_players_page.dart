@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
+import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/add_players_bloc.dart';
@@ -42,9 +43,9 @@ class _AddPlayersView extends StatelessWidget {
         if (errorMessage == null || errorMessage.isEmpty) {
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       },
       child: Scaffold(
         body: SafeArea(
@@ -100,10 +101,11 @@ class _AddPlayersView extends StatelessWidget {
                           children: [
                             FavoritesChipSection(
                               visibleFavorites: visibleFavorites,
+                              currentUser: _visibleCurrentUser(state),
                               onFavoriteTap: (favorite) {
                                 context.read<AddPlayersBloc>().add(
-                                      FavoriteChipTapped(favorite: favorite),
-                                    );
+                                  FavoriteChipTapped(favorite: favorite),
+                                );
                               },
                             ),
                             const SizedBox(height: 16),
@@ -116,44 +118,41 @@ class _AddPlayersView extends StatelessWidget {
                                   _isFavoritePlayer(player, state.favorites),
                               onEmptySlotEditActivated: (index) {
                                 context.read<AddPlayersBloc>().add(
-                                      EditSlotActivated(index: index),
-                                    );
+                                  EditSlotActivated(index: index),
+                                );
                               },
                               onPlayerEditActivated: (playerId) {
                                 context.read<AddPlayersBloc>().add(
-                                      PlayerEditActivated(playerId: playerId),
-                                    );
+                                  PlayerEditActivated(playerId: playerId),
+                                );
                               },
                               onEditCancelled: () {
                                 context.read<AddPlayersBloc>().add(
-                                      const EditSlotCancelled(),
-                                    );
+                                  const EditSlotCancelled(),
+                                );
                               },
                               onEmptySlotNameConfirmed: (index, name) {
                                 context.read<AddPlayersBloc>().add(
-                                      PlayerNameConfirmed(
-                                        index: index,
-                                        name: name,
-                                      ),
-                                    );
+                                  PlayerNameConfirmed(index: index, name: name),
+                                );
                               },
                               onPlayerNameUpdated: (playerId, name) {
                                 context.read<AddPlayersBloc>().add(
-                                      PlayerNameUpdated(
-                                        playerId: playerId,
-                                        newName: name,
-                                      ),
-                                    );
+                                  PlayerNameUpdated(
+                                    playerId: playerId,
+                                    newName: name,
+                                  ),
+                                );
                               },
                               onFavoriteToggle: (playerId) {
                                 context.read<AddPlayersBloc>().add(
-                                      PlayerFavoriteToggled(playerId: playerId),
-                                    );
+                                  PlayerFavoriteToggled(playerId: playerId),
+                                );
                               },
                               onRemovePlayer: (playerId) {
                                 context.read<AddPlayersBloc>().add(
-                                      PlayerRemoved(playerId: playerId),
-                                    );
+                                  PlayerRemoved(playerId: playerId),
+                                );
                               },
                             ),
                           ],
@@ -185,6 +184,19 @@ class _AddPlayersView extends StatelessWidget {
     return state.favorites
         .where((favorite) => !_playersContainsFavorite(state.players, favorite))
         .toList();
+  }
+
+  UserProfile? _visibleCurrentUser(AddPlayersLoaded state) {
+    final user = state.currentUser;
+    if (user == null) {
+      return null;
+    }
+    for (final player in state.players) {
+      if (player.userId == user.uid) {
+        return null;
+      }
+    }
+    return user;
   }
 
   bool _playersContainsFavorite(

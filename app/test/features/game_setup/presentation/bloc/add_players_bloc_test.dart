@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
+import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
@@ -21,6 +23,7 @@ import 'add_players_bloc_test.mocks.dart';
 @GenerateNiceMocks([
   MockSpec<GetGameByIdUseCase>(),
   MockSpec<GetFavoritesUseCase>(),
+  MockSpec<GetCurrentUserUseCase>(),
   MockSpec<AddPlayerUseCase>(),
   MockSpec<AddPlayerFromFavoriteUseCase>(),
   MockSpec<RemovePlayerUseCase>(),
@@ -31,6 +34,7 @@ import 'add_players_bloc_test.mocks.dart';
 void main() {
   late MockGetGameByIdUseCase getGameById;
   late MockGetFavoritesUseCase getFavorites;
+  late MockGetCurrentUserUseCase getCurrentUser;
   late MockAddPlayerUseCase addPlayer;
   late MockAddPlayerFromFavoriteUseCase addPlayerFromFavorite;
   late MockRemovePlayerUseCase removePlayer;
@@ -50,27 +54,38 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
+  final currentUserProfile = UserProfile(
+    uid: 'uid-1',
+    displayName: 'Juan',
+    email: 'juan@test.com',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
   setUp(() {
     getGameById = MockGetGameByIdUseCase();
     getFavorites = MockGetFavoritesUseCase();
+    getCurrentUser = MockGetCurrentUserUseCase();
     addPlayer = MockAddPlayerUseCase();
     addPlayerFromFavorite = MockAddPlayerFromFavoriteUseCase();
     removePlayer = MockRemovePlayerUseCase();
     updatePlayerName = MockUpdatePlayerNameUseCase();
     addFavorite = MockAddFavoriteUseCase();
     removeFavorite = MockRemoveFavoriteUseCase();
+    when(getCurrentUser()).thenAnswer((_) async => null);
   });
 
   AddPlayersBloc buildBloc() => AddPlayersBloc(
-        getGameById: getGameById,
-        getFavorites: getFavorites,
-        addPlayer: addPlayer,
-        addPlayerFromFavorite: addPlayerFromFavorite,
-        removePlayer: removePlayer,
-        updatePlayerName: updatePlayerName,
-        addFavorite: addFavorite,
-        removeFavorite: removeFavorite,
-      );
+    getGameById: getGameById,
+    getFavorites: getFavorites,
+    getCurrentUser: getCurrentUser,
+    addPlayer: addPlayer,
+    addPlayerFromFavorite: addPlayerFromFavorite,
+    removePlayer: removePlayer,
+    updatePlayerName: updatePlayerName,
+    addFavorite: addFavorite,
+    removeFavorite: removeFavorite,
+  );
 
   final favoriteAna = FavoritePlayer(
     id: 'fav-ana',
@@ -94,10 +109,121 @@ void main() {
         playerCount: 4,
         players: [],
         favorites: [favoriteAna],
+        currentUser: null,
         activeEditIndex: null,
         isLoading: false,
       ),
     ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'includes current user in loaded state when session is active',
+    build: buildBloc,
+    setUp: () {
+      when(getGameById('game-1')).thenAnswer((_) async => baseGame);
+      when(getFavorites()).thenAnswer((_) async => [favoriteAna]);
+      when(getCurrentUser()).thenAnswer((_) async => currentUserProfile);
+    },
+    act: (bloc) => bloc.add(const AddPlayersStarted(gameId: 'game-1')),
+    expect: () => [
+      const AddPlayersLoading(),
+      AddPlayersLoaded(
+        gameId: 'game-1',
+        playerCount: 4,
+        players: [],
+        favorites: [favoriteAna],
+        currentUser: currentUserProfile,
+        activeEditIndex: null,
+        isLoading: false,
+      ),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'adds current user as registered player from chip without favorite lookup',
+    build: buildBloc,
+    seed: () => AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: const [],
+      currentUser: currentUserProfile,
+      activeEditIndex: null,
+      isLoading: false,
+    ),
+    setUp: () {
+      final currentUserFavorite = FavoritePlayer(
+        id: 'uid-1',
+        displayName: 'Juan',
+        userId: 'uid-1',
+        createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+      );
+      final player = PlayerEmbed(
+        id: 'p1',
+        displayName: 'Juan',
+        isGuest: false,
+        userId: 'uid-1',
+        seatOrder: 0,
+        totalScore: 0,
+        joinedAt: DateTime(2026),
+      );
+      when(
+        addPlayerFromFavorite(
+          gameId: 'game-1',
+          favoriteId: 'uid-1',
+          favorite: currentUserFavorite,
+        ),
+      ).thenAnswer((_) async => baseGame.copyWith(players: [player]));
+    },
+    act: (bloc) => bloc.add(
+      FavoriteChipTapped(
+        favorite: FavoritePlayer(
+          id: 'uid-1',
+          displayName: 'Juan',
+          userId: 'uid-1',
+          createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+        ),
+      ),
+    ),
+    expect: () => [
+      AddPlayersLoaded(
+        gameId: 'game-1',
+        playerCount: 4,
+        players: [],
+        favorites: const [],
+        currentUser: currentUserProfile,
+        activeEditIndex: null,
+        isLoading: true,
+      ),
+      AddPlayersLoaded(
+        gameId: 'game-1',
+        playerCount: 4,
+        players: [
+          PlayerEmbed(
+            id: 'p1',
+            displayName: 'Juan',
+            isGuest: false,
+            userId: 'uid-1',
+            seatOrder: 0,
+            totalScore: 0,
+            joinedAt: DateTime(2026),
+          ),
+        ],
+        favorites: const [],
+        currentUser: currentUserProfile,
+        activeEditIndex: null,
+        isLoading: false,
+      ),
+    ],
+    verify: (_) {
+      verifyNever(getFavorites());
+      verifyNever(
+        addFavorite(
+          displayName: anyNamed('displayName'),
+          userId: anyNamed('userId'),
+        ),
+      );
+    },
   );
 
   blocTest<AddPlayersBloc, AddPlayersState>(
@@ -121,16 +247,14 @@ void main() {
         totalScore: 0,
         joinedAt: DateTime(2026),
       );
-      when(addPlayer(gameId: 'game-1', name: 'Ana')).thenAnswer(
-        (_) async => baseGame.copyWith(players: [player]),
-      );
+      when(
+        addPlayer(gameId: 'game-1', name: 'Ana'),
+      ).thenAnswer((_) async => baseGame.copyWith(players: [player]));
       when(
         addPlayerFromFavorite(gameId: 'game-1', favoriteId: 'fav-ana'),
       ).thenAnswer((_) async => baseGame.copyWith(players: [player]));
     },
-    act: (bloc) => bloc.add(
-      FavoriteChipTapped(favorite: favoriteAna),
-    ),
+    act: (bloc) => bloc.add(FavoriteChipTapped(favorite: favoriteAna)),
     expect: () => [
       AddPlayersLoaded(
         gameId: 'game-1',
@@ -183,9 +307,9 @@ void main() {
       isLoading: false,
     ),
     setUp: () {
-      when(addFavorite(displayName: 'Ana', userId: null)).thenAnswer(
-        (_) async => favoriteAna,
-      );
+      when(
+        addFavorite(displayName: 'Ana', userId: null),
+      ).thenAnswer((_) async => favoriteAna);
       when(removeFavorite('fav-ana')).thenAnswer((_) async {});
     },
     act: (bloc) async {
@@ -227,9 +351,9 @@ void main() {
       isLoading: false,
     ),
     setUp: () {
-      when(removePlayer(gameId: 'game-1', playerId: 'p1')).thenAnswer(
-        (_) async => baseGame.copyWith(players: const []),
-      );
+      when(
+        removePlayer(gameId: 'game-1', playerId: 'p1'),
+      ).thenAnswer((_) async => baseGame.copyWith(players: const []));
     },
     act: (bloc) => bloc.add(const PlayerRemoved(playerId: 'p1')),
     expect: () => [
@@ -319,9 +443,9 @@ void main() {
         totalScore: 0,
         joinedAt: DateTime(2026),
       );
-      when(addPlayer(gameId: 'game-1', name: 'Ana')).thenAnswer(
-        (_) async => baseGame.copyWith(players: [player]),
-      );
+      when(
+        addPlayer(gameId: 'game-1', name: 'Ana'),
+      ).thenAnswer((_) async => baseGame.copyWith(players: [player]));
     },
     act: (bloc) => bloc.add(const PlayerNameConfirmed(index: 0, name: 'Ana')),
     expect: () => [
@@ -434,12 +558,11 @@ void main() {
         totalScore: 0,
         joinedAt: DateTime(2026),
       );
-      when(addPlayer(gameId: 'game-1', name: 'Luis')).thenAnswer(
-        (_) async => baseGame.copyWith(players: [player]),
-      );
+      when(
+        addPlayer(gameId: 'game-1', name: 'Luis'),
+      ).thenAnswer((_) async => baseGame.copyWith(players: [player]));
     },
-    act: (bloc) =>
-        bloc.add(const PlayerNameConfirmed(index: 0, name: 'Luis')),
+    act: (bloc) => bloc.add(const PlayerNameConfirmed(index: 0, name: 'Luis')),
     expect: () => [
       isA<AddPlayersLoaded>()
           .having((s) => s.isLoading, 'loading', true)
@@ -474,7 +597,11 @@ void main() {
     ),
     act: (bloc) => bloc.add(const PlayerEditActivated(playerId: 'p1')),
     expect: () => [
-      isA<AddPlayersLoaded>().having((s) => s.activeEditIndex, 'activeEditIndex', 0),
+      isA<AddPlayersLoaded>().having(
+        (s) => s.activeEditIndex,
+        'activeEditIndex',
+        0,
+      ),
     ],
   );
 
