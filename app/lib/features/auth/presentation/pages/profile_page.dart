@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/features/auth/domain/entities/player_stats.dart';
@@ -93,9 +94,7 @@ class _ProfileViewState extends State<_ProfileView> {
         BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              SnackBarHelper.showError(state.message);
             }
             if (state is Unauthenticated) {
               context.go('/');
@@ -105,17 +104,11 @@ class _ProfileViewState extends State<_ProfileView> {
         BlocListener<ProfileBloc, ProfileState>(
           listener: (context, state) {
             if (state is ProfileFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              SnackBarHelper.showError(state.message);
             }
             if (state is ProfileLoaded && state.displayNameUpdated) {
               context.read<AuthBloc>().add(AuthProfileUpdated(state.user));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Nombre actualizado correctamente'),
-                ),
-              );
+              SnackBarHelper.showSuccess('Nombre actualizado correctamente');
             }
           },
         ),

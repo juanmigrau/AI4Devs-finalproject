@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/root_scaffold_messenger_key.dart';
 import 'package:la_pocha/features/sync/presentation/bloc/game_sync_bloc.dart';
 
@@ -13,24 +13,10 @@ class SyncStatusSnackbar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<GameSyncBloc, GameSyncState>(
       listener: (context, state) {
-        final messenger = rootScaffoldMessengerKey.currentState;
-        if (messenger == null) {
-          return;
-        }
-
         switch (state) {
           case GameSyncSuccess():
-            messenger.hideCurrentSnackBar();
-            messenger.showSnackBar(
-              SnackBar(
-                content: const Text('Partida guardada en la nube'),
-                backgroundColor: AppTheme.primary,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            );
+            rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+            SnackBarHelper.showSuccess('Partida guardada en la nube');
           case GameSyncFailure():
           case GameSyncInProgress():
           case GameSyncIdle():

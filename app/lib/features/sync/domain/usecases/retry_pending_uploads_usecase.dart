@@ -10,7 +10,12 @@ class RetryPendingUploadsUseCase {
   final GameSyncRepository _gameSyncRepository;
   final UploadFinishedGameUseCase _uploadFinishedGame;
 
-  Future<int> call() async {
+  Future<int> call({String? gameId}) async {
+    if (gameId != null) {
+      final outcome = await _uploadFinishedGame(gameId: gameId);
+      return outcome == UploadFinishedGameOutcome.synced ? 1 : 0;
+    }
+
     final pendingGames = await _gameSyncRepository.getPendingGames();
     var syncedCount = 0;
 

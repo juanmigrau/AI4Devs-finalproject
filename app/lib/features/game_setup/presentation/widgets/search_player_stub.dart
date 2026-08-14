@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 
 // TODO(LPT-19/LPT-21): Replace hardcoded result with Firestore user search
 // by displayName via UserSearchRepository.
@@ -65,12 +66,8 @@ class _SearchPlayerStubState extends State<SearchPlayerStub> {
               trailing: IconButton(
                 icon: const Icon(Icons.add_circle_outline),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Búsqueda real pendiente (LPT-19/LPT-21)',
-                      ),
-                    ),
+                  SnackBarHelper.showSuccess(
+                    'Búsqueda real pendiente (LPT-19/LPT-21)',
                   );
                 },
               ),

@@ -19,6 +19,8 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
     on<HistoryListStarted>(_onStarted);
     on<HistoryListRefreshed>(_onRefreshed);
     on<HistoryListGameDeleted>(_onGameDeleted);
+    on<SyncRetryRequested>(_onSyncRetryRequested);
+    on<SyncAllPendingRequested>(_onSyncAllPendingRequested);
     on<_HistoryListWatchData>(_onWatchData);
     on<_HistoryListWatchFailed>(_onWatchFailed);
   }
@@ -76,9 +78,87 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
     }
 
     emit(
-      HistoryListLoaded(
+      current.copyWith(
         items: updatedItems,
-        cloudError: current.cloudError,
+        clearSyncRetryFeedback: true,
+      ),
+    );
+  }
+
+  Future<void> _onSyncRetryRequested(
+    SyncRetryRequested event,
+    Emitter<HistoryListState> emit,
+  ) async {
+    final current = state;
+    if (current is! HistoryListLoaded) {
+      return;
+    }
+
+    emit(
+      current.copyWith(
+        syncingGameIds: {...current.syncingGameIds, event.gameId},
+        clearSyncRetryFeedback: true,
+      ),
+    );
+
+    final syncedCount = await _retryPendingUploads(gameId: event.gameId);
+    final after = state;
+    if (after is! HistoryListLoaded) {
+      return;
+    }
+
+    final updatedSyncing = Set<String>.from(after.syncingGameIds)
+      ..remove(event.gameId);
+
+    emit(
+      after.copyWith(
+        syncingGameIds: updatedSyncing,
+        syncRetryFeedback: syncedCount == 1
+            ? HistorySyncRetryFeedback.success
+            : HistorySyncRetryFeedback.failure,
+      ),
+    );
+  }
+
+  Future<void> _onSyncAllPendingRequested(
+    SyncAllPendingRequested event,
+    Emitter<HistoryListState> emit,
+  ) async {
+    final current = state;
+    if (current is! HistoryListLoaded) {
+      return;
+    }
+
+    final retryIds = current.items
+        .where((item) => item.needsSyncRetry)
+        .map((item) => item.id)
+        .toSet();
+    if (retryIds.isEmpty) {
+      return;
+    }
+
+    emit(
+      current.copyWith(
+        syncingGameIds: {...current.syncingGameIds, ...retryIds},
+        clearSyncRetryFeedback: true,
+      ),
+    );
+
+    final syncedCount = await _retryPendingUploads();
+    final after = state;
+    if (after is! HistoryListLoaded) {
+      return;
+    }
+
+    final updatedSyncing = Set<String>.from(after.syncingGameIds)
+      ..removeAll(retryIds);
+
+    emit(
+      after.copyWith(
+        syncingGameIds: updatedSyncing,
+        syncRetryFeedback: syncedCount == retryIds.length && syncedCount > 0
+            ? HistorySyncRetryFeedback.success
+            : HistorySyncRetryFeedback.failure,
       ),
     );
   }
@@ -114,10 +194,21 @@ class HistoryListBloc extends Bloc<HistoryListEvent, HistoryListState> {
       emit(const HistoryListEmpty());
       return;
     }
+
+    final current = state;
+    final syncingGameIds = current is HistoryListLoaded
+        ? current.syncingGameIds
+        : const <String>{};
+    final syncRetryFeedback = current is HistoryListLoaded
+        ? current.syncRetryFeedback
+        : null;
+
     emit(
       HistoryListLoaded(
         items: result.items,
         cloudError: result.cloudError,
+        syncingGameIds: syncingGameIds,
+        syncRetryFeedback: syncRetryFeedback,
       ),
     );
   }

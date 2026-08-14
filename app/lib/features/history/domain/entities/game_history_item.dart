@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:la_pocha/features/sync/domain/entities/sync_status.dart';
 
 import 'game_history_source.dart';
 
@@ -12,7 +13,7 @@ class GameHistoryItem extends Equatable {
     this.winnerName,
     this.winnerScore,
     this.cloudGameId,
-    this.isSyncPending = false,
+    this.syncStatus,
   });
 
   final String id;
@@ -23,7 +24,10 @@ class GameHistoryItem extends Equatable {
   final String? winnerName;
   final int? winnerScore;
   final String? cloudGameId;
-  final bool isSyncPending;
+  final SyncStatus? syncStatus;
+
+  bool get needsSyncRetry =>
+      syncStatus == SyncStatus.pending || syncStatus == SyncStatus.failed;
 
   @override
   List<Object?> get props => [
@@ -35,6 +39,6 @@ class GameHistoryItem extends Equatable {
         winnerName,
         winnerScore,
         cloudGameId,
-        isSyncPending,
+        syncStatus,
       ];
 }

@@ -25,12 +25,6 @@ class RoundResultPlayerRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           children: [
-            SizedBox(
-              width: 36,
-              child: _PositionChange(
-                positionDelta: positionDelta,
-              ),
-            ),
             Expanded(
               flex: 3,
               child: Row(
@@ -48,6 +42,10 @@ class RoundResultPlayerRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (positionDelta != null && positionDelta != 0) ...[
+                    const SizedBox(width: 4),
+                    _InlinePositionChange(positionDelta: positionDelta),
+                  ],
                 ],
               ),
             ),
@@ -81,41 +79,27 @@ class RoundResultPlayerRow extends StatelessWidget {
   }
 }
 
-class _PositionChange extends StatelessWidget {
-  const _PositionChange({required this.positionDelta});
+class _InlinePositionChange extends StatelessWidget {
+  const _InlinePositionChange({required this.positionDelta});
 
-  final int? positionDelta;
+  final int positionDelta;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    if (positionDelta == null || positionDelta == 0) {
-      return Text(
-        '—',
-        style: textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-        textAlign: TextAlign.center,
-      );
-    }
-
-    final isUp = positionDelta! > 0;
-    final n = positionDelta!.abs();
+    final isUp = positionDelta > 0;
     final color = isUp ? colorScheme.primary : colorScheme.error;
     final icon = isUp ? Icons.arrow_upward : Icons.arrow_downward;
+    final label = isUp ? '+$positionDelta' : '$positionDelta';
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 14),
+        Icon(icon, color: color, size: 12),
         Text(
-          '$n',
-          style: textTheme.labelSmall?.copyWith(
-            color: color,
-            fontWeight: FontWeight.bold,
-          ),
+          label,
+          style: textTheme.labelSmall?.copyWith(color: color),
         ),
       ],
     );

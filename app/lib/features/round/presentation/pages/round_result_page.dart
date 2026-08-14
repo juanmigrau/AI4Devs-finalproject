@@ -204,7 +204,6 @@ class _LoadedBody extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
                   children: [
-                    const SizedBox(width: 36),
                     const Expanded(flex: 3, child: SizedBox()),
                     SizedBox(
                       width: 52,

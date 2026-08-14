@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
@@ -42,11 +43,7 @@ class _HomeViewState extends State<_HomeView> {
     if (kDebugMode) {
       final committed = _debugPanelKey.currentState?.commitSequence() ?? true;
       if (!committed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Secuencia inválida. Revisa el formato.'),
-          ),
-        );
+        SnackBarHelper.showError('Secuencia inválida. Revisa el formato.');
         return;
       }
     }

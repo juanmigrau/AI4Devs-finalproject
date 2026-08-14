@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/final_standings_list.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
-import 'package:la_pocha/core/widgets/root_scaffold_messenger_key.dart';
 import 'package:la_pocha/core/widgets/warning_banner.dart';
 import 'package:la_pocha/core/widgets/winner_card.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
@@ -115,9 +115,7 @@ class _LoadedBody extends StatelessWidget {
             if (state is RepeatGameSuccess) {
               context.go('/games/${state.newGameId}/setup');
             } else if (state is RepeatGameFailure) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              SnackBarHelper.showError(state.message);
             }
           },
         ),
@@ -127,17 +125,9 @@ class _LoadedBody extends StatelessWidget {
               return;
             }
 
-            final colorScheme = Theme.of(context).colorScheme;
-            rootScaffoldMessengerKey.currentState?.showSnackBar(
-              SnackBar(
-                content: Text(
-                  'No se pudo sincronizar con la nube. '
-                  'Puedes intentarlo de nuevo desde el historial.',
-                  style: TextStyle(color: colorScheme.onErrorContainer),
-                ),
-                duration: const Duration(seconds: 4),
-                backgroundColor: colorScheme.errorContainer,
-              ),
+            SnackBarHelper.showError(
+              'No se pudo sincronizar con la nube. '
+              'Puedes intentarlo de nuevo desde el historial.',
             );
           },
         ),

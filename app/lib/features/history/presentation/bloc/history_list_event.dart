@@ -24,6 +24,19 @@ class HistoryListGameDeleted extends HistoryListEvent {
   List<Object?> get props => [gameId];
 }
 
+class SyncRetryRequested extends HistoryListEvent {
+  const SyncRetryRequested({required this.gameId});
+
+  final String gameId;
+
+  @override
+  List<Object?> get props => [gameId];
+}
+
+class SyncAllPendingRequested extends HistoryListEvent {
+  const SyncAllPendingRequested();
+}
+
 class _HistoryListWatchData extends HistoryListEvent {
   const _HistoryListWatchData(this.result);
 

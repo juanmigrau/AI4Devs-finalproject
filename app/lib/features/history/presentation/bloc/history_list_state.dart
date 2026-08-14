@@ -1,5 +1,7 @@
 part of 'history_list_bloc.dart';
 
+enum HistorySyncRetryFeedback { success, failure }
+
 sealed class HistoryListState extends Equatable {
   const HistoryListState();
 
@@ -19,13 +21,39 @@ class HistoryListLoaded extends HistoryListState {
   const HistoryListLoaded({
     required this.items,
     this.cloudError = false,
+    this.syncingGameIds = const {},
+    this.syncRetryFeedback,
   });
 
   final List<GameHistoryItem> items;
   final bool cloudError;
+  final Set<String> syncingGameIds;
+  final HistorySyncRetryFeedback? syncRetryFeedback;
+
+  HistoryListLoaded copyWith({
+    List<GameHistoryItem>? items,
+    bool? cloudError,
+    Set<String>? syncingGameIds,
+    HistorySyncRetryFeedback? syncRetryFeedback,
+    bool clearSyncRetryFeedback = false,
+  }) {
+    return HistoryListLoaded(
+      items: items ?? this.items,
+      cloudError: cloudError ?? this.cloudError,
+      syncingGameIds: syncingGameIds ?? this.syncingGameIds,
+      syncRetryFeedback: clearSyncRetryFeedback
+          ? null
+          : (syncRetryFeedback ?? this.syncRetryFeedback),
+    );
+  }
 
   @override
-  List<Object?> get props => [items, cloudError];
+  List<Object?> get props => [
+        items,
+        cloudError,
+        syncingGameIds,
+        syncRetryFeedback,
+      ];
 }
 
 class HistoryListEmpty extends HistoryListState {

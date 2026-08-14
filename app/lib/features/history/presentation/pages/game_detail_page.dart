@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/final_standings_list.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/winner_card.dart';
@@ -53,9 +54,7 @@ class _GameDetailView extends StatelessWidget {
             if (state is DeleteGameFromHistorySuccess) {
               context.pop();
             } else if (state is DeleteGameFromHistoryFailure) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              SnackBarHelper.showError(state.message);
             }
           },
         ),
@@ -64,9 +63,7 @@ class _GameDetailView extends StatelessWidget {
             if (state is RepeatGameSuccess) {
               handleRepeatGameSuccess(context, state.newGameId);
             } else if (state is RepeatGameFailure) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              SnackBarHelper.showError(state.message);
             }
           },
         ),

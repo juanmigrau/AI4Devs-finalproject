@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
@@ -43,9 +44,7 @@ class _AddPlayersView extends StatelessWidget {
         if (errorMessage == null || errorMessage.isEmpty) {
           return;
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        SnackBarHelper.showError(errorMessage);
       },
       child: Scaffold(
         body: SafeArea(

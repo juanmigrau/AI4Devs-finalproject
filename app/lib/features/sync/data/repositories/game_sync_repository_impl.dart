@@ -65,9 +65,13 @@ class GameSyncRepositoryImpl implements GameSyncRepository {
   }
 
   @override
-  Future<List<Game>> getPendingGames() {
-    return _gameLocalDatasource.getGamesBySyncStatus(
+  Future<List<Game>> getPendingGames() async {
+    final pending = await _gameLocalDatasource.getGamesBySyncStatus(
       SyncStatus.pending.toStorageString(),
     );
+    final failed = await _gameLocalDatasource.getGamesBySyncStatus(
+      SyncStatus.failed.toStorageString(),
+    );
+    return [...pending, ...failed];
   }
 }

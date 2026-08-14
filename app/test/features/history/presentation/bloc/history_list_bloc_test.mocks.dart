@@ -73,9 +73,9 @@ class MockGetGameHistoryUseCase extends _i1.Mock
 class MockRetryPendingUploadsUseCase extends _i1.Mock
     implements _i5.RetryPendingUploadsUseCase {
   @override
-  _i4.Future<int> call() =>
+  _i4.Future<int> call({String? gameId}) =>
       (super.noSuchMethod(
-            Invocation.method(#call, []),
+            Invocation.method(#call, [], {#gameId: gameId}),
             returnValue: _i4.Future<int>.value(0),
             returnValueForMissingStub: _i4.Future<int>.value(0),
           )

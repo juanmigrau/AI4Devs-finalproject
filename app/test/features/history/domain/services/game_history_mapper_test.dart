@@ -65,13 +65,34 @@ void main() {
       expect(item.displayLabel, '4 jul 2026, 22:05 — Ana, Carlos');
     });
 
-    test('marks sync pending badge when syncStatus is pending', () {
+    test('maps syncStatus and needsSyncRetry for pending', () {
       final item = mapper.fromLocalGame(
         finishedGame.copyWith(syncStatus: SyncStatus.pending),
       );
 
       expect(item, isNotNull);
-      expect(item!.isSyncPending, isTrue);
+      expect(item!.syncStatus, SyncStatus.pending);
+      expect(item.needsSyncRetry, isTrue);
+    });
+
+    test('maps syncStatus and needsSyncRetry for failed', () {
+      final item = mapper.fromLocalGame(
+        finishedGame.copyWith(syncStatus: SyncStatus.failed),
+      );
+
+      expect(item, isNotNull);
+      expect(item!.syncStatus, SyncStatus.failed);
+      expect(item.needsSyncRetry, isTrue);
+    });
+
+    test('needsSyncRetry is false for local without pending or failed', () {
+      final item = mapper.fromLocalGame(
+        finishedGame.copyWith(syncStatus: SyncStatus.local),
+      );
+
+      expect(item, isNotNull);
+      expect(item!.syncStatus, SyncStatus.local);
+      expect(item.needsSyncRetry, isFalse);
     });
 
     group('formatRelativeFinishedAt', () {

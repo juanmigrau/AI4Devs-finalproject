@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
@@ -46,18 +47,12 @@ class _SignInPageState extends State<SignInPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          SnackBarHelper.showError(state.message);
         }
         if (state is PasswordResetEmailSent) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Te hemos enviado un email para restablecer tu contraseña. '
-                'Revisa tu bandeja de entrada.',
-              ),
-            ),
+          SnackBarHelper.showSuccess(
+            'Te hemos enviado un email para restablecer tu contraseña. '
+            'Revisa tu bandeja de entrada.',
           );
         }
         if (state is Authenticated) {

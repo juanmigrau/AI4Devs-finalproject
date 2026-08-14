@@ -20,7 +20,7 @@ void main() {
 
   final now = DateTime(2026, 3, 15, 20);
 
-  Game pendingGame(String id) {
+  Game gameWithStatus(String id, SyncStatus syncStatus) {
     return Game(
       id: id,
       status: GameStatus.finished,
@@ -42,7 +42,7 @@ void main() {
         ),
       ],
       finishedAt: now,
-      syncStatus: SyncStatus.pending,
+      syncStatus: syncStatus,
       createdAt: now,
       updatedAt: now,
     );
@@ -57,9 +57,12 @@ void main() {
     );
   });
 
-  test('retries only pending games and counts synced uploads', () async {
+  test('retries pending and failed games and counts synced uploads', () async {
     when(gameSyncRepository.getPendingGames()).thenAnswer(
-      (_) async => [pendingGame('game-1'), pendingGame('game-2')],
+      (_) async => [
+        gameWithStatus('game-1', SyncStatus.pending),
+        gameWithStatus('game-2', SyncStatus.failed),
+      ],
     );
     when(uploadFinishedGame(gameId: 'game-1'))
         .thenAnswer((_) async => UploadFinishedGameOutcome.synced);
@@ -71,5 +74,25 @@ void main() {
     expect(syncedCount, 1);
     verify(uploadFinishedGame(gameId: 'game-1')).called(1);
     verify(uploadFinishedGame(gameId: 'game-2')).called(1);
+  });
+
+  test('retries a single game by gameId without listing pending', () async {
+    when(uploadFinishedGame(gameId: 'game-1'))
+        .thenAnswer((_) async => UploadFinishedGameOutcome.synced);
+
+    final syncedCount = await useCase(gameId: 'game-1');
+
+    expect(syncedCount, 1);
+    verify(uploadFinishedGame(gameId: 'game-1')).called(1);
+    verifyNever(gameSyncRepository.getPendingGames());
+  });
+
+  test('returns 0 when single game retry does not sync', () async {
+    when(uploadFinishedGame(gameId: 'game-1'))
+        .thenAnswer((_) async => UploadFinishedGameOutcome.failed);
+
+    final syncedCount = await useCase(gameId: 'game-1');
+
+    expect(syncedCount, 0);
   });
 }

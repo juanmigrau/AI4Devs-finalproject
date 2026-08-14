@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/cancel_game_cubit.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/cancel_game_dialog.dart';
 import 'package:la_pocha/features/round/presentation/bloc/repeat_round_cubit.dart';
@@ -58,9 +59,7 @@ class _GameOverflowMenuView extends StatelessWidget {
             if (state is CancelGameSuccess) {
               context.go('/');
             } else if (state is CancelGameFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              SnackBarHelper.showError(state.message);
             }
           },
         ),
@@ -71,9 +70,7 @@ class _GameOverflowMenuView extends StatelessWidget {
                 '/games/${state.gameId}/rounds/${state.roundNumber}/bids',
               );
             } else if (state is RepeatRoundFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              SnackBarHelper.showError(state.message);
             }
           },
         ),
