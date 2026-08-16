@@ -84,3 +84,29 @@ class PlayerNameUpdated extends AddPlayersEvent {
   @override
   List<Object?> get props => [playerId, newName];
 }
+
+class UserSearchOpened extends AddPlayersEvent {
+  const UserSearchOpened();
+}
+
+class UserSearchQueryChanged extends AddPlayersEvent {
+  const UserSearchQueryChanged({required this.query});
+
+  final String query;
+
+  @override
+  List<Object?> get props => [query];
+}
+
+class UserSearchResultSelected extends AddPlayersEvent {
+  const UserSearchResultSelected({required this.user});
+
+  final UserSearchResult user;
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class UserSearchClosed extends AddPlayersEvent {
+  const UserSearchClosed();
+}

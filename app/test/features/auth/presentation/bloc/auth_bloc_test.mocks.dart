@@ -14,11 +14,11 @@ import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_useca
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart'
     as _i5;
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_with_google_usecase.dart'
-    as _i6;
+    as _i7;
 import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart'
     as _i8;
 import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart'
-    as _i7;
+    as _i6;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -212,7 +212,7 @@ class MockSignInUseCase extends _i1.Mock implements _i5.SignInUseCase {
 /// A class which mocks [SignUpUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSignUpUseCase extends _i1.Mock implements _i7.SignUpUseCase {
+class MockSignUpUseCase extends _i1.Mock implements _i6.SignUpUseCase {
   @override
   _i4.Future<_i2.UserProfile> call({
     required String? email,
@@ -253,7 +253,7 @@ class MockSignUpUseCase extends _i1.Mock implements _i7.SignUpUseCase {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSignInWithGoogleUseCase extends _i1.Mock
-    implements _i6.SignInWithGoogleUseCase {
+    implements _i7.SignInWithGoogleUseCase {
   @override
   _i4.Future<_i2.UserProfile?> call() =>
       (super.noSuchMethod(

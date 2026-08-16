@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
@@ -8,10 +11,13 @@ import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase
 import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/remove_favorite_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
+import 'package:la_pocha/features/game_setup/domain/entities/user_search_result.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_from_favorite_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/add_registered_player_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/get_game_by_id_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/remove_player_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/search_users_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/update_player_name_usecase.dart';
 
 part 'add_players_event.dart';
@@ -19,16 +25,31 @@ part 'add_players_state.dart';
 
 class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
   AddPlayersBloc({
-    required this._getGameById,
-    required this._getFavorites,
-    required this._getCurrentUser,
-    required this._addPlayer,
-    required this._addPlayerFromFavorite,
-    required this._removePlayer,
-    required this._updatePlayerName,
-    required this._addFavorite,
-    required this._removeFavorite,
-  }) : super(const AddPlayersInitial()) {
+    required GetGameByIdUseCase getGameById,
+    required GetFavoritesUseCase getFavorites,
+    required GetCurrentUserUseCase getCurrentUser,
+    required AddPlayerUseCase addPlayer,
+    required AddPlayerFromFavoriteUseCase addPlayerFromFavorite,
+    required AddRegisteredPlayerUseCase addRegisteredPlayer,
+    required SearchUsersUseCase searchUsers,
+    required RemovePlayerUseCase removePlayer,
+    required UpdatePlayerNameUseCase updatePlayerName,
+    required AddFavoriteUseCase addFavorite,
+    required RemoveFavoriteUseCase removeFavorite,
+    Connectivity? connectivity,
+  }) : _getGameById = getGameById,
+       _getFavorites = getFavorites,
+       _getCurrentUser = getCurrentUser,
+       _addPlayer = addPlayer,
+       _addPlayerFromFavorite = addPlayerFromFavorite,
+       _addRegisteredPlayer = addRegisteredPlayer,
+       _searchUsers = searchUsers,
+       _removePlayer = removePlayer,
+       _updatePlayerName = updatePlayerName,
+       _addFavorite = addFavorite,
+       _removeFavorite = removeFavorite,
+       _connectivity = connectivity ?? Connectivity(),
+       super(const AddPlayersInitial()) {
     on<AddPlayersStarted>(_onStarted);
     on<FavoriteChipTapped>(_onFavoriteChipTapped);
     on<PlayerFavoriteToggled>(_onPlayerFavoriteToggled);
@@ -38,17 +59,33 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     on<PlayerNameConfirmed>(_onPlayerNameConfirmed);
     on<PlayerEditActivated>(_onPlayerEditActivated);
     on<PlayerNameUpdated>(_onPlayerNameUpdated);
+    on<UserSearchOpened>(_onUserSearchOpened);
+    on<UserSearchQueryChanged>(_onUserSearchQueryChanged);
+    on<UserSearchResultSelected>(_onUserSearchResultSelected);
+    on<UserSearchClosed>(_onUserSearchClosed);
   }
+
+  static const offlineSearchMessage =
+      'Búsqueda no disponible sin conexión. '
+      'Puedes añadir jugadores por nombre o favoritos.';
+
+  static const searchTimeoutMessage =
+      'La búsqueda tardó demasiado. Inténtalo de nuevo.';
+
+  static const Duration searchDebounce = Duration(milliseconds: 300);
 
   final GetGameByIdUseCase _getGameById;
   final GetFavoritesUseCase _getFavorites;
   final GetCurrentUserUseCase _getCurrentUser;
   final AddPlayerUseCase _addPlayer;
   final AddPlayerFromFavoriteUseCase _addPlayerFromFavorite;
+  final AddRegisteredPlayerUseCase _addRegisteredPlayer;
+  final SearchUsersUseCase _searchUsers;
   final RemovePlayerUseCase _removePlayer;
   final UpdatePlayerNameUseCase _updatePlayerName;
   final AddFavoriteUseCase _addFavorite;
   final RemoveFavoriteUseCase _removeFavorite;
+  final Connectivity _connectivity;
 
   Future<void> _onStarted(
     AddPlayersStarted event,
@@ -339,6 +376,175 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
     } catch (error) {
       _emitTransientError(emit, current, mapExceptionToUserMessage(error));
     }
+  }
+
+  void _onUserSearchOpened(
+    UserSearchOpened event,
+    Emitter<AddPlayersState> emit,
+  ) {
+    final current = state;
+    if (current is! AddPlayersLoaded) {
+      return;
+    }
+    emit(
+      current.copyWith(
+        isUserSearchActive: true,
+        userSearchQuery: '',
+        userSearchResults: const [],
+        userSearchLoading: false,
+        clearUserSearchError: true,
+      ),
+    );
+  }
+
+  Future<void> _onUserSearchQueryChanged(
+    UserSearchQueryChanged event,
+    Emitter<AddPlayersState> emit,
+  ) async {
+    final current = state;
+    if (current is! AddPlayersLoaded || !current.isUserSearchActive) {
+      return;
+    }
+
+    final trimmed = event.query.trim();
+    if (trimmed.length < SearchUsersUseCase.minQueryLength) {
+      emit(
+        current.copyWith(
+          userSearchQuery: event.query,
+          userSearchResults: const [],
+          userSearchLoading: false,
+          clearUserSearchError: true,
+        ),
+      );
+      return;
+    }
+
+    emit(
+      current.copyWith(
+        userSearchQuery: event.query,
+        clearUserSearchError: true,
+      ),
+    );
+
+    await Future<void>.delayed(searchDebounce);
+    if (emit.isDone) {
+      return;
+    }
+    final afterDelay = state;
+    if (afterDelay is! AddPlayersLoaded ||
+        !afterDelay.isUserSearchActive ||
+        afterDelay.userSearchQuery != event.query) {
+      return;
+    }
+
+    if (!await _hasConnectivity()) {
+      emit(
+        afterDelay.copyWith(
+          userSearchLoading: false,
+          userSearchResults: const [],
+          userSearchError: offlineSearchMessage,
+        ),
+      );
+      return;
+    }
+
+    emit(afterDelay.copyWith(userSearchLoading: true, clearUserSearchError: true));
+    try {
+      final results = await _searchUsers(
+        event.query,
+        excludeUid: afterDelay.currentUser?.uid,
+      );
+      final latest = state;
+      if (latest is! AddPlayersLoaded ||
+          latest.userSearchQuery != event.query) {
+        return;
+      }
+      emit(
+        latest.copyWith(
+          userSearchResults: results,
+          userSearchLoading: false,
+          clearUserSearchError: true,
+        ),
+      );
+    } on TimeoutException {
+      final latest = state;
+      if (latest is! AddPlayersLoaded) {
+        return;
+      }
+      emit(
+        latest.copyWith(
+          userSearchLoading: false,
+          userSearchResults: const [],
+          userSearchError: searchTimeoutMessage,
+        ),
+      );
+    } catch (error) {
+      final latest = state;
+      if (latest is! AddPlayersLoaded) {
+        return;
+      }
+      final isTimeout = error is TimeoutException ||
+          error.toString().contains('TimeoutException');
+      emit(
+        latest.copyWith(
+          userSearchLoading: false,
+          userSearchResults: const [],
+          userSearchError: isTimeout
+              ? searchTimeoutMessage
+              : mapExceptionToUserMessage(error),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onUserSearchResultSelected(
+    UserSearchResultSelected event,
+    Emitter<AddPlayersState> emit,
+  ) async {
+    final current = state;
+    if (current is! AddPlayersLoaded) {
+      return;
+    }
+    if (current.isUserAlreadyInGame(event.user.uid)) {
+      return;
+    }
+
+    emit(current.copyWith(isLoading: true, clearError: true));
+    try {
+      final game = await _addRegisteredPlayer(
+        gameId: current.gameId,
+        user: event.user,
+      );
+      emit(
+        current.copyWith(
+          players: game.players,
+          isLoading: false,
+          clearError: true,
+          resetUserSearch: true,
+        ),
+      );
+    } catch (error) {
+      _emitTransientError(emit, current, mapExceptionToUserMessage(error));
+    }
+  }
+
+  void _onUserSearchClosed(
+    UserSearchClosed event,
+    Emitter<AddPlayersState> emit,
+  ) {
+    final current = state;
+    if (current is! AddPlayersLoaded) {
+      return;
+    }
+    emit(current.copyWith(resetUserSearch: true));
+  }
+
+  Future<bool> _hasConnectivity() async {
+    final result = await _connectivity.checkConnectivity();
+    if (result.contains(ConnectivityResult.none)) {
+      return false;
+    }
+    return true;
   }
 
   /// Emits an error for the UI listener, then clears it so a later event

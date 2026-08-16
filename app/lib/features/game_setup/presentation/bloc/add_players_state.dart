@@ -25,6 +25,11 @@ class AddPlayersLoaded extends AddPlayersState {
     required this.isLoading,
     this.currentUser,
     this.errorMessage,
+    this.isUserSearchActive = false,
+    this.userSearchQuery = '',
+    this.userSearchResults = const [],
+    this.userSearchLoading = false,
+    this.userSearchError,
   });
 
   final String gameId;
@@ -35,10 +40,24 @@ class AddPlayersLoaded extends AddPlayersState {
   final int? activeEditIndex;
   final bool isLoading;
   final String? errorMessage;
+  final bool isUserSearchActive;
+  final String userSearchQuery;
+  final List<UserSearchResult> userSearchResults;
+  final bool userSearchLoading;
+  final String? userSearchError;
 
   bool get isComplete => players.length == playerCount;
 
   int get remainingCount => playerCount - players.length;
+
+  bool isUserAlreadyInGame(String uid) {
+    for (final player in players) {
+      if (player.userId == uid) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   AddPlayersLoaded copyWith({
     String? gameId,
@@ -51,6 +70,13 @@ class AddPlayersLoaded extends AddPlayersState {
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,
+    bool? isUserSearchActive,
+    String? userSearchQuery,
+    List<UserSearchResult>? userSearchResults,
+    bool? userSearchLoading,
+    String? userSearchError,
+    bool clearUserSearchError = false,
+    bool resetUserSearch = false,
   }) {
     return AddPlayersLoaded(
       gameId: gameId ?? this.gameId,
@@ -63,6 +89,21 @@ class AddPlayersLoaded extends AddPlayersState {
           : (activeEditIndex ?? this.activeEditIndex),
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      isUserSearchActive: resetUserSearch
+          ? false
+          : (isUserSearchActive ?? this.isUserSearchActive),
+      userSearchQuery: resetUserSearch
+          ? ''
+          : (userSearchQuery ?? this.userSearchQuery),
+      userSearchResults: resetUserSearch
+          ? const []
+          : (userSearchResults ?? this.userSearchResults),
+      userSearchLoading: resetUserSearch
+          ? false
+          : (userSearchLoading ?? this.userSearchLoading),
+      userSearchError: resetUserSearch || clearUserSearchError
+          ? null
+          : (userSearchError ?? this.userSearchError),
     );
   }
 
@@ -76,6 +117,11 @@ class AddPlayersLoaded extends AddPlayersState {
     activeEditIndex,
     isLoading,
     errorMessage,
+    isUserSearchActive,
+    userSearchQuery,
+    userSearchResults,
+    userSearchLoading,
+    userSearchError,
   ];
 }
 

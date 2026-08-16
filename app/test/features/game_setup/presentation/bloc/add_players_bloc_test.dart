@@ -1,4 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
@@ -8,17 +10,132 @@ import 'package:la_pocha/features/favorites/domain/usecases/remove_favorite_usec
 import 'package:la_pocha/features/game_setup/domain/entities/game.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/game_status.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
+import 'package:la_pocha/features/game_setup/domain/entities/round.dart';
+import 'package:la_pocha/features/game_setup/domain/entities/start_game_result.dart';
+import 'package:la_pocha/features/game_setup/domain/entities/user_search_result.dart';
+import 'package:la_pocha/features/game_setup/domain/repositories/game_repository.dart';
+import 'package:la_pocha/features/game_setup/domain/repositories/user_search_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_from_favorite_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/add_registered_player_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/get_game_by_id_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/remove_player_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/search_users_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/update_player_name_usecase.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/add_players_bloc.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import 'add_players_bloc_test.mocks.dart';
+
+class _FakeUserSearchRepository implements UserSearchRepository {
+  List<UserSearchResult> results = const [];
+  Object? errorToThrow;
+  int callCount = 0;
+  String? lastQuery;
+  String? lastExcludeUid;
+
+  @override
+  Future<List<UserSearchResult>> searchUsers(
+    String query, {
+    String? excludeUid,
+  }) async {
+    callCount++;
+    lastQuery = query;
+    lastExcludeUid = excludeUid;
+    final error = errorToThrow;
+    if (error != null) {
+      throw error;
+    }
+    return results;
+  }
+}
+
+class _FakeGameRepository implements GameRepository {
+  Game? game;
+  List<PlayerEmbed>? lastUpdatedPlayers;
+
+  @override
+  Future<Game?> getGameById(String id) async => game;
+
+  @override
+  Future<Game> updateGamePlayers(
+    String gameId,
+    List<PlayerEmbed> players,
+  ) async {
+    lastUpdatedPlayers = players;
+    final current = game!;
+    game = current.copyWith(players: players);
+    return game!;
+  }
+
+  @override
+  Future<Game?> getInProgressGame() async => null;
+
+  @override
+  Future<Game> saveDraft(Game game) async => game;
+
+  @override
+  Future<void> deleteGame(String gameId) async {}
+
+  @override
+  Future<StartGameResult> startGame({
+    required String gameId,
+    required List<PlayerEmbed> players,
+    required String firstDealerPlayerId,
+    required Round firstRound,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> revertGameToSetup(String gameId) async {}
+
+  @override
+  Future<Round> closeRoundAndUpdateScores({
+    required Round closedRound,
+    required List<PlayerEmbed> updatedPlayers,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Round> repeatRoundAndRevertScores({
+    required Round resetRound,
+    required List<PlayerEmbed> updatedPlayers,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Round> advanceToNextRound({
+    required Round nextRound,
+    required int nextRoundNumber,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Game> finishGame({
+    required String gameId,
+    required DateTime finishedAt,
+  }) async {
+    throw UnimplementedError();
+  }
+}
+
+class _FakeConnectivity implements Connectivity {
+  _FakeConnectivity({this.results = const [ConnectivityResult.wifi]});
+
+  List<ConnectivityResult> results;
+
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async => results;
+
+  @override
+  Stream<List<ConnectivityResult>> get onConnectivityChanged =>
+      const Stream.empty();
+}
 
 @GenerateNiceMocks([
   MockSpec<GetGameByIdUseCase>(),
@@ -41,6 +158,11 @@ void main() {
   late MockUpdatePlayerNameUseCase updatePlayerName;
   late MockAddFavoriteUseCase addFavorite;
   late MockRemoveFavoriteUseCase removeFavorite;
+  late _FakeGameRepository gameRepository;
+  late _FakeUserSearchRepository userSearchRepository;
+  late _FakeConnectivity connectivity;
+  late SearchUsersUseCase searchUsers;
+  late AddRegisteredPlayerUseCase addRegisteredPlayer;
 
   final baseGame = Game(
     id: 'game-1',
@@ -72,6 +194,11 @@ void main() {
     updatePlayerName = MockUpdatePlayerNameUseCase();
     addFavorite = MockAddFavoriteUseCase();
     removeFavorite = MockRemoveFavoriteUseCase();
+    gameRepository = _FakeGameRepository()..game = baseGame;
+    userSearchRepository = _FakeUserSearchRepository();
+    connectivity = _FakeConnectivity();
+    searchUsers = SearchUsersUseCase(userSearchRepository);
+    addRegisteredPlayer = AddRegisteredPlayerUseCase(gameRepository);
     when(getCurrentUser()).thenAnswer((_) async => null);
   });
 
@@ -81,10 +208,13 @@ void main() {
     getCurrentUser: getCurrentUser,
     addPlayer: addPlayer,
     addPlayerFromFavorite: addPlayerFromFavorite,
+    addRegisteredPlayer: addRegisteredPlayer,
+    searchUsers: searchUsers,
     removePlayer: removePlayer,
     updatePlayerName: updatePlayerName,
     addFavorite: addFavorite,
     removeFavorite: removeFavorite,
+    connectivity: connectivity,
   );
 
   final favoriteAna = FavoritePlayer(
@@ -724,6 +854,198 @@ void main() {
           .having((s) => s.players.first.displayName, 'name', 'Anita')
           .having((s) => s.activeEditIndex, 'activeEditIndex', null)
           .having((s) => s.isLoading, 'isLoading', false),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'UserSearchOpened activates search mode',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: null,
+      isLoading: false,
+    ),
+    act: (bloc) => bloc.add(const UserSearchOpened()),
+    expect: () => [
+      isA<AddPlayersLoaded>()
+          .having((s) => s.isUserSearchActive, 'searchActive', true)
+          .having((s) => s.userSearchQuery, 'query', ''),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'UserSearchQueryChanged under 2 chars clears results without searching',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: null,
+      isLoading: false,
+      isUserSearchActive: true,
+    ),
+    act: (bloc) => bloc.add(const UserSearchQueryChanged(query: 'a')),
+    expect: () => [
+      isA<AddPlayersLoaded>()
+          .having((s) => s.userSearchQuery, 'query', 'a')
+          .having((s) => s.userSearchResults, 'results', isEmpty)
+          .having((s) => s.userSearchLoading, 'loading', false),
+    ],
+    verify: (_) {
+      expect(userSearchRepository.callCount, 0);
+    },
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'UserSearchQueryChanged emits loading then results after debounce',
+    build: buildBloc,
+    seed: () => AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: const [],
+      favorites: const [],
+      activeEditIndex: null,
+      isLoading: false,
+      isUserSearchActive: true,
+      currentUser: currentUserProfile,
+    ),
+    setUp: () {
+      userSearchRepository.results = const [
+        UserSearchResult(
+          uid: 'u-ana',
+          displayName: 'Ana',
+          email: 'ana@gmail.com',
+        ),
+      ];
+    },
+    act: (bloc) => bloc.add(const UserSearchQueryChanged(query: 'an')),
+    wait: const Duration(milliseconds: 350),
+    expect: () => [
+      isA<AddPlayersLoaded>().having(
+        (s) => s.userSearchQuery,
+        'query',
+        'an',
+      ),
+      isA<AddPlayersLoaded>().having(
+        (s) => s.userSearchLoading,
+        'loading',
+        true,
+      ),
+      isA<AddPlayersLoaded>()
+          .having((s) => s.userSearchLoading, 'loading', false)
+          .having((s) => s.userSearchResults, 'results', hasLength(1))
+          .having(
+            (s) => s.userSearchResults.first.displayName,
+            'name',
+            'Ana',
+          ),
+    ],
+    verify: (_) {
+      expect(userSearchRepository.callCount, 1);
+      expect(userSearchRepository.lastExcludeUid, 'uid-1');
+    },
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'UserSearchQueryChanged shows offline message without crashing',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: null,
+      isLoading: false,
+      isUserSearchActive: true,
+    ),
+    setUp: () {
+      connectivity.results = [ConnectivityResult.none];
+    },
+    act: (bloc) => bloc.add(const UserSearchQueryChanged(query: 'an')),
+    wait: const Duration(milliseconds: 350),
+    expect: () => [
+      isA<AddPlayersLoaded>().having(
+        (s) => s.userSearchQuery,
+        'query',
+        'an',
+      ),
+      isA<AddPlayersLoaded>().having(
+        (s) => s.userSearchError,
+        'error',
+        AddPlayersBloc.offlineSearchMessage,
+      ),
+    ],
+    verify: (_) {
+      expect(userSearchRepository.callCount, 0);
+    },
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'UserSearchResultSelected adds registered player and closes search',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: null,
+      isLoading: false,
+      isUserSearchActive: true,
+      userSearchQuery: 'an',
+    ),
+    setUp: () {
+      gameRepository.game = baseGame;
+    },
+    act: (bloc) => bloc.add(
+      const UserSearchResultSelected(
+        user: UserSearchResult(
+          uid: 'u-ana',
+          displayName: 'Ana',
+          email: 'ana@gmail.com',
+        ),
+      ),
+    ),
+    expect: () => [
+      isA<AddPlayersLoaded>().having((s) => s.isLoading, 'loading', true),
+      isA<AddPlayersLoaded>()
+          .having((s) => s.players, 'players', hasLength(1))
+          .having((s) => s.players.first.userId, 'userId', 'u-ana')
+          .having((s) => s.players.first.isGuest, 'isGuest', false)
+          .having((s) => s.isUserSearchActive, 'searchActive', false)
+          .having((s) => s.isLoading, 'isLoading', false),
+    ],
+  );
+
+  blocTest<AddPlayersBloc, AddPlayersState>(
+    'UserSearchClosed resets search state',
+    build: buildBloc,
+    seed: () => const AddPlayersLoaded(
+      gameId: 'game-1',
+      playerCount: 4,
+      players: [],
+      favorites: [],
+      activeEditIndex: null,
+      isLoading: false,
+      isUserSearchActive: true,
+      userSearchQuery: 'an',
+      userSearchResults: [
+        UserSearchResult(
+          uid: 'u-ana',
+          displayName: 'Ana',
+          email: 'ana@gmail.com',
+        ),
+      ],
+    ),
+    act: (bloc) => bloc.add(const UserSearchClosed()),
+    expect: () => [
+      isA<AddPlayersLoaded>()
+          .having((s) => s.isUserSearchActive, 'searchActive', false)
+          .having((s) => s.userSearchQuery, 'query', '')
+          .having((s) => s.userSearchResults, 'results', isEmpty),
     ],
   );
 }

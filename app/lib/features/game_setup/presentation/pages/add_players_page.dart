@@ -11,7 +11,8 @@ import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/game_setup/presentation/bloc/add_players_bloc.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/favorites_chip_section.dart';
 import 'package:la_pocha/features/game_setup/presentation/widgets/players_roster_section.dart';
-import 'package:la_pocha/features/game_setup/presentation/widgets/search_player_stub.dart';
+import 'package:la_pocha/features/game_setup/presentation/widgets/user_search_field.dart';
+import 'package:la_pocha/features/game_setup/presentation/widgets/user_search_result_tile.dart';
 
 class AddPlayersPage extends StatelessWidget {
   const AddPlayersPage({super.key, required this.gameId});
@@ -65,6 +66,10 @@ class _AddPlayersView extends StatelessWidget {
                 return const SizedBox.shrink();
               }
 
+              if (state.isUserSearchActive) {
+                return _UserSearchBody(state: state);
+              }
+
               final visibleFavorites = _visibleFavorites(state);
               final remaining = state.playerCount - state.players.length;
               final isComplete = remaining == 0;
@@ -80,11 +85,8 @@ class _AddPlayersView extends StatelessWidget {
                     actions: [
                       IconButton(
                         onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const SearchPlayerStub(),
-                              fullscreenDialog: true,
-                            ),
+                          context.read<AddPlayersBloc>().add(
+                            const UserSearchOpened(),
                           );
                         },
                         icon: const Icon(Icons.search, color: Colors.white),
@@ -228,5 +230,90 @@ class _AddPlayersView extends StatelessWidget {
     return player.userId == null &&
         favorite.userId == null &&
         player.displayName.toLowerCase() == favorite.displayName.toLowerCase();
+  }
+}
+
+class _UserSearchBody extends StatelessWidget {
+  const _UserSearchBody({required this.state});
+
+  final AddPlayersLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.read<AddPlayersBloc>();
+    final query = state.userSearchQuery.trim();
+    final showEmptyMessage =
+        !state.userSearchLoading &&
+        state.userSearchError == null &&
+        query.length >= 2 &&
+        state.userSearchResults.isEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        UserSearchAppBar(
+          onQueryChanged: (value) {
+            bloc.add(UserSearchQueryChanged(query: value));
+          },
+          onClosed: () {
+            bloc.add(const UserSearchClosed());
+          },
+        ),
+        Expanded(
+          child: _buildResults(
+            context,
+            showEmptyMessage: showEmptyMessage,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResults(
+    BuildContext context, {
+    required bool showEmptyMessage,
+  }) {
+    if (state.userSearchError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          state.userSearchError!,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    if (state.userSearchLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (showEmptyMessage) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          'No se encontraron usuarios con ese nombre.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: state.userSearchResults.length,
+      itemBuilder: (context, index) {
+        final user = state.userSearchResults[index];
+        return UserSearchResultTile(
+          user: user,
+          colorIndex: index,
+          alreadyInGame: state.isUserAlreadyInGame(user.uid),
+          onSelected: (selected) {
+            context.read<AddPlayersBloc>().add(
+              UserSearchResultSelected(user: selected),
+            );
+          },
+        );
+      },
+    );
   }
 }

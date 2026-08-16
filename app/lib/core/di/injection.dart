@@ -19,8 +19,11 @@ import 'package:la_pocha/features/favorites/domain/usecases/add_favorite_usecase
 import 'package:la_pocha/features/favorites/domain/usecases/get_favorites_usecase.dart';
 import 'package:la_pocha/features/favorites/domain/usecases/remove_favorite_usecase.dart';
 import 'package:la_pocha/features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:la_pocha/features/game_setup/data/repositories/user_search_repository_impl.dart';
+import 'package:la_pocha/features/game_setup/domain/repositories/user_search_repository.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_from_favorite_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/add_player_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/add_registered_player_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/cancel_game_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/create_game_draft_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/get_active_game_usecase.dart';
@@ -29,6 +32,7 @@ import 'package:la_pocha/features/game_setup/domain/usecases/randomize_first_dea
 import 'package:la_pocha/features/game_setup/domain/usecases/remove_player_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/revert_game_to_setup_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/reorder_players_usecase.dart';
+import 'package:la_pocha/features/game_setup/domain/usecases/search_users_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/set_first_dealer_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/start_game_usecase.dart';
 import 'package:la_pocha/features/game_setup/domain/usecases/update_player_name_usecase.dart';
@@ -492,6 +496,18 @@ Future<void> configureDependencies() async {
     ),
   );
 
+  getIt.registerFactory<AddRegisteredPlayerUseCase>(
+    () => AddRegisteredPlayerUseCase(getIt<GameRepository>()),
+  );
+
+  getIt.registerLazySingleton<UserSearchRepository>(
+    () => UserSearchRepositoryImpl(getIt<UserFirestoreDatasource>()),
+  );
+
+  getIt.registerFactory<SearchUsersUseCase>(
+    () => SearchUsersUseCase(getIt<UserSearchRepository>()),
+  );
+
   getIt.registerFactory<RemovePlayerUseCase>(
     () => RemovePlayerUseCase(getIt<GameRepository>()),
   );
@@ -543,6 +559,8 @@ Future<void> configureDependencies() async {
       getCurrentUser: getIt<GetCurrentUserUseCase>(),
       addPlayer: getIt<AddPlayerUseCase>(),
       addPlayerFromFavorite: getIt<AddPlayerFromFavoriteUseCase>(),
+      addRegisteredPlayer: getIt<AddRegisteredPlayerUseCase>(),
+      searchUsers: getIt<SearchUsersUseCase>(),
       removePlayer: getIt<RemovePlayerUseCase>(),
       updatePlayerName: getIt<UpdatePlayerNameUseCase>(),
       addFavorite: getIt<AddFavoriteUseCase>(),

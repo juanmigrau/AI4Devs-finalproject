@@ -1,6 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:la_pocha/features/auth/data/models/user_profile_model.dart';
 
+/// Raw Firestore user document fields needed for name search.
+class UserSearchDoc {
+  const UserSearchDoc({
+    required this.uid,
+    required this.displayName,
+    required this.email,
+    this.photoUrl,
+    this.searchName,
+  });
+
+  final String uid;
+  final String displayName;
+  final String email;
+  final String? photoUrl;
+  final String? searchName;
+}
+
 class UserFirestoreDatasource {
   UserFirestoreDatasource(this._firestore);
 
@@ -8,6 +25,28 @@ class UserFirestoreDatasource {
 
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('users');
+
+  /// Prefix search on [searchName], limited to 10 results, 5s timeout.
+  Future<List<UserSearchDoc>> searchUsers(String normalizedQuery) async {
+    final snapshot = await _users
+        .where('searchName', isGreaterThanOrEqualTo: normalizedQuery)
+        .where('searchName', isLessThan: '${normalizedQuery}z')
+        .orderBy('searchName')
+        .limit(10)
+        .get()
+        .timeout(const Duration(seconds: 5));
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return UserSearchDoc(
+        uid: doc.id,
+        displayName: data['displayName'] as String? ?? '',
+        email: data['email'] as String? ?? '',
+        photoUrl: data['photoUrl'] as String?,
+        searchName: data['searchName'] as String?,
+      );
+    }).toList();
+  }
 
   Future<UserProfileModel?> getProfile(String uid) async {
     final snapshot = await _users.doc(uid).get();

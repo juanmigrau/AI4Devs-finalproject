@@ -128,7 +128,6 @@ class MockAuthRepository extends _i1.Mock implements _i6.AuthRepository {
       (super.noSuchMethod(
             Invocation.method(#signInWithGoogle, []),
             returnValue: _i7.Future<_i2.UserProfile?>.value(),
-            returnValueForMissingStub: _i7.Future<_i2.UserProfile?>.value(),
           )
           as _i7.Future<_i2.UserProfile?>);
 
@@ -157,6 +156,19 @@ class MockAuthRepository extends _i1.Mock implements _i6.AuthRepository {
             returnValue: _i7.Future<_i2.UserProfile?>.value(),
           )
           as _i7.Future<_i2.UserProfile?>);
+
+  @override
+  _i7.Future<_i2.UserProfile> updateDisplayName(String? displayName) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDisplayName, [displayName]),
+            returnValue: _i7.Future<_i2.UserProfile>.value(
+              _FakeUserProfile_0(
+                this,
+                Invocation.method(#updateDisplayName, [displayName]),
+              ),
+            ),
+          )
+          as _i7.Future<_i2.UserProfile>);
 }
 
 /// A class which mocks [GameSyncRepository].
