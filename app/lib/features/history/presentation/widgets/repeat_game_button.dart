@@ -1,21 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:la_pocha/core/utils/snack_bar_helper.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/presentation/bloc/repeat_game_cubit.dart';
 import 'package:la_pocha/features/history/presentation/widgets/repeat_game_dialog.dart';
 
 void handleRepeatGameSuccess(BuildContext context, String newGameId) {
-  context.go('/games/$newGameId/players');
-  SnackBarHelper.showSuccess(
-    'Nueva partida creada',
-    action: SnackBarAction(
-      label: 'Ir al setup',
-      onPressed: () => context.go('/games/$newGameId/players'),
-    ),
-  );
+  context.go('/games/$newGameId/setup');
 }
 
 Future<void> requestRepeatGame(

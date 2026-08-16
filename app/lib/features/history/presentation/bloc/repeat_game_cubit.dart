@@ -1,13 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:la_pocha/core/errors/user_facing_error_mapper.dart';
 import 'package:la_pocha/features/history/domain/entities/game_history_source.dart';
 import 'package:la_pocha/features/history/domain/usecases/repeat_game_usecase.dart';
 
 part 'repeat_game_state.dart';
 
+const repeatGameFailureMessage =
+    'No se pudo crear la partida. Inténtalo de nuevo.';
+
 class RepeatGameCubit extends Cubit<RepeatGameState> {
   RepeatGameCubit({required this._repeatGame})
-      : super(const RepeatGameInitial());
+    : super(const RepeatGameInitial());
 
   final RepeatGameUseCase _repeatGame;
 
@@ -22,8 +24,8 @@ class RepeatGameCubit extends Cubit<RepeatGameState> {
         source: source,
       );
       emit(RepeatGameSuccess(newGameId: newGameId));
-    } catch (error) {
-      emit(RepeatGameFailure(message: mapExceptionToUserMessage(error)));
+    } catch (_) {
+      emit(const RepeatGameFailure(message: repeatGameFailureMessage));
     }
   }
 }

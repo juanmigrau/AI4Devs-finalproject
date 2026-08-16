@@ -68,7 +68,11 @@ void main() {
     ),
     expect: () => [
       isA<RepeatGameInProgress>(),
-      isA<RepeatGameFailure>(),
+      isA<RepeatGameFailure>().having(
+        (state) => state.message,
+        'message',
+        repeatGameFailureMessage,
+      ),
     ],
   );
 }
