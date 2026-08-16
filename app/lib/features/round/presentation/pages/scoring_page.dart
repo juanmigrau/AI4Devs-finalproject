@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
+import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/game_setup/domain/entities/player_embed.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/scoring_event.dart';
@@ -232,6 +233,8 @@ class _LoadedBodyState extends State<_LoadedBody> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final currentUser = authState is Authenticated ? authState.user : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -293,31 +296,30 @@ class _LoadedBodyState extends State<_LoadedBody> {
                             child: ScoringPlayerRow(
                               player: player,
                               index: index,
+                              photoURL: player.userId == currentUser?.uid
+                                  ? currentUser?.photoUrl
+                                  : null,
                               status: rowStatus,
                               tricks: state.confirmedTricks[playerId],
-                              isDealer:
-                                  playerId == state.round.dealerPlayerId,
+                              isDealer: playerId == state.round.dealerPlayerId,
                               draftTrick: isExpanded ? state.draftTrick : 0,
                               cardsInRound: state.round.cardsInRound,
                               canConfirmTrick: state.canConfirmTrick,
                               canAddMore: state.canAddMore,
                               onActivateEdit:
-                                  rowStatus ==
-                                      ScoringPlayerRowStatus.completed
+                                  rowStatus == ScoringPlayerRowStatus.completed
                                   ? () => context.read<ScoringBloc>().add(
                                       TricksEditActivated(playerId),
                                     )
                                   : null,
                               onTrickChanged: isExpanded
-                                  ? (value) =>
-                                      context.read<ScoringBloc>().add(
-                                        TrickValueChanged(value),
-                                      )
+                                  ? (value) => context.read<ScoringBloc>().add(
+                                      TrickValueChanged(value),
+                                    )
                                   : null,
                               onTrickConfirmed: isExpanded
                                   ? () {
-                                      final bloc =
-                                          context.read<ScoringBloc>();
+                                      final bloc = context.read<ScoringBloc>();
                                       if (rowStatus ==
                                           ScoringPlayerRowStatus.editing) {
                                         bloc.add(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
+import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/round/domain/usecases/revert_round_to_bidding_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_bloc.dart';
 import 'package:la_pocha/features/round/presentation/bloc/play_state_event.dart';
@@ -142,6 +143,8 @@ class _LoadedBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final playState = state.playState;
     final colorScheme = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final currentUser = authState is Authenticated ? authState.user : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -212,6 +215,9 @@ class _LoadedBody extends StatelessWidget {
                             bid: playState.round.bids[player.id] ?? 0,
                             isDealer:
                                 player.id == playState.round.dealerPlayerId,
+                            photoURL: player.userId == currentUser?.uid
+                                ? currentUser?.photoUrl
+                                : null,
                           );
                         },
                       ),

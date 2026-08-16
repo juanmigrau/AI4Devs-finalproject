@@ -17,6 +17,7 @@ class PlayerSlot extends StatelessWidget {
     this.onConfirmName,
     this.onToggleFavorite,
     this.onRemove,
+    this.photoURL,
   });
 
   final int index;
@@ -30,6 +31,7 @@ class PlayerSlot extends StatelessWidget {
   final ValueChanged<String>? onConfirmName;
   final VoidCallback? onToggleFavorite;
   final VoidCallback? onRemove;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,7 @@ class PlayerSlot extends StatelessWidget {
         colorIndex: player!.seatOrder,
         isFavorite: isFavorite,
         showFavoriteButton: showFavoriteButton,
+        photoURL: photoURL,
         onTap: isBusy ? null : onActivateEdit,
         onToggleFavorite: isBusy ? null : onToggleFavorite,
         onRemove: isBusy ? null : onRemove,
@@ -198,6 +201,7 @@ class _FilledPlayerSlot extends StatelessWidget {
     this.onTap,
     this.onToggleFavorite,
     this.onRemove,
+    this.photoURL,
   });
 
   final PlayerEmbed player;
@@ -207,6 +211,7 @@ class _FilledPlayerSlot extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onToggleFavorite;
   final VoidCallback? onRemove;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +229,7 @@ class _FilledPlayerSlot extends StatelessWidget {
               PlayerInitialAvatar(
                 name: player.displayName,
                 colorIndex: colorIndex,
+                photoURL: photoURL,
                 radius: 16,
               ),
               const SizedBox(width: 12),

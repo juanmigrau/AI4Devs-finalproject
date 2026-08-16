@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
+import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/round/domain/entities/round_result.dart';
 import 'package:la_pocha/features/round/domain/usecases/revert_round_to_playing_usecase.dart';
 import 'package:la_pocha/features/round/presentation/bloc/round_result_bloc.dart';
@@ -45,10 +46,12 @@ class _RoundResultPageState extends State<RoundResultPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => getIt<RoundResultBloc>()
-        ..add(RoundResultStarted(
-          gameId: widget.gameId,
-          roundNumber: widget.roundNumber,
-        )),
+        ..add(
+          RoundResultStarted(
+            gameId: widget.gameId,
+            roundNumber: widget.roundNumber,
+          ),
+        ),
       child: _RoundResultView(
         gameId: widget.gameId,
         roundNumber: widget.roundNumber,
@@ -85,9 +88,7 @@ class _RoundResultView extends StatelessWidget {
     return BlocListener<RoundResultBloc, RoundResultState>(
       listener: (context, state) {
         if (state is RoundResultNavigateToBids) {
-          context.go(
-            '/games/${state.gameId}/rounds/${state.roundNumber}/bids',
-          );
+          context.go('/games/${state.gameId}/rounds/${state.roundNumber}/bids');
         } else if (state is RoundResultNavigateToFinal) {
           context.go('/games/${state.gameId}/final');
         }
@@ -129,21 +130,20 @@ class _RoundResultView extends StatelessWidget {
                     builder: (context, state) {
                       return switch (state) {
                         RoundResultLoading() => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: CircularProgressIndicator(),
+                        ),
                         RoundResultFailure(:final message) => Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Text(message),
-                            ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(message),
                           ),
+                        ),
                         RoundResultLoaded(:final result) ||
-                        RoundResultAdvancing(:final result) =>
-                          _LoadedBody(
-                            result: result,
-                            isAdvancing: state is RoundResultAdvancing,
-                            readOnly: readOnly,
-                          ),
+                        RoundResultAdvancing(:final result) => _LoadedBody(
+                          result: result,
+                          isAdvancing: state is RoundResultAdvancing,
+                          readOnly: readOnly,
+                        ),
                         _ => const SizedBox.shrink(),
                       };
                     },
@@ -172,6 +172,8 @@ class _LoadedBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final authState = context.watch<AuthBloc>().state;
+    final currentUser = authState is Authenticated ? authState.user : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -180,18 +182,14 @@ class _LoadedBody extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              Icon(
-                Icons.style,
-                color: colorScheme.primary,
-                size: 16,
-              ),
+              Icon(Icons.style, color: colorScheme.primary, size: 16),
               const SizedBox(width: 8),
               Text(
                 result.dealerDisplayName,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
               ),
             ],
           ),
@@ -210,8 +208,8 @@ class _LoadedBody extends StatelessWidget {
                       child: Text(
                         'Ronda',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -220,8 +218,8 @@ class _LoadedBody extends StatelessWidget {
                       child: Text(
                         'Total',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -237,7 +235,11 @@ class _LoadedBody extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
-                    for (var index = 0; index < result.entries.length; index++) ...[
+                    for (
+                      var index = 0;
+                      index < result.entries.length;
+                      index++
+                    ) ...[
                       if (index > 0)
                         Divider(
                           height: 1,
@@ -245,7 +247,14 @@ class _LoadedBody extends StatelessWidget {
                             alpha: 0.6,
                           ),
                         ),
-                      RoundResultPlayerRow(entry: result.entries[index]),
+                      RoundResultPlayerRow(
+                        entry: result.entries[index],
+                        photoURL:
+                            result.entries[index].player.userId ==
+                                currentUser?.uid
+                            ? currentUser?.photoUrl
+                            : null,
+                      ),
                     ],
                   ],
                 ),
@@ -264,12 +273,12 @@ class _LoadedBody extends StatelessWidget {
               onPressed: () {
                 if (result.isLastRound) {
                   context.read<RoundResultBloc>().add(
-                        const FinishGameRequested(),
-                      );
+                    const FinishGameRequested(),
+                  );
                 } else {
                   context.read<RoundResultBloc>().add(
-                        const AdvanceToNextRoundRequested(),
-                      );
+                    const AdvanceToNextRoundRequested(),
+                  );
                 }
               },
             ),

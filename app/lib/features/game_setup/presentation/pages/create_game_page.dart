@@ -106,9 +106,9 @@ class _CreateGameView extends StatelessWidget {
                           PrimaryButton(
                             label: 'Continuar',
                             isLoading: isSubmitting,
-                            onPressed: () => context
-                                .read<CreateGameBloc>()
-                                .add(const CreateGameConfirmed()),
+                            onPressed: () => context.read<CreateGameBloc>().add(
+                              const CreateGameConfirmed(),
+                            ),
                           ),
                         ],
                       ),
@@ -127,23 +127,23 @@ class _CreateGameView extends StatelessWidget {
     return switch (state) {
       CreateGamePreview preview => preview,
       CreateGameSubmitting submitting => CreateGamePreview(
-          playerCount: submitting.playerCount,
-          totalCards: submitting.totalCards,
-          maxCardsPerRound: submitting.maxCardsPerRound,
-          totalRounds: submitting.totalRounds,
-        ),
+        playerCount: submitting.playerCount,
+        totalCards: submitting.totalCards,
+        maxCardsPerRound: submitting.maxCardsPerRound,
+        totalRounds: submitting.totalRounds,
+      ),
       CreateGameFailure failure => CreateGamePreview(
-          playerCount: failure.playerCount,
-          totalCards: failure.totalCards,
-          maxCardsPerRound: failure.maxCardsPerRound,
-          totalRounds: failure.totalRounds,
-        ),
+        playerCount: failure.playerCount,
+        totalCards: failure.totalCards,
+        maxCardsPerRound: failure.maxCardsPerRound,
+        totalRounds: failure.totalRounds,
+      ),
       _ => const CreateGamePreview(
-          playerCount: 4,
-          totalCards: 40,
-          maxCardsPerRound: 10,
-          totalRounds: 22,
-        ),
+        playerCount: 4,
+        totalCards: 40,
+        maxCardsPerRound: 10,
+        totalRounds: 22,
+      ),
     };
   }
 }

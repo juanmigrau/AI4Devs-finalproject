@@ -108,6 +108,9 @@ class _LoadedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final currentUser = authState is Authenticated ? authState.user : null;
+
     return MultiBlocListener(
       listeners: [
         BlocListener<RepeatGameCubit, RepeatGameState>(
@@ -160,11 +163,21 @@ class _LoadedBody extends StatelessWidget {
                 const _SignUpBanner(),
                 if (data.entries.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  WinnerCard(entry: data.entries.first),
+                  WinnerCard(
+                    entry: data.entries.first,
+                    photoURL:
+                        data.entries.first.player.userId == currentUser?.uid
+                        ? currentUser?.photoUrl
+                        : null,
+                  ),
                 ],
                 if (data.entries.length > 1) ...[
                   const SizedBox(height: 16),
-                  FinalStandingsList(entries: data.entries.skip(1).toList()),
+                  FinalStandingsList(
+                    entries: data.entries.skip(1).toList(),
+                    currentUserId: currentUser?.uid,
+                    currentUserPhotoUrl: currentUser?.photoUrl,
+                  ),
                 ],
               ],
             ),

@@ -114,6 +114,7 @@ class _AddPlayersView extends StatelessWidget {
                               activeEditIndex: state.activeEditIndex,
                               isLoading: state.isLoading,
                               currentUserId: state.currentUser?.uid,
+                              currentUserPhotoUrl: state.currentUser?.photoUrl,
                               isFavoritePlayer: (player) =>
                                   _isFavoritePlayer(player, state.favorites),
                               onEmptySlotEditActivated: (index) {

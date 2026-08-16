@@ -53,8 +53,8 @@ class _ProfileViewState extends State<_ProfileView> {
 
   void _submitName() {
     context.read<ProfileBloc>().add(
-          ProfileDisplayNameSubmitted(_nameController.text),
-        );
+      ProfileDisplayNameSubmitted(_nameController.text),
+    );
     setState(() => _isEditing = false);
   }
 
@@ -118,10 +118,7 @@ class _ProfileViewState extends State<_ProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PochaAppBar(
-                title: 'Mi cuenta',
-                onBack: () => context.pop(),
-              ),
+              PochaAppBar(title: 'Mi cuenta', onBack: () => context.pop()),
               Expanded(
                 child: BlocBuilder<ProfileBloc, ProfileState>(
                   builder: (context, state) {
@@ -158,8 +155,9 @@ class _ProfileViewState extends State<_ProfileView> {
                             icon: const Icon(Icons.logout),
                             label: const Text('Cerrar sesión'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor:
-                                  Theme.of(context).colorScheme.error,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
                               side: BorderSide(
                                 color: Theme.of(context).colorScheme.error,
                               ),
@@ -204,7 +202,7 @@ class _ProfileHeader extends StatelessWidget {
         PlayerInitialAvatar(
           name: user.displayName,
           colorIndex: 0,
-          photoUrl: user.photoUrl,
+          photoURL: user.photoUrl,
           radius: 28,
         ),
         const SizedBox(width: 16),
@@ -214,10 +212,7 @@ class _ProfileHeader extends StatelessWidget {
               controller: nameController,
               autofocus: true,
               maxLength: 20,
-              decoration: const InputDecoration(
-                isDense: true,
-                counterText: '',
-              ),
+              decoration: const InputDecoration(isDense: true, counterText: ''),
               onSubmitted: (_) => onConfirm(),
             ),
           )
@@ -255,10 +250,7 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _StatsSection extends StatelessWidget {
-  const _StatsSection({
-    required this.stats,
-    required this.statsLoading,
-  });
+  const _StatsSection({required this.stats, required this.statsLoading});
 
   final PlayerStats? stats;
   final bool statsLoading;
@@ -295,9 +287,7 @@ class _StatsSection extends StatelessWidget {
           )
         else
           Expanded(
-            child: SingleChildScrollView(
-              child: _StatsContent(stats: stats!),
-            ),
+            child: SingleChildScrollView(child: _StatsContent(stats: stats!)),
           ),
       ],
     );
@@ -482,17 +472,11 @@ class _StatsSkeletonState extends State<_StatsSkeleton>
       },
       child: Column(
         children: [
-          Row(
-            children: List.generate(3, (_) => const _SkeletonCell()),
-          ),
+          Row(children: List.generate(3, (_) => const _SkeletonCell())),
           const SizedBox(height: 16),
-          Row(
-            children: List.generate(2, (_) => const _SkeletonCell()),
-          ),
+          Row(children: List.generate(2, (_) => const _SkeletonCell())),
           const SizedBox(height: 16),
-          Row(
-            children: List.generate(3, (_) => const _SkeletonCell()),
-          ),
+          Row(children: List.generate(3, (_) => const _SkeletonCell())),
         ],
       ),
     );

@@ -3,9 +3,16 @@ import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/features/round/domain/entities/ranking_entry.dart';
 
 class FinalStandingsList extends StatelessWidget {
-  const FinalStandingsList({super.key, required this.entries});
+  const FinalStandingsList({
+    super.key,
+    required this.entries,
+    this.currentUserId,
+    this.currentUserPhotoUrl,
+  });
 
   final List<RankingEntry> entries;
+  final String? currentUserId;
+  final String? currentUserPhotoUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +56,12 @@ class FinalStandingsList extends StatelessWidget {
                     height: 1,
                     color: colorScheme.outlineVariant.withValues(alpha: 0.6),
                   ),
-                _FinalStandingRow(entry: entries[index]),
+                _FinalStandingRow(
+                  entry: entries[index],
+                  photoURL: entries[index].player.userId == currentUserId
+                      ? currentUserPhotoUrl
+                      : null,
+                ),
               ],
             ],
           ),
@@ -60,9 +72,10 @@ class FinalStandingsList extends StatelessWidget {
 }
 
 class _FinalStandingRow extends StatelessWidget {
-  const _FinalStandingRow({required this.entry});
+  const _FinalStandingRow({required this.entry, this.photoURL});
 
   final RankingEntry entry;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +107,7 @@ class _FinalStandingRow extends StatelessWidget {
                   PlayerInitialAvatar(
                     name: player.displayName,
                     colorIndex: player.seatOrder,
+                    photoURL: photoURL,
                     radius: 14,
                   ),
                   const SizedBox(width: 8),

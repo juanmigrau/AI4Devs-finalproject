@@ -3,9 +3,10 @@ import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/features/round/domain/entities/ranking_entry.dart';
 
 class WinnerCard extends StatelessWidget {
-  const WinnerCard({super.key, required this.entry});
+  const WinnerCard({super.key, required this.entry, this.photoURL});
 
   final RankingEntry entry;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +27,7 @@ class WinnerCard extends StatelessWidget {
           PlayerInitialAvatar(
             name: player.displayName,
             colorIndex: player.seatOrder,
+            photoURL: photoURL,
             radius: 28,
           ),
           const SizedBox(width: 12),

@@ -21,6 +21,7 @@ class ScoringPlayerRow extends StatelessWidget {
     this.onTrickChanged,
     this.onTrickConfirmed,
     this.onActivateEdit,
+    this.photoURL,
   });
 
   final PlayerEmbed player;
@@ -35,6 +36,7 @@ class ScoringPlayerRow extends StatelessWidget {
   final ValueChanged<int>? onTrickChanged;
   final VoidCallback? onTrickConfirmed;
   final VoidCallback? onActivateEdit;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +61,7 @@ class ScoringPlayerRow extends StatelessWidget {
               PlayerInitialAvatar(
                 name: player.displayName,
                 colorIndex: index,
+                photoURL: photoURL,
                 radius: 16,
               ),
               const SizedBox(width: 12),
@@ -116,10 +119,7 @@ class ScoringPlayerRow extends StatelessWidget {
     );
 
     if (status == ScoringPlayerRowStatus.completed && onActivateEdit != null) {
-      return InkWell(
-        onTap: onActivateEdit,
-        child: row,
-      );
+      return InkWell(onTap: onActivateEdit, child: row);
     }
 
     return row;

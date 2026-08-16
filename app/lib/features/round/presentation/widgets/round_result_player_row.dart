@@ -3,20 +3,17 @@ import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/features/round/domain/entities/ranking_entry.dart';
 
 class RoundResultPlayerRow extends StatelessWidget {
-  const RoundResultPlayerRow({
-    super.key,
-    required this.entry,
-  });
+  const RoundResultPlayerRow({super.key, required this.entry, this.photoURL});
 
   final RankingEntry entry;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final roundScore = entry.roundScore;
-    final roundScoreLabel =
-        '${roundScore >= 0 ? '+' : ''}$roundScore';
+    final roundScoreLabel = '${roundScore >= 0 ? '+' : ''}$roundScore';
     final positionDelta = entry.positionDelta;
 
     return SizedBox(
@@ -32,6 +29,7 @@ class RoundResultPlayerRow extends StatelessWidget {
                   PlayerInitialAvatar(
                     name: entry.player.displayName,
                     colorIndex: entry.player.seatOrder,
+                    photoURL: photoURL,
                     radius: 14,
                   ),
                   const SizedBox(width: 8),
@@ -97,10 +95,7 @@ class _InlinePositionChange extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: color, size: 12),
-        Text(
-          label,
-          style: textTheme.labelSmall?.copyWith(color: color),
-        ),
+        Text(label, style: textTheme.labelSmall?.copyWith(color: color)),
       ],
     );
   }

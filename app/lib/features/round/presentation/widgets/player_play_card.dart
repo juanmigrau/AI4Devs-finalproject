@@ -9,12 +9,14 @@ class PlayerPlayCard extends StatelessWidget {
     required this.index,
     required this.bid,
     required this.isDealer,
+    this.photoURL,
   });
 
   final PlayerEmbed player;
   final int index;
   final int bid;
   final bool isDealer;
+  final String? photoURL;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +36,7 @@ class PlayerPlayCard extends StatelessWidget {
                   PlayerInitialAvatar(
                     name: player.displayName,
                     colorIndex: index,
+                    photoURL: photoURL,
                     radius: 16,
                   ),
                   const SizedBox(width: 8),
@@ -46,11 +49,7 @@ class PlayerPlayCard extends StatelessWidget {
                   ),
                   if (isDealer) ...[
                     const SizedBox(width: 4),
-                    Icon(
-                      Icons.style,
-                      color: colorScheme.primary,
-                      size: 16,
-                    ),
+                    Icon(Icons.style, color: colorScheme.primary, size: 16),
                   ],
                 ],
               ),
@@ -70,8 +69,7 @@ class PlayerPlayCard extends StatelessWidget {
               ),
             ),
             Semantics(
-              label:
-                  '${player.displayName} tiene ${player.totalScore} puntos',
+              label: '${player.displayName} tiene ${player.totalScore} puntos',
               child: SizedBox(
                 width: 52,
                 child: Text(

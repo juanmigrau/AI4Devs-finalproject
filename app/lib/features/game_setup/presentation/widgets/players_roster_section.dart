@@ -11,6 +11,7 @@ class PlayersRosterSection extends StatelessWidget {
     required this.isLoading,
     required this.isFavoritePlayer,
     this.currentUserId,
+    this.currentUserPhotoUrl,
     this.onEmptySlotEditActivated,
     this.onPlayerEditActivated,
     this.onEditCancelled,
@@ -26,6 +27,7 @@ class PlayersRosterSection extends StatelessWidget {
   final bool isLoading;
   final bool Function(PlayerEmbed player) isFavoritePlayer;
   final String? currentUserId;
+  final String? currentUserPhotoUrl;
   final ValueChanged<int>? onEmptySlotEditActivated;
   final ValueChanged<String>? onPlayerEditActivated;
   final VoidCallback? onEditCancelled;
@@ -66,6 +68,9 @@ class PlayersRosterSection extends StatelessWidget {
                 isFavorite: player != null && isFavoritePlayer(player),
                 showFavoriteButton: showFavoriteButton,
                 isBusy: isLoading,
+                photoURL: player != null && player.userId == currentUserId
+                    ? currentUserPhotoUrl
+                    : null,
                 onActivateEdit: () {
                   if (player != null) {
                     onPlayerEditActivated?.call(player.id);
@@ -84,8 +89,9 @@ class PlayersRosterSection extends StatelessWidget {
                 onToggleFavorite: player == null || !showFavoriteButton
                     ? null
                     : () => onFavoriteToggle?.call(player.id),
-                onRemove:
-                    player == null ? null : () => onRemovePlayer?.call(player.id),
+                onRemove: player == null
+                    ? null
+                    : () => onRemovePlayer?.call(player.id),
               );
 
               if (index == playerCount - 1) {

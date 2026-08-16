@@ -66,14 +66,23 @@ class _HomeViewState extends State<_HomeView> {
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     final isAuthenticated = state is Authenticated;
+                    final photoURL = isAuthenticated
+                        ? state.user.photoUrl
+                        : null;
                     return IconButton(
                       onPressed: () => context.push(
                         isAuthenticated ? '/profile' : '/auth/sign-in',
                       ),
-                      icon: const Icon(
-                        Icons.account_circle_outlined,
-                        color: Colors.white,
-                      ),
+                      icon: photoURL != null && photoURL.isNotEmpty
+                          ? CircleAvatar(
+                              radius: 16,
+                              backgroundImage: NetworkImage(photoURL),
+                              onBackgroundImageError: (_, _) {},
+                            )
+                          : const Icon(
+                              Icons.account_circle_outlined,
+                              color: Colors.white,
+                            ),
                       tooltip: 'Mi cuenta',
                     );
                   },
