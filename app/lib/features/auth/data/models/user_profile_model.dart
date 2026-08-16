@@ -58,6 +58,7 @@ class UserProfileModel {
     return {
       'displayName': displayName,
       'email': email,
+      'searchName': displayName.toLowerCase(),
       if (photoUrl != null) 'photoUrl': photoUrl,
       if (isCreate) 'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),

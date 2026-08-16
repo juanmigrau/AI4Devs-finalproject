@@ -74,7 +74,8 @@ Perfil de aplicación vinculado a **Firebase Authentication**. Se recomienda `us
 |-------|------|-------------|-------------|
 | `displayName` | string | sí *(TBD longitud)* | Nombre visible en partidas |
 | `email` | string | sí | Copia o reflejo del email de Auth *(solo lectura desde Auth si se prefiere)* |
-| `photoUrl` | string | no | URL de avatar |
+| `photoUrl` | string | no | URL de avatar (p. ej. foto de Google) |
+| `searchName` | string | sí | `displayName` en minúsculas para búsquedas case-insensitive |
 | `createdAt` | timestamp | sí | Alta del perfil |
 | `updatedAt` | timestamp | sí | Última modificación |
 | `lastSeenAt` | timestamp | no | Presencia / actividad *(TBD)* |

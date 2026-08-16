@@ -49,6 +49,7 @@ class UserFirestoreDatasource {
     await _users.doc(uid).set(
       {
         'displayName': displayName,
+        'searchName': displayName.toLowerCase(),
         'updatedAt': FieldValue.serverTimestamp(),
       },
       SetOptions(merge: true),

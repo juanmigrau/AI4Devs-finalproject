@@ -82,6 +82,39 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<UserProfile?> signInWithGoogle() async {
+    try {
+      final credential = await _authDatasource.signInWithGoogle();
+      if (credential == null) {
+        return null;
+      }
+
+      final user = credential.user;
+      if (user == null) {
+        throw const UnknownAuthFailure();
+      }
+
+      final email = user.email ?? '';
+      final displayName =
+          user.displayName ?? (email.isNotEmpty ? email : 'Usuario');
+
+      final existing = await _userDatasource.getProfile(user.uid);
+      final profile = await _userDatasource.upsertProfile(
+        uid: user.uid,
+        displayName: displayName,
+        email: email,
+        photoUrl: user.photoURL,
+        isCreate: existing == null,
+      );
+      return profile.toEntity();
+    } on AuthFailure {
+      rethrow;
+    } catch (_) {
+      throw const UnknownAuthFailure();
+    }
+  }
+
+  @override
   Future<void> signOut() => _authDatasource.signOut();
 
   @override
@@ -145,6 +178,7 @@ class AuthRepositoryImpl implements AuthRepository {
       uid: uid,
       displayName: user.displayName as String? ?? email.split('@').first,
       email: email,
+      photoUrl: user.photoURL as String?,
       isCreate: true,
     );
     return created.toEntity();

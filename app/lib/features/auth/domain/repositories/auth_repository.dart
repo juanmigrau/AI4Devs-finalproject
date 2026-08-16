@@ -14,6 +14,9 @@ abstract class AuthRepository {
     required String password,
   });
 
+  /// Returns `null` when the user cancels the Google account picker.
+  Future<UserProfile?> signInWithGoogle();
+
   Future<void> signOut();
 
   Future<void> sendPasswordReset({required String email});

@@ -5,6 +5,7 @@ import 'package:la_pocha/features/auth/domain/failures/auth_failure.dart'
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart';
 import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:la_pocha/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
@@ -18,6 +19,7 @@ import 'auth_bloc_test.mocks.dart';
   MockSpec<AuthRepository>(),
   MockSpec<SignInUseCase>(),
   MockSpec<SignUpUseCase>(),
+  MockSpec<SignInWithGoogleUseCase>(),
   MockSpec<SignOutUseCase>(),
   MockSpec<SendPasswordResetUseCase>(),
 ])
@@ -25,6 +27,7 @@ void main() {
   late MockAuthRepository authRepository;
   late MockSignInUseCase signIn;
   late MockSignUpUseCase signUp;
+  late MockSignInWithGoogleUseCase signInWithGoogle;
   late MockSignOutUseCase signOut;
   late MockSendPasswordResetUseCase sendPasswordReset;
 
@@ -36,10 +39,20 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
+  final googleProfile = UserProfile(
+    uid: 'uid-google',
+    displayName: 'Ana Google',
+    email: 'ana@gmail.com',
+    photoUrl: 'https://example.com/photo.jpg',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+
   AuthBloc buildBloc() => AuthBloc(
         authRepository: authRepository,
         signIn: signIn,
         signUp: signUp,
+        signInWithGoogle: signInWithGoogle,
         signOut: signOut,
         sendPasswordReset: sendPasswordReset,
       );
@@ -48,6 +61,7 @@ void main() {
     authRepository = MockAuthRepository();
     signIn = MockSignInUseCase();
     signUp = MockSignUpUseCase();
+    signInWithGoogle = MockSignInWithGoogleUseCase();
     signOut = MockSignOutUseCase();
     sendPasswordReset = MockSendPasswordResetUseCase();
     when(authRepository.authStateChanges).thenAnswer((_) => const Stream.empty());
@@ -114,6 +128,46 @@ void main() {
     expect: () => [
       const AuthLoading(),
       Authenticated(profile),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits Authenticated when Google sign in succeeds',
+    build: buildBloc,
+    setUp: () {
+      when(signInWithGoogle()).thenAnswer((_) async => googleProfile);
+    },
+    act: (bloc) => bloc.add(const GoogleSignInSubmitted()),
+    expect: () => [
+      const AuthLoading(),
+      Authenticated(googleProfile),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits Unauthenticated without failure when Google sign in is cancelled',
+    build: buildBloc,
+    setUp: () {
+      when(signInWithGoogle()).thenAnswer((_) async => null);
+    },
+    act: (bloc) => bloc.add(const GoogleSignInSubmitted()),
+    expect: () => [
+      const AuthLoading(),
+      const Unauthenticated(),
+    ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'emits AuthFailure then Unauthenticated when Google sign in fails',
+    build: buildBloc,
+    setUp: () {
+      when(signInWithGoogle()).thenThrow(const domain.NetworkUnavailableFailure());
+    },
+    act: (bloc) => bloc.add(const GoogleSignInSubmitted()),
+    expect: () => [
+      const AuthLoading(),
+      const AuthFailure(message: 'Comprueba tu conexión e inténtalo de nuevo.'),
+      const Unauthenticated(),
     ],
   );
 

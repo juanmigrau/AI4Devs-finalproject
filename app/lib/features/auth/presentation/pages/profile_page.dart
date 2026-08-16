@@ -204,6 +204,7 @@ class _ProfileHeader extends StatelessWidget {
         PlayerInitialAvatar(
           name: user.displayName,
           colorIndex: 0,
+          photoUrl: user.photoUrl,
           radius: 28,
         ),
         const SizedBox(width: 16),

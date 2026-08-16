@@ -7,6 +7,7 @@ import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:la_pocha/features/auth/presentation/widgets/google_sign_in_button.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -163,6 +164,13 @@ class _SignUpPageState extends State<SignUpPage> {
                                         label: 'Crear cuenta',
                                         isLoading: isLoading,
                                         onPressed: _submit,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      GoogleSignInButton(
+                                        isLoading: isLoading,
+                                        onPressed: () => context
+                                            .read<AuthBloc>()
+                                            .add(const GoogleSignInSubmitted()),
                                       ),
                                       const SizedBox(height: 16),
                                       Row(

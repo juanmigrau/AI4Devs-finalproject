@@ -43,6 +43,10 @@ final class SignOutRequested extends AuthEvent {
   const SignOutRequested();
 }
 
+final class GoogleSignInSubmitted extends AuthEvent {
+  const GoogleSignInSubmitted();
+}
+
 final class PasswordResetRequested extends AuthEvent {
   const PasswordResetRequested({required this.email});
 

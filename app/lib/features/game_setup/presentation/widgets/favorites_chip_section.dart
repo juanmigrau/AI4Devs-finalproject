@@ -47,11 +47,15 @@ class FavoritesChipSection extends StatelessWidget {
               if (user != null)
                 FilterChip(
                   key: const Key('currentUserFavoriteChip'),
-                  avatar: Icon(
-                    Icons.account_circle,
-                    color: colors.primary,
-                    size: 18,
-                  ),
+                  avatar: user.photoUrl != null && user.photoUrl!.isNotEmpty
+                      ? CircleAvatar(
+                          backgroundImage: NetworkImage(user.photoUrl!),
+                        )
+                      : Icon(
+                          Icons.account_circle,
+                          color: colors.primary,
+                          size: 18,
+                        ),
                   label: Text(
                     user.displayName,
                     style: textTheme.bodySmall?.copyWith(

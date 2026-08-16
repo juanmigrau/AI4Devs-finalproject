@@ -7,6 +7,7 @@ import 'package:la_pocha/features/auth/domain/failures/auth_failure.dart' as dom
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart';
 import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:la_pocha/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart';
 
@@ -18,12 +19,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this._authRepository,
     required this._signIn,
     required this._signUp,
+    required this._signInWithGoogle,
     required this._signOut,
     required this._sendPasswordReset,
   }) : super(const AuthInitial()) {
     on<AuthStarted>(_onStarted);
     on<SignInSubmitted>(_onSignInSubmitted);
     on<SignUpSubmitted>(_onSignUpSubmitted);
+    on<GoogleSignInSubmitted>(_onGoogleSignInSubmitted);
     on<SignOutRequested>(_onSignOutRequested);
     on<PasswordResetRequested>(_onPasswordResetRequested);
     on<AuthProfileUpdated>(_onAuthProfileUpdated);
@@ -33,6 +36,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
   final SignInUseCase _signIn;
   final SignUpUseCase _signUp;
+  final SignInWithGoogleUseCase _signInWithGoogle;
   final SignOutUseCase _signOut;
   final SendPasswordResetUseCase _sendPasswordReset;
   StreamSubscription<UserProfile?>? _authSubscription;
@@ -83,6 +87,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
         displayName: event.displayName,
       );
+      emit(Authenticated(user));
+    } on domain.AuthFailure catch (error) {
+      emit(AuthFailure(message: error.message));
+      emit(const Unauthenticated());
+    }
+  }
+
+  Future<void> _onGoogleSignInSubmitted(
+    GoogleSignInSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    try {
+      final user = await _signInWithGoogle();
+      if (user == null) {
+        emit(const Unauthenticated());
+        return;
+      }
       emit(Authenticated(user));
     } on domain.AuthFailure catch (error) {
       emit(AuthFailure(message: error.message));

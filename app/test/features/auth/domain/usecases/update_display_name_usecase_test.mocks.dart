@@ -111,6 +111,15 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
           as _i4.Future<_i2.UserProfile>);
 
   @override
+  _i4.Future<_i2.UserProfile?> signInWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#signInWithGoogle, []),
+            returnValue: _i4.Future<_i2.UserProfile?>.value(),
+            returnValueForMissingStub: _i4.Future<_i2.UserProfile?>.value(),
+          )
+          as _i4.Future<_i2.UserProfile?>);
+
+  @override
   _i4.Future<void> signOut() =>
       (super.noSuchMethod(
             Invocation.method(#signOut, []),

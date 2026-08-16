@@ -1,10 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:la_pocha/features/auth/domain/failures/auth_failure.dart';
 
+/// Web OAuth client ID from `google-services.json` (client_type 3).
+/// Required on Android so Google Sign-In returns a non-null `idToken`.
+const String kGoogleSignInServerClientId =
+    '969753324327-gb200bg1vqv5vskiddp2t2qm17s5ak0i.apps.googleusercontent.com';
+
 class AuthFirebaseDatasource {
-  AuthFirebaseDatasource(this._auth);
+  AuthFirebaseDatasource(
+    this._auth, {
+    GoogleSignIn? googleSignIn,
+  }) : _googleSignIn = googleSignIn ??
+            GoogleSignIn(
+              serverClientId: kGoogleSignInServerClientId,
+            );
 
   final FirebaseAuth _auth;
+  final GoogleSignIn _googleSignIn;
 
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
@@ -34,8 +47,30 @@ class AuthFirebaseDatasource {
     );
   }
 
+  /// Returns `null` when the user cancels the Google account picker.
+  Future<UserCredential?> signInWithGoogle() {
+    return _wrapAuthCall(() async {
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        return null;
+      }
+
+      final googleAuth = await account.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      return _auth.signInWithCredential(credential);
+    });
+  }
+
   Future<void> signOut() {
-    return _wrapAuthCall(_auth.signOut);
+    return _wrapAuthCall(() async {
+      await Future.wait<void>([
+        _auth.signOut(),
+        _googleSignIn.signOut(),
+      ]);
+    });
   }
 
   Future<void> sendPasswordResetEmail(String email) {

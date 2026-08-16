@@ -10,13 +10,15 @@ import 'package:la_pocha/features/auth/domain/entities/user_profile.dart'
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart'
     as _i3;
 import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart'
-    as _i8;
+    as _i9;
 import 'package:la_pocha/features/auth/domain/usecases/sign_in_usecase.dart'
     as _i5;
-import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart'
-    as _i7;
-import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart'
+import 'package:la_pocha/features/auth/domain/usecases/sign_in_with_google_usecase.dart'
     as _i6;
+import 'package:la_pocha/features/auth/domain/usecases/sign_out_usecase.dart'
+    as _i8;
+import 'package:la_pocha/features/auth/domain/usecases/sign_up_usecase.dart'
+    as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -119,6 +121,15 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
           as _i4.Future<_i2.UserProfile>);
 
   @override
+  _i4.Future<_i2.UserProfile?> signInWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#signInWithGoogle, []),
+            returnValue: _i4.Future<_i2.UserProfile?>.value(),
+            returnValueForMissingStub: _i4.Future<_i2.UserProfile?>.value(),
+          )
+          as _i4.Future<_i2.UserProfile?>);
+
+  @override
   _i4.Future<void> signOut() =>
       (super.noSuchMethod(
             Invocation.method(#signOut, []),
@@ -201,7 +212,7 @@ class MockSignInUseCase extends _i1.Mock implements _i5.SignInUseCase {
 /// A class which mocks [SignUpUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSignUpUseCase extends _i1.Mock implements _i6.SignUpUseCase {
+class MockSignUpUseCase extends _i1.Mock implements _i7.SignUpUseCase {
   @override
   _i4.Future<_i2.UserProfile> call({
     required String? email,
@@ -238,10 +249,25 @@ class MockSignUpUseCase extends _i1.Mock implements _i6.SignUpUseCase {
           as _i4.Future<_i2.UserProfile>);
 }
 
+/// A class which mocks [SignInWithGoogleUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSignInWithGoogleUseCase extends _i1.Mock
+    implements _i6.SignInWithGoogleUseCase {
+  @override
+  _i4.Future<_i2.UserProfile?> call() =>
+      (super.noSuchMethod(
+            Invocation.method(#call, []),
+            returnValue: _i4.Future<_i2.UserProfile?>.value(),
+            returnValueForMissingStub: _i4.Future<_i2.UserProfile?>.value(),
+          )
+          as _i4.Future<_i2.UserProfile?>);
+}
+
 /// A class which mocks [SignOutUseCase].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSignOutUseCase extends _i1.Mock implements _i7.SignOutUseCase {
+class MockSignOutUseCase extends _i1.Mock implements _i8.SignOutUseCase {
   @override
   _i4.Future<void> call() =>
       (super.noSuchMethod(
@@ -256,7 +282,7 @@ class MockSignOutUseCase extends _i1.Mock implements _i7.SignOutUseCase {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSendPasswordResetUseCase extends _i1.Mock
-    implements _i8.SendPasswordResetUseCase {
+    implements _i9.SendPasswordResetUseCase {
   @override
   _i4.Future<void> call({required String? email}) =>
       (super.noSuchMethod(
