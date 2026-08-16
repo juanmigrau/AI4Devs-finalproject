@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +26,33 @@ class CreateGamePage extends StatelessWidget {
 class _CreateGameView extends StatelessWidget {
   const _CreateGameView();
 
+  // #region agent log
+  void _debugLogBack(BuildContext context) {
+    final router = GoRouter.of(context);
+    final canPop = router.canPop();
+    final location = GoRouterState.of(context).matchedLocation;
+    final payload = <String, Object?>{
+      'sessionId': '95520e',
+      'runId': 'post-fix',
+      'hypothesisId': 'A',
+      'location': 'create_game_page.dart:onBack',
+      'message': 'Back pressed on CreateGamePage',
+      'data': {
+        'canPop': canPop,
+        'matchedLocation': location,
+        'action': "context.go('/')",
+      },
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
+    try {
+      File(
+        r'c:\src\AI4Devs-finalproject\debug-95520e.log',
+      ).writeAsStringSync('${jsonEncode(payload)}\n', mode: FileMode.append);
+    } catch (_) {}
+    context.go('/');
+  }
+  // #endregion
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<CreateGameBloc, CreateGameState>(
@@ -38,7 +68,7 @@ class _CreateGameView extends StatelessWidget {
             children: [
               PochaAppBar(
                 title: 'Nueva partida',
-                onBack: () => context.pop(),
+                onBack: () => _debugLogBack(context),
               ),
               Expanded(
                 child: BlocBuilder<CreateGameBloc, CreateGameState>(
