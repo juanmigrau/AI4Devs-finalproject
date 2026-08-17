@@ -72,10 +72,9 @@ class UserFirestoreDatasource {
       updatedAt: DateTime.now(),
     );
 
-    await _users.doc(uid).set(
-          model.toFirestore(isCreate: isCreate),
-          SetOptions(merge: true),
-        );
+    await _users
+        .doc(uid)
+        .set(model.toFirestore(isCreate: isCreate), SetOptions(merge: true));
 
     final saved = await getProfile(uid);
     return saved ?? model;
@@ -85,14 +84,11 @@ class UserFirestoreDatasource {
     required String uid,
     required String displayName,
   }) async {
-    await _users.doc(uid).set(
-      {
-        'displayName': displayName,
-        'searchName': displayName.toLowerCase(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _users.doc(uid).set({
+      'displayName': displayName,
+      'searchName': displayName.toLowerCase(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     final saved = await getProfile(uid);
     if (saved == null) {
@@ -105,13 +101,10 @@ class UserFirestoreDatasource {
     required String uid,
     required String email,
   }) async {
-    await _users.doc(uid).set(
-      {
-        'email': email,
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    await _users.doc(uid).set({
+      'email': email,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     final saved = await getProfile(uid);
     if (saved != null) {
@@ -125,5 +118,9 @@ class UserFirestoreDatasource {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
+  }
+
+  Future<void> deleteProfile(String uid) {
+    return _users.doc(uid).delete();
   }
 }

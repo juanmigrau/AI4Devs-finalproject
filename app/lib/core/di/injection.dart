@@ -86,6 +86,7 @@ import 'package:la_pocha/features/auth/data/datasources/auth_firebase_datasource
 import 'package:la_pocha/features/auth/data/datasources/user_firestore_datasource.dart';
 import 'package:la_pocha/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:la_pocha/features/auth/domain/repositories/auth_repository.dart';
+import 'package:la_pocha/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_player_stats_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/send_password_reset_usecase.dart';
@@ -162,6 +163,14 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<UpdateDisplayNameUseCase>(
     () => UpdateDisplayNameUseCase(getIt<AuthRepository>()),
+  );
+
+  getIt.registerLazySingleton<DeleteAccountUseCase>(
+    () => DeleteAccountUseCase(
+      authRepository: getIt<AuthRepository>(),
+      favoriteRepository: getIt<FavoriteRepository>(),
+      historyRepository: getIt<HistoryRepository>(),
+    ),
   );
 
   getIt.registerLazySingleton<GameFirestoreDatasource>(
@@ -346,6 +355,7 @@ Future<void> configureDependencies() async {
       getCurrentUser: getIt<GetCurrentUserUseCase>(),
       getPlayerStats: getIt<GetPlayerStatsUseCase>(),
       updateDisplayName: getIt<UpdateDisplayNameUseCase>(),
+      deleteAccount: getIt<DeleteAccountUseCase>(),
     ),
   );
 

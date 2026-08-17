@@ -37,16 +37,10 @@ void main() {
   });
 
   test('addFavorite rejects duplicate userId', () async {
-    await repository.addFavorite(
-      displayName: 'Ana',
-      userId: 'user-1',
-    );
+    await repository.addFavorite(displayName: 'Ana', userId: 'user-1');
 
     expect(
-      () => repository.addFavorite(
-        displayName: 'Ana García',
-        userId: 'user-1',
-      ),
+      () => repository.addFavorite(displayName: 'Ana García', userId: 'user-1'),
       throwsA(
         isA<ArgumentError>().having(
           (error) => error.message,
@@ -57,18 +51,30 @@ void main() {
     );
   });
 
-  test('addFavorite rejects duplicate displayName case-insensitively', () async {
-    await repository.addFavorite(displayName: 'Ana');
+  test(
+    'addFavorite rejects duplicate displayName case-insensitively',
+    () async {
+      await repository.addFavorite(displayName: 'Ana');
 
-    expect(
-      () => repository.addFavorite(displayName: '  ana  '),
-      throwsA(
-        isA<ArgumentError>().having(
-          (error) => error.message,
-          'message',
-          contains('display name already exists'),
+      expect(
+        () => repository.addFavorite(displayName: '  ana  '),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('display name already exists'),
+          ),
         ),
-      ),
-    );
+      );
+    },
+  );
+
+  test('clearAll removes all favorites', () async {
+    await repository.addFavorite(displayName: 'Ana');
+    await repository.addFavorite(displayName: 'Luis');
+
+    await repository.clearAll();
+
+    expect(await repository.getFavorites(), isEmpty);
   });
 }

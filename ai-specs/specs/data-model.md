@@ -293,7 +293,7 @@ Definir en `firestore.indexes.json` según consultas reales. Candidatos:
 
 Alinear `firestore.rules` con:
 
-- `users/{userId}`: lectura autenticada; escritura solo si `request.auth.uid == userId`.
+- `users/{userId}`: lectura autenticada; escritura solo si `request.auth.uid == userId`; el propietario puede eliminar su documento.
 - `games/{gameId}`: lectura para participantes *(TBD: claim o membership en `players`)*; escritura según `hostId` y `status`.
 - `players`, `rounds`: acceso limitado a miembros de la misma `gameId`.
 

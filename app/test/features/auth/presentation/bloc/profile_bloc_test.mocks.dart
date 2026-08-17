@@ -9,6 +9,8 @@ import 'package:la_pocha/features/auth/domain/entities/player_stats.dart'
     as _i2;
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart'
     as _i3;
+import 'package:la_pocha/features/auth/domain/usecases/delete_account_usecase.dart'
+    as _i8;
 import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart'
     as _i4;
 import 'package:la_pocha/features/auth/domain/usecases/get_player_stats_usecase.dart'
@@ -99,4 +101,19 @@ class MockUpdateDisplayNameUseCase extends _i1.Mock
             ),
           )
           as _i5.Future<_i3.UserProfile>);
+}
+
+/// A class which mocks [DeleteAccountUseCase].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockDeleteAccountUseCase extends _i1.Mock
+    implements _i8.DeleteAccountUseCase {
+  @override
+  _i5.Future<void> call({String? password}) =>
+      (super.noSuchMethod(
+            Invocation.method(#call, [], {#password: password}),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 }

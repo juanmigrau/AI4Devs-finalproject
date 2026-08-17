@@ -9,4 +9,6 @@ abstract class FavoriteRepository {
   });
 
   Future<void> removeFavorite(String id);
+
+  Future<void> clearAll();
 }

@@ -316,4 +316,12 @@ void main() {
       verifyNever(localDatasource.loadFinishedGameDetail(any));
     });
   });
+
+  test('clearHiddenGames clears local hidden games', () async {
+    when(hiddenGamesDatasource.clearAll()).thenAnswer((_) async {});
+
+    await repository.clearHiddenGames();
+
+    verify(hiddenGamesDatasource.clearAll()).called(1);
+  });
 }

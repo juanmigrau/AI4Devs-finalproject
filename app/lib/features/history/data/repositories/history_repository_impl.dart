@@ -56,7 +56,9 @@ class HistoryRepositoryImpl implements HistoryRepository {
 
   @override
   Stream<GameHistoryLoadResult> watchGameHistory() {
-    return _localDatasource.watchFinishedGames().asyncMap((_) => getGameHistory());
+    return _localDatasource.watchFinishedGames().asyncMap(
+      (_) => getGameHistory(),
+    );
   }
 
   @override
@@ -88,6 +90,9 @@ class HistoryRepositoryImpl implements HistoryRepository {
   Future<void> hideCloudGame(String gameId) async {
     await _hiddenGamesDatasource.hideGame(gameId);
   }
+
+  @override
+  Future<void> clearHiddenGames() => _hiddenGamesDatasource.clearAll();
 
   List<GameHistoryItem> _filterHiddenItems(
     List<GameHistoryItem> items,

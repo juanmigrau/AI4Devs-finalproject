@@ -164,4 +164,13 @@ class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
             ),
           )
           as _i4.Future<_i2.UserProfile>);
+
+  @override
+  _i4.Future<void> deleteAccount({String? password}) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteAccount, [], {#password: password}),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }

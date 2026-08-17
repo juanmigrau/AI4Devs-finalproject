@@ -10,6 +10,7 @@ import 'package:la_pocha/features/auth/domain/entities/player_stats.dart';
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/profile_bloc.dart';
+import 'package:la_pocha/features/auth/presentation/widgets/reauth_password_dialog.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -87,6 +88,48 @@ class _ProfileViewState extends State<_ProfileView> {
     }
   }
 
+  Future<void> _confirmDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('¿Eliminar tu cuenta?'),
+          content: const Text(
+            'Esta acción es irreversible. Se eliminarán tus datos de usuario. '
+            'Las partidas guardadas en la nube permanecerán accesibles para '
+            'los demás participantes.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(dialogContext).colorScheme.error,
+              ),
+              child: const Text('Eliminar cuenta'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && mounted) {
+      context.read<ProfileBloc>().add(const DeleteAccountRequested());
+    }
+  }
+
+  Future<void> _promptReauthPassword() async {
+    final password = await showReauthPasswordDialog(context);
+    if (password != null && password.isNotEmpty && mounted) {
+      context.read<ProfileBloc>().add(
+        DeleteAccountRequested(password: password),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -110,6 +153,15 @@ class _ProfileViewState extends State<_ProfileView> {
               context.read<AuthBloc>().add(AuthProfileUpdated(state.user));
               SnackBarHelper.showSuccess('Nombre actualizado correctamente');
             }
+            if (state is AccountDeleteFailure) {
+              SnackBarHelper.showError(state.message);
+            }
+            if (state is AccountReauthRequired) {
+              _promptReauthPassword();
+            }
+            if (state is AccountDeleted) {
+              context.go('/');
+            }
           },
         ),
       ],
@@ -122,7 +174,10 @@ class _ProfileViewState extends State<_ProfileView> {
               Expanded(
                 child: BlocBuilder<ProfileBloc, ProfileState>(
                   builder: (context, state) {
-                    if (state is ProfileLoading || state is ProfileInitial) {
+                    if (state is ProfileLoading ||
+                        state is ProfileInitial ||
+                        state is AccountDeleting ||
+                        state is AccountDeleted) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
@@ -162,6 +217,18 @@ class _ProfileViewState extends State<_ProfileView> {
                                 color: Theme.of(context).colorScheme.error,
                               ),
                               minimumSize: const Size.fromHeight(48),
+                            ),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
+                            ),
+                            onPressed: _confirmDeleteAccount,
+                            child: Text(
+                              'Eliminar cuenta',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ),
                         ],

@@ -8,23 +8,21 @@ sealed class AuthFailure implements Exception {
 }
 
 final class EmailAlreadyInUseFailure extends AuthFailure {
-  const EmailAlreadyInUseFailure()
-      : super('Este email ya está registrado');
+  const EmailAlreadyInUseFailure() : super('Este email ya está registrado');
 }
 
 final class InvalidCredentialsFailure extends AuthFailure {
-  const InvalidCredentialsFailure()
-      : super('Email o contraseña incorrectos');
+  const InvalidCredentialsFailure() : super('Email o contraseña incorrectos');
 }
 
 final class UserNotFoundFailure extends AuthFailure {
   const UserNotFoundFailure()
-      : super('No hay ninguna cuenta asociada a este email.');
+    : super('No hay ninguna cuenta asociada a este email.');
 }
 
 final class NetworkUnavailableFailure extends AuthFailure {
   const NetworkUnavailableFailure()
-      : super('Comprueba tu conexión e inténtalo de nuevo.');
+    : super('Comprueba tu conexión e inténtalo de nuevo.');
 }
 
 final class ValidationFailure extends AuthFailure {
@@ -33,4 +31,13 @@ final class ValidationFailure extends AuthFailure {
 
 final class UnknownAuthFailure extends AuthFailure {
   const UnknownAuthFailure([super.message = 'Ha ocurrido un error inesperado']);
+}
+
+final class RequiresRecentLoginFailure extends AuthFailure {
+  const RequiresRecentLoginFailure()
+    : super('Por seguridad, confirma tu identidad para continuar.');
+}
+
+final class ReauthCancelledFailure extends AuthFailure {
+  const ReauthCancelledFailure() : super('Reautenticación cancelada');
 }

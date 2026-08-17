@@ -4,6 +4,7 @@ import 'package:la_pocha/features/auth/domain/entities/player_stats.dart';
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
 import 'package:la_pocha/features/auth/domain/failures/auth_failure.dart'
     as domain;
+import 'package:la_pocha/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/get_player_stats_usecase.dart';
 import 'package:la_pocha/features/auth/domain/usecases/update_display_name_usecase.dart';
@@ -17,11 +18,13 @@ import 'profile_bloc_test.mocks.dart';
   MockSpec<GetCurrentUserUseCase>(),
   MockSpec<GetPlayerStatsUseCase>(),
   MockSpec<UpdateDisplayNameUseCase>(),
+  MockSpec<DeleteAccountUseCase>(),
 ])
 void main() {
   late MockGetCurrentUserUseCase getCurrentUser;
   late MockGetPlayerStatsUseCase getPlayerStats;
   late MockUpdateDisplayNameUseCase updateDisplayName;
+  late MockDeleteAccountUseCase deleteAccount;
 
   final profile = UserProfile(
     uid: 'uid-1',
@@ -45,15 +48,17 @@ void main() {
   );
 
   ProfileBloc buildBloc() => ProfileBloc(
-        getCurrentUser: getCurrentUser,
-        getPlayerStats: getPlayerStats,
-        updateDisplayName: updateDisplayName,
-      );
+    getCurrentUser: getCurrentUser,
+    getPlayerStats: getPlayerStats,
+    updateDisplayName: updateDisplayName,
+    deleteAccount: deleteAccount,
+  );
 
   setUp(() {
     getCurrentUser = MockGetCurrentUserUseCase();
     getPlayerStats = MockGetPlayerStatsUseCase();
     updateDisplayName = MockUpdateDisplayNameUseCase();
+    deleteAccount = MockDeleteAccountUseCase();
   });
 
   blocTest<ProfileBloc, ProfileState>(
@@ -74,11 +79,7 @@ void main() {
   blocTest<ProfileBloc, ProfileState>(
     'updates display name and emits displayNameUpdated flag',
     build: buildBloc,
-    seed: () => ProfileLoaded(
-      user: profile,
-      stats: stats,
-      statsLoading: false,
-    ),
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
     setUp: () {
       final updated = UserProfile(
         uid: profile.uid,
@@ -105,11 +106,7 @@ void main() {
           statsLoading: false,
           displayNameUpdated: true,
         ),
-        ProfileLoaded(
-          user: updated,
-          stats: stats,
-          statsLoading: false,
-        ),
+        ProfileLoaded(user: updated, stats: stats, statsLoading: false),
       ];
     },
   );
@@ -117,18 +114,96 @@ void main() {
   blocTest<ProfileBloc, ProfileState>(
     'emits failure then restores loaded state when update fails',
     build: buildBloc,
-    seed: () => ProfileLoaded(
-      user: profile,
-      stats: stats,
-      statsLoading: false,
-    ),
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
     setUp: () {
-      when(updateDisplayName('X'))
-          .thenThrow(const domain.ValidationFailure('El nombre es obligatorio'));
+      when(
+        updateDisplayName('X'),
+      ).thenThrow(const domain.ValidationFailure('El nombre es obligatorio'));
     },
     act: (bloc) => bloc.add(const ProfileDisplayNameSubmitted('X')),
     expect: () => [
       const ProfileFailure(message: 'El nombre es obligatorio'),
+      ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    ],
+  );
+
+  blocTest<ProfileBloc, ProfileState>(
+    'emits AccountDeleting then AccountDeleted when delete succeeds',
+    build: buildBloc,
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    setUp: () {
+      when(
+        deleteAccount(password: anyNamed('password')),
+      ).thenAnswer((_) async {});
+    },
+    act: (bloc) => bloc.add(const DeleteAccountRequested()),
+    expect: () => [const AccountDeleting(), const AccountDeleted()],
+  );
+
+  blocTest<ProfileBloc, ProfileState>(
+    'forwards password when deleting account',
+    build: buildBloc,
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    setUp: () {
+      when(
+        deleteAccount(password: anyNamed('password')),
+      ).thenAnswer((_) async {});
+    },
+    act: (bloc) => bloc.add(const DeleteAccountRequested(password: 'secret1')),
+    expect: () => [const AccountDeleting(), const AccountDeleted()],
+    verify: (_) {
+      verify(deleteAccount(password: 'secret1')).called(1);
+    },
+  );
+
+  blocTest<ProfileBloc, ProfileState>(
+    'emits AccountReauthRequired then restores loaded state',
+    build: buildBloc,
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    setUp: () {
+      when(
+        deleteAccount(password: anyNamed('password')),
+      ).thenThrow(const domain.RequiresRecentLoginFailure());
+    },
+    act: (bloc) => bloc.add(const DeleteAccountRequested()),
+    expect: () => [
+      const AccountDeleting(),
+      const AccountReauthRequired(),
+      ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    ],
+  );
+
+  blocTest<ProfileBloc, ProfileState>(
+    'emits AccountDeleteFailure then restores loaded state when delete fails',
+    build: buildBloc,
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    setUp: () {
+      when(
+        deleteAccount(password: anyNamed('password')),
+      ).thenThrow(const domain.NetworkUnavailableFailure());
+    },
+    act: (bloc) => bloc.add(const DeleteAccountRequested()),
+    expect: () => [
+      const AccountDeleting(),
+      const AccountDeleteFailure(
+        message: 'Comprueba tu conexión e inténtalo de nuevo.',
+      ),
+      ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    ],
+  );
+
+  blocTest<ProfileBloc, ProfileState>(
+    'restores loaded state without failure when reauth is cancelled',
+    build: buildBloc,
+    seed: () => ProfileLoaded(user: profile, stats: stats, statsLoading: false),
+    setUp: () {
+      when(
+        deleteAccount(password: anyNamed('password')),
+      ).thenThrow(const domain.ReauthCancelledFailure());
+    },
+    act: (bloc) => bloc.add(const DeleteAccountRequested()),
+    expect: () => [
+      const AccountDeleting(),
       ProfileLoaded(user: profile, stats: stats, statsLoading: false),
     ],
   );

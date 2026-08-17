@@ -187,6 +187,15 @@ class MockHiddenGamesLocalDatasource extends _i1.Mock
             returnValueForMissingStub: _i6.Future<bool>.value(false),
           )
           as _i6.Future<bool>);
+
+  @override
+  _i6.Future<void> clearAll() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearAll, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 }
 
 /// A class which mocks [GameRepository].

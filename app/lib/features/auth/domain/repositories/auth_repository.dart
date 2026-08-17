@@ -9,10 +9,7 @@ abstract class AuthRepository {
     required String displayName,
   });
 
-  Future<UserProfile> signIn({
-    required String email,
-    required String password,
-  });
+  Future<UserProfile> signIn({required String email, required String password});
 
   /// Returns `null` when the user cancels the Google account picker.
   Future<UserProfile?> signInWithGoogle();
@@ -24,4 +21,9 @@ abstract class AuthRepository {
   Future<UserProfile?> getCurrentUser();
 
   Future<UserProfile> updateDisplayName(String displayName);
+
+  /// Deletes the Firestore profile and the Firebase Auth user.
+  ///
+  /// [password] is required when email/password reauthentication is needed.
+  Future<void> deleteAccount({String? password});
 }

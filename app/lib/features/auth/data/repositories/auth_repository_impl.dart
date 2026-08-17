@@ -158,6 +158,23 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<void> deleteAccount({String? password}) async {
+    try {
+      final user = _authDatasource.currentUser;
+      if (user == null) {
+        throw const UnknownAuthFailure('No hay sesión activa.');
+      }
+
+      await _userDatasource.deleteProfile(user.uid);
+      await _authDatasource.deleteCurrentUser(password: password);
+    } on AuthFailure {
+      rethrow;
+    } catch (_) {
+      throw const UnknownAuthFailure();
+    }
+  }
+
   Future<UserProfile?> _resolveProfile(dynamic user) async {
     if (user == null) {
       return null;

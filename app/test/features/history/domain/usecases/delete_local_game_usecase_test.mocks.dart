@@ -177,6 +177,15 @@ class MockHistoryRepository extends _i1.Mock implements _i7.HistoryRepository {
             returnValueForMissingStub: _i8.Future<void>.value(),
           )
           as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> clearHiddenGames() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearHiddenGames, []),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
 }
 
 /// A class which mocks [GameRepository].

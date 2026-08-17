@@ -5,7 +5,8 @@ import 'package:la_pocha/features/favorites/domain/repositories/favorite_reposit
 import 'package:uuid/uuid.dart';
 
 class FavoriteRepositoryImpl implements FavoriteRepository {
-  FavoriteRepositoryImpl(this._datasource, {Uuid? uuid}) : _uuid = uuid ?? const Uuid();
+  FavoriteRepositoryImpl(this._datasource, {Uuid? uuid})
+    : _uuid = uuid ?? const Uuid();
 
   final FavoriteLocalDatasource _datasource;
   final Uuid _uuid;
@@ -23,13 +24,19 @@ class FavoriteRepositoryImpl implements FavoriteRepository {
   }) async {
     final trimmedName = displayName.trim();
     if (trimmedName.isEmpty) {
-      throw ArgumentError.value(displayName, 'displayName', 'Must not be empty');
+      throw ArgumentError.value(
+        displayName,
+        'displayName',
+        'Must not be empty',
+      );
     }
 
     final existing = await _datasource.getAll();
 
     if (userId != null) {
-      final duplicateUser = existing.any((favorite) => favorite.userId == userId);
+      final duplicateUser = existing.any(
+        (favorite) => favorite.userId == userId,
+      );
       if (duplicateUser) {
         throw ArgumentError.value(
           userId,
@@ -66,4 +73,7 @@ class FavoriteRepositoryImpl implements FavoriteRepository {
   Future<void> removeFavorite(String id) async {
     await _datasource.deleteById(id);
   }
+
+  @override
+  Future<void> clearAll() => _datasource.clearAll();
 }

@@ -8,7 +8,7 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() > 0;
-      allow delete: if false;
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
     match /games/{gameId} {

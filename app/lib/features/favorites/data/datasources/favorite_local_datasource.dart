@@ -8,9 +8,9 @@ class FavoriteLocalDatasource {
   final AppDatabase _database;
 
   Future<List<FavoritePlayerModel>> getAll() async {
-    final rows = await (_database.select(_database.favorites)
-          ..orderBy([(table) => OrderingTerm.asc(table.createdAt)]))
-        .get();
+    final rows = await (_database.select(
+      _database.favorites,
+    )..orderBy([(table) => OrderingTerm.asc(table.createdAt)])).get();
 
     return rows.map(FavoritePlayerModel.fromEntry).toList();
   }
@@ -20,8 +20,12 @@ class FavoriteLocalDatasource {
   }
 
   Future<void> deleteById(String id) async {
-    await (_database.delete(_database.favorites)
-          ..where((table) => table.id.equals(id)))
-        .go();
+    await (_database.delete(
+      _database.favorites,
+    )..where((table) => table.id.equals(id))).go();
+  }
+
+  Future<void> clearAll() async {
+    await _database.delete(_database.favorites).go();
   }
 }

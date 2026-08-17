@@ -22,31 +22,33 @@ void main() {
     expect(favorites, isEmpty);
   });
 
-  test('insert persists favorite and getAll returns it ordered by createdAt',
-      () async {
-    final earlier = FavoritePlayerModel(
-      id: 'fav-1',
-      displayName: 'Ana',
-      userId: null,
-      createdAt: DateTime(2026, 1, 1),
-    );
-    final later = FavoritePlayerModel(
-      id: 'fav-2',
-      displayName: 'Carlos',
-      userId: 'user-1',
-      createdAt: DateTime(2026, 2, 1),
-    );
+  test(
+    'insert persists favorite and getAll returns it ordered by createdAt',
+    () async {
+      final earlier = FavoritePlayerModel(
+        id: 'fav-1',
+        displayName: 'Ana',
+        userId: null,
+        createdAt: DateTime(2026, 1, 1),
+      );
+      final later = FavoritePlayerModel(
+        id: 'fav-2',
+        displayName: 'Carlos',
+        userId: 'user-1',
+        createdAt: DateTime(2026, 2, 1),
+      );
 
-    await datasource.insert(later);
-    await datasource.insert(earlier);
+      await datasource.insert(later);
+      await datasource.insert(earlier);
 
-    final favorites = await datasource.getAll();
+      final favorites = await datasource.getAll();
 
-    expect(favorites.length, 2);
-    expect(favorites.first.displayName, 'Ana');
-    expect(favorites.last.displayName, 'Carlos');
-    expect(favorites.last.userId, 'user-1');
-  });
+      expect(favorites.length, 2);
+      expect(favorites.first.displayName, 'Ana');
+      expect(favorites.last.displayName, 'Carlos');
+      expect(favorites.last.userId, 'user-1');
+    },
+  );
 
   test('deleteById removes favorite from storage', () async {
     await datasource.insert(
@@ -62,5 +64,28 @@ void main() {
 
     final favorites = await datasource.getAll();
     expect(favorites, isEmpty);
+  });
+
+  test('clearAll removes all favorites', () async {
+    await datasource.insert(
+      FavoritePlayerModel(
+        id: 'fav-1',
+        displayName: 'Ana',
+        userId: null,
+        createdAt: DateTime(2026),
+      ),
+    );
+    await datasource.insert(
+      FavoritePlayerModel(
+        id: 'fav-2',
+        displayName: 'Luis',
+        userId: 'user-2',
+        createdAt: DateTime(2026, 2),
+      ),
+    );
+
+    await datasource.clearAll();
+
+    expect(await datasource.getAll(), isEmpty);
   });
 }

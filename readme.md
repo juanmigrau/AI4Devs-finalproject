@@ -1249,10 +1249,12 @@ match /users/{userId} {
     && request.auth.uid == userId
     && request.resource.data.displayName is string
     && request.resource.data.displayName.size() > 0;
+
+  allow delete: if request.auth != null && request.auth.uid == userId;
 }
 ```
 
-Solo el propio usuario puede crear o actualizar su perfil; cualquier usuario autenticado puede leer perfiles (búsqueda de jugadores registrados al crear partida).
+Solo el propio usuario puede crear, actualizar o eliminar su perfil; cualquier usuario autenticado puede leer perfiles (búsqueda de jugadores registrados al crear partida).
 
 ---
 

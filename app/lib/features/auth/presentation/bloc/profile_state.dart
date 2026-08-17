@@ -40,3 +40,24 @@ final class ProfileFailure extends ProfileState {
   @override
   List<Object?> get props => [message];
 }
+
+final class AccountDeleting extends ProfileState {
+  const AccountDeleting();
+}
+
+final class AccountDeleted extends ProfileState {
+  const AccountDeleted();
+}
+
+final class AccountDeleteFailure extends ProfileState {
+  const AccountDeleteFailure({required this.message});
+
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
+}
+
+final class AccountReauthRequired extends ProfileState {
+  const AccountReauthRequired();
+}

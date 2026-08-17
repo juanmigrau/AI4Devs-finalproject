@@ -169,6 +169,15 @@ class MockAuthRepository extends _i1.Mock implements _i6.AuthRepository {
             ),
           )
           as _i7.Future<_i2.UserProfile>);
+
+  @override
+  _i7.Future<void> deleteAccount({String? password}) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteAccount, [], {#password: password}),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
 }
 
 /// A class which mocks [GameSyncRepository].

@@ -19,3 +19,12 @@ final class ProfileDisplayNameSubmitted extends ProfileEvent {
   @override
   List<Object?> get props => [displayName];
 }
+
+final class DeleteAccountRequested extends ProfileEvent {
+  const DeleteAccountRequested({this.password});
+
+  final String? password;
+
+  @override
+  List<Object?> get props => [password];
+}

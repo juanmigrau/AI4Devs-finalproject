@@ -12,16 +12,22 @@ class HiddenGamesLocalDatasource {
   }
 
   Future<void> hideGame(String gameId) async {
-    await _database.into(_database.hiddenGames).insert(
+    await _database
+        .into(_database.hiddenGames)
+        .insert(
           HiddenGamesCompanion.insert(gameId: gameId),
           mode: InsertMode.insertOrIgnore,
         );
   }
 
   Future<bool> isHidden(String gameId) async {
-    final row = await (_database.select(_database.hiddenGames)
-          ..where((table) => table.gameId.equals(gameId)))
-        .getSingleOrNull();
+    final row = await (_database.select(
+      _database.hiddenGames,
+    )..where((table) => table.gameId.equals(gameId))).getSingleOrNull();
     return row != null;
+  }
+
+  Future<void> clearAll() async {
+    await _database.delete(_database.hiddenGames).go();
   }
 }

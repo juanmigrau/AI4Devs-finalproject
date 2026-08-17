@@ -35,6 +35,12 @@ authentication:
     authStateChanges:
       sdk: FirebaseAuth.authStateChanges
       usage: BLoC de sesión / navegación condicional
+    deleteAccount:
+      sdk: FirebaseAuth.currentUser.delete
+      usage: |
+        Eliminar cuenta desde ProfilePage. Si Firebase lanza requires-recent-login,
+        reautenticar (email/contraseña o GoogleSignIn) y reintentar delete().
+        Borrar users/{uid} en Firestore ANTES de Auth.delete para cumplir Security Rules.
   profileSync:
     description: Tras registro/login, crear o actualizar users/{uid}
     sdk: FirebaseFirestore.doc('users/${uid}').set(..., SetOptions(merge: true))
@@ -58,6 +64,9 @@ firestore:
           sdk: doc('users/{userId}').set(data, merge: true)
         watchProfile:
           sdk: doc('users/{userId}').snapshots()
+        deleteProfile:
+          sdk: doc('users/{userId}').delete()
+          usage: Al eliminar cuenta, mientras request.auth.uid == userId
 
     games:
       path: games/{gameId}

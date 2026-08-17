@@ -36,4 +36,13 @@ void main() {
     expect(await datasource.isHidden('cloud-1'), isTrue);
     expect(await datasource.isHidden('cloud-2'), isFalse);
   });
+
+  test('clearAll removes all hidden game ids', () async {
+    await datasource.hideGame('cloud-1');
+    await datasource.hideGame('cloud-2');
+
+    await datasource.clearAll();
+
+    expect(await datasource.getHiddenGameIds(), isEmpty);
+  });
 }
