@@ -260,27 +260,32 @@ class _LoadedBody extends StatelessWidget {
             ],
           ),
         ),
-        if (!readOnly)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: PrimaryButton(
-              label: result.isLastRound
-                  ? 'Ver resultado final'
-                  : 'Siguiente ronda',
-              isLoading: isAdvancing,
-              onPressed: () {
-                if (result.isLastRound) {
-                  context.read<RoundResultBloc>().add(
-                    const FinishGameRequested(),
-                  );
-                } else {
-                  context.read<RoundResultBloc>().add(
-                    const AdvanceToNextRoundRequested(),
-                  );
-                }
-              },
-            ),
-          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: readOnly
+              ? PrimaryButton(
+                  label: 'Volver a apuestas',
+                  icon: Icons.arrow_forward,
+                  onPressed: () => context.pop(),
+                )
+              : PrimaryButton(
+                  label: result.isLastRound
+                      ? 'Ver resultado final'
+                      : 'Siguiente ronda',
+                  isLoading: isAdvancing,
+                  onPressed: () {
+                    if (result.isLastRound) {
+                      context.read<RoundResultBloc>().add(
+                        const FinishGameRequested(),
+                      );
+                    } else {
+                      context.read<RoundResultBloc>().add(
+                        const AdvanceToNextRoundRequested(),
+                      );
+                    }
+                  },
+                ),
+        ),
       ],
     );
   }

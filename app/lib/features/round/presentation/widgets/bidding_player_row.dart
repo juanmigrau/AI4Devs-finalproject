@@ -62,15 +62,16 @@ class BiddingPlayerRow extends StatelessWidget {
               height: isExpanded ? 56 : 36,
               child: Row(
                 children: [
-                  PlayerInitialAvatar(
-                    name: player.displayName,
-                    colorIndex: index,
-                    radius: 16,
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
+                    flex: 3,
                     child: Row(
                       children: [
+                        PlayerInitialAvatar(
+                          name: player.displayName,
+                          colorIndex: index,
+                          radius: 16,
+                        ),
+                        const SizedBox(width: 12),
                         Flexible(
                           child: Text(
                             player.displayName,
@@ -93,20 +94,35 @@ class BiddingPlayerRow extends StatelessWidget {
                       ],
                     ),
                   ),
+                  SizedBox(
+                    width: 48,
+                    child: Text(
+                      '${player.totalScore} pts',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   if (status == BiddingPlayerRowStatus.completed)
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: const Color(0xFFD7ECE0),
-                      child: Text(
-                        '$bid',
-                        style: const TextStyle(
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                    SizedBox(
+                      width: 48,
+                      child: Center(
+                        child: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: const Color(0xFFD7ECE0),
+                          child: Text(
+                            '$bid',
+                            style: const TextStyle(
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  if (isExpanded)
+                    )
+                  else if (isExpanded)
                     BidInputStepper(
                       value: draftBid,
                       min: 0,
@@ -115,7 +131,9 @@ class BiddingPlayerRow extends StatelessWidget {
                       onConfirm: onBidConfirmed ?? () {},
                       canConfirm: canConfirmBid,
                       isSubmitting: isSubmitting,
-                    ),
+                    )
+                  else
+                    const SizedBox(width: 48),
                 ],
               ),
             ),
@@ -129,10 +147,7 @@ class BiddingPlayerRow extends StatelessWidget {
     );
 
     if (status == BiddingPlayerRowStatus.completed && onActivateEdit != null) {
-      return InkWell(
-        onTap: onActivateEdit,
-        child: row,
-      );
+      return InkWell(onTap: onActivateEdit, child: row);
     }
 
     return row;

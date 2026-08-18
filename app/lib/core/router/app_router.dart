@@ -105,12 +105,16 @@ GoRouter createAppRouter({
       GoRoute(
         path: '/games/:gameId/rounds/:roundNumber/result',
         builder: (context, state) {
-          final readOnly = state.uri.queryParameters['readOnly'] == 'true';
+          final extra = state.extra;
+          final readOnlyFromExtra =
+              extra is Map<String, Object?> && extra['readOnly'] == true;
+          final readOnlyFromQuery =
+              state.uri.queryParameters['readOnly'] == 'true';
 
           return RoundResultPage(
             gameId: state.pathParameters['gameId']!,
             roundNumber: int.parse(state.pathParameters['roundNumber']!),
-            readOnly: readOnly,
+            readOnly: readOnlyFromExtra || readOnlyFromQuery,
           );
         },
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/features/auth/domain/entities/user_profile.dart';
 import 'package:la_pocha/features/favorites/domain/entities/favorite_player.dart';
 
@@ -48,8 +49,11 @@ class FavoritesChipSection extends StatelessWidget {
                 FilterChip(
                   key: const Key('currentUserFavoriteChip'),
                   avatar: user.photoUrl != null && user.photoUrl!.isNotEmpty
-                      ? CircleAvatar(
-                          backgroundImage: NetworkImage(user.photoUrl!),
+                      ? PlayerInitialAvatar(
+                          name: user.displayName,
+                          colorIndex: 0,
+                          photoURL: user.photoUrl,
+                          radius: 12,
                         )
                       : Icon(
                           Icons.account_circle,

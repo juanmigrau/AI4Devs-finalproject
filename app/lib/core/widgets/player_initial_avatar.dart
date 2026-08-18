@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:la_pocha/core/utils/player_colors.dart';
 
@@ -19,14 +20,36 @@ class PlayerInitialAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final url = photoURL;
     if (url != null && url.isNotEmpty) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: playerAvatarColorForIndex(colorIndex),
-        backgroundImage: NetworkImage(url),
-        onBackgroundImageError: (_, _) {},
+      return CachedNetworkImage(
+        imageUrl: url,
+        width: radius * 2,
+        height: radius * 2,
+        imageBuilder: (context, imageProvider) =>
+            CircleAvatar(radius: radius, backgroundImage: imageProvider),
+        placeholder: (context, url) =>
+            _InitialsAvatar(name: name, colorIndex: colorIndex, radius: radius),
+        errorWidget: (context, url, error) =>
+            _InitialsAvatar(name: name, colorIndex: colorIndex, radius: radius),
       );
     }
 
+    return _InitialsAvatar(name: name, colorIndex: colorIndex, radius: radius);
+  }
+}
+
+class _InitialsAvatar extends StatelessWidget {
+  const _InitialsAvatar({
+    required this.name,
+    required this.colorIndex,
+    required this.radius,
+  });
+
+  final String name;
+  final int colorIndex;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
     final initial = name.isNotEmpty ? name.characters.first.toUpperCase() : '?';
 
     return CircleAvatar(

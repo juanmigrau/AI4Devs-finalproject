@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
@@ -25,6 +26,7 @@ void main() {
     await pumpAvatar(tester, name: 'Ana');
 
     expect(find.text('A'), findsOneWidget);
+    expect(find.byType(CachedNetworkImage), findsNothing);
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
     expect(avatar.backgroundImage, isNull);
   });
@@ -35,21 +37,16 @@ void main() {
     expect(find.text('?'), findsOneWidget);
   });
 
-  testWidgets('uses NetworkImage and hides the initial when photoURL is set', (
-    tester,
-  ) async {
+  testWidgets('uses CachedNetworkImage when photoURL is set', (tester) async {
     await pumpAvatar(
       tester,
       name: 'Ana',
       photoURL: 'https://example.com/photo.jpg',
     );
 
-    expect(find.text('A'), findsNothing);
-    final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
-    expect(avatar.backgroundImage, isA<NetworkImage>());
-    expect(
-      (avatar.backgroundImage! as NetworkImage).url,
-      'https://example.com/photo.jpg',
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
     );
+    expect(image.imageUrl, 'https://example.com/photo.jpg');
   });
 }

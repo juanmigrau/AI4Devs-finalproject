@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:la_pocha/core/di/injection.dart';
 import 'package:la_pocha/core/theme/app_theme.dart';
 import 'package:la_pocha/core/utils/snack_bar_helper.dart';
+import 'package:la_pocha/core/widgets/player_initial_avatar.dart';
 import 'package:la_pocha/core/widgets/pocha_app_bar.dart';
 import 'package:la_pocha/core/widgets/primary_button.dart';
 import 'package:la_pocha/features/auth/presentation/bloc/auth_bloc.dart';
@@ -74,18 +75,20 @@ class _HomeViewState extends State<_HomeView> {
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     final isAuthenticated = state is Authenticated;
-                    final photoURL = isAuthenticated
-                        ? state.user.photoUrl
-                        : null;
+                    final user = isAuthenticated ? state.user : null;
+                    final photoURL = user?.photoUrl;
+                    final hasPhoto =
+                        user != null && photoURL != null && photoURL.isNotEmpty;
                     return IconButton(
                       onPressed: () => context.push(
                         isAuthenticated ? '/profile' : '/auth/sign-in',
                       ),
-                      icon: photoURL != null && photoURL.isNotEmpty
-                          ? CircleAvatar(
+                      icon: hasPhoto
+                          ? PlayerInitialAvatar(
+                              name: user.displayName,
+                              colorIndex: 0,
+                              photoURL: photoURL,
                               radius: 16,
-                              backgroundImage: NetworkImage(photoURL),
-                              onBackgroundImageError: (_, _) {},
                             )
                           : const Icon(
                               Icons.account_circle_outlined,
