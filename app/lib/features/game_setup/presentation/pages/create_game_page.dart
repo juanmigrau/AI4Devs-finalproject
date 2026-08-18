@@ -63,6 +63,7 @@ class _CreateGameView extends StatelessWidget {
       },
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

@@ -88,11 +88,12 @@ class PochaAppBar extends StatelessWidget implements PreferredSizeWidget {
               )
             : null);
 
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
     final bar = Container(
       decoration: const BoxDecoration(color: AppTheme.primary),
       padding: expanded
-          ? const EdgeInsets.fromLTRB(4, 24, 24, 24)
-          : const EdgeInsets.fromLTRB(4, 16, 8, 16),
+          ? EdgeInsets.fromLTRB(4, 24 + statusBarHeight, 24, 24)
+          : EdgeInsets.fromLTRB(4, 16 + statusBarHeight, 8, 16),
       child: Row(
         crossAxisAlignment: subtitle != null
             ? CrossAxisAlignment.start
@@ -121,12 +122,9 @@ class PochaAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
 
     if (expanded) {
-      return Container(
-        margin: const EdgeInsets.fromLTRB(4, 16, 16, 16),
-        child: bar,
-      );
+      return Padding(padding: const EdgeInsets.only(bottom: 16), child: bar);
     }
 
-    return Padding(padding: const EdgeInsets.fromLTRB(4, 8, 16, 0), child: bar);
+    return bar;
   }
 }

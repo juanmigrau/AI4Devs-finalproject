@@ -26,13 +26,10 @@ class _PlayPageState extends State<PlayPage> {
   @override
   void initState() {
     super.initState();
-    WakelockPlus.enable();
-  }
-
-  @override
-  void dispose() {
-    WakelockPlus.disable();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      WakelockPlus.enable();
+    });
   }
 
   @override
@@ -87,6 +84,7 @@ class _PlayView extends StatelessWidget {
         },
         child: Scaffold(
           body: SafeArea(
+            top: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

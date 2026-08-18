@@ -31,13 +31,10 @@ class _ScoringPageState extends State<ScoringPage> {
   @override
   void initState() {
     super.initState();
-    WakelockPlus.enable();
-  }
-
-  @override
-  void dispose() {
-    WakelockPlus.disable();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      WakelockPlus.enable();
+    });
   }
 
   @override
@@ -94,6 +91,7 @@ class _ScoringView extends StatelessWidget {
         },
         child: Scaffold(
           body: SafeArea(
+            top: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

@@ -18,13 +18,21 @@ import 'package:la_pocha/firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await configureDependencies();
 
   final resumeLocation = await _resolveResumeLocation();
@@ -38,11 +46,9 @@ Future<void> main() async {
     resumeLocation: resumeLocation,
   );
 
-  runApp(LaPochaApp(
-    authBloc: authBloc,
-    gameSyncBloc: gameSyncBloc,
-    router: router,
-  ));
+  runApp(
+    LaPochaApp(authBloc: authBloc, gameSyncBloc: gameSyncBloc, router: router),
+  );
 }
 
 Future<String?> _resolveResumeLocation() async {

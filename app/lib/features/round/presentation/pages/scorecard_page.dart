@@ -45,13 +45,11 @@ class _ScorecardPageState extends State<ScorecardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PochaAppBar(
-              title: 'Tabla de partida',
-              onBack: () => context.pop(),
-            ),
+            PochaAppBar(title: 'Tabla de partida', onBack: () => context.pop()),
             Expanded(
               child: FutureBuilder<GameScorecard>(
                 future: _loadFuture,

@@ -75,6 +75,7 @@ class _GameFinalResultPageState extends State<GameFinalResultPage> {
       create: (_) => getIt<RepeatGameCubit>(),
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: FutureBuilder<_FinalResultData>(
             future: _loadFuture,
             builder: (context, snapshot) {

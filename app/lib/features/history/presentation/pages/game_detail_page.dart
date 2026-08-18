@@ -70,6 +70,7 @@ class _GameDetailView extends StatelessWidget {
       ],
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: BlocBuilder<GameDetailBloc, GameDetailState>(
             builder: (context, state) {
               return switch (state) {

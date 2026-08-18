@@ -167,6 +167,7 @@ class _ProfileViewState extends State<_ProfileView> {
       ],
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

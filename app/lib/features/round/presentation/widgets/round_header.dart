@@ -30,48 +30,48 @@ class RoundHeader extends StatelessWidget {
         ? 'Ronda $roundNumber'
         : 'Ronda $roundNumber · ${cardCountLabel(cardsInRound!)}';
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.primary,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: onBack ?? () => context.pop(),
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
+
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: AppTheme.primary,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.fromLTRB(8, 16 + statusBarHeight, 16, 16),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onBack ?? () => context.pop(),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
-                  Text(
-                    dealerName != null
-                        ? '$subtitle · Repartidor: $dealerName'
-                        : subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                ),
+                Text(
+                  dealerName != null
+                      ? '$subtitle · Repartidor: $dealerName'
+                      : subtitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            GameOverflowMenu(
-              gameId: gameId,
-              repeatRoundNumber: repeatRoundNumber,
-            ),
-          ],
-        ),
+          ),
+          GameOverflowMenu(
+            gameId: gameId,
+            repeatRoundNumber: repeatRoundNumber,
+          ),
+        ],
       ),
     );
   }

@@ -13,6 +13,7 @@ import 'package:la_pocha/features/home/presentation/bloc/home_bloc.dart';
 import 'package:la_pocha/features/home/presentation/widgets/debug_config_panel.dart';
 import 'package:la_pocha/features/home/presentation/widgets/recent_game_tile.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -39,6 +40,12 @@ class _HomeViewState extends State<_HomeView> {
   late final Future<PackageInfo> _packageInfoFuture =
       PackageInfo.fromPlatform();
 
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.disable();
+  }
+
   void _onNewGamePressed() {
     if (kDebugMode) {
       final committed = _debugPanelKey.currentState?.commitSequence() ?? true;
@@ -56,6 +63,7 @@ class _HomeViewState extends State<_HomeView> {
 
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: ListView(
           children: [
             PochaAppBar(

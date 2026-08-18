@@ -34,13 +34,12 @@ class _GameSetupView extends StatelessWidget {
     return BlocListener<GameSetupBloc, GameSetupState>(
       listener: (context, state) {
         if (state is GameSetupNavigateToBids) {
-          context.go(
-            '/games/${state.gameId}/rounds/${state.roundNumber}/bids',
-          );
+          context.go('/games/${state.gameId}/rounds/${state.roundNumber}/bids');
         }
       },
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -54,14 +53,14 @@ class _GameSetupView extends StatelessWidget {
                   builder: (context, state) {
                     return switch (state) {
                       GameSetupLoading() => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: CircularProgressIndicator(),
+                      ),
                       GameSetupFailure(:final message) => Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(message),
-                          ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(message),
                         ),
+                      ),
                       GameSetupLoaded(
                         :final players,
                         :final firstDealerPlayerId,
@@ -127,9 +126,9 @@ class _LoadedBody extends StatelessWidget {
               Text(
                 _dealerName,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ],
           ),
@@ -142,16 +141,13 @@ class _LoadedBody extends StatelessWidget {
               firstDealerPlayerId: firstDealerPlayerId,
               onReorder: (oldIndex, newIndex) {
                 context.read<GameSetupBloc>().add(
-                      PlayersReordered(
-                        oldIndex: oldIndex,
-                        newIndex: newIndex,
-                      ),
-                    );
+                  PlayersReordered(oldIndex: oldIndex, newIndex: newIndex),
+                );
               },
               onDealerSelected: (playerId) {
                 context.read<GameSetupBloc>().add(
-                      FirstDealerSelected(playerId: playerId),
-                    );
+                  FirstDealerSelected(playerId: playerId),
+                );
               },
             ),
           ),
@@ -161,8 +157,8 @@ class _LoadedBody extends StatelessWidget {
           child: RandomDealerButton(
             isEnabled: !isStarting && isComplete,
             onPressed: () => context.read<GameSetupBloc>().add(
-                  const RandomDealerRequested(),
-                ),
+              const RandomDealerRequested(),
+            ),
           ),
         ),
         Padding(
@@ -172,9 +168,9 @@ class _LoadedBody extends StatelessWidget {
             icon: Icons.play_arrow,
             isLoading: isStarting,
             onPressed: isComplete
-                ? () => context
-                    .read<GameSetupBloc>()
-                    .add(const StartGameRequested())
+                ? () => context.read<GameSetupBloc>().add(
+                    const StartGameRequested(),
+                  )
                 : null,
           ),
         ),

@@ -56,8 +56,8 @@ class _HistoryListView extends StatelessWidget {
           listener: (context, state) {
             if (state is DeleteGameFromHistorySuccess) {
               context.read<HistoryListBloc>().add(
-                    HistoryListGameDeleted(state.gameId),
-                  );
+                HistoryListGameDeleted(state.gameId),
+              );
             } else if (state is DeleteGameFromHistoryFailure) {
               SnackBarHelper.showError(state.message);
             }
@@ -96,6 +96,7 @@ class _HistoryListView extends StatelessWidget {
       ],
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -230,8 +231,8 @@ class _PendingSyncBanner extends StatelessWidget {
         message: message,
         icon: Icons.cloud_sync_outlined,
         onTap: () => context.read<HistoryListBloc>().add(
-              const SyncAllPendingRequested(),
-            ),
+          const SyncAllPendingRequested(),
+        ),
       ),
     );
   }

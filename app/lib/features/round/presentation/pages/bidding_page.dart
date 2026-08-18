@@ -31,13 +31,10 @@ class _BiddingPageState extends State<BiddingPage> {
   @override
   void initState() {
     super.initState();
-    WakelockPlus.enable();
-  }
-
-  @override
-  void dispose() {
-    WakelockPlus.disable();
-    super.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      WakelockPlus.enable();
+    });
   }
 
   @override
@@ -102,6 +99,7 @@ class _BiddingView extends StatelessWidget {
         },
         child: Scaffold(
           body: SafeArea(
+            top: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -302,7 +300,8 @@ class _LoadedBodyState extends State<_LoadedBody> {
                           final isExpanded = _isExpanded(rowStatus);
                           final isDealer =
                               playerId == state.round.dealerPlayerId;
-                          final showForbidden = isDealer &&
+                          final showForbidden =
+                              isDealer &&
                               state.forbiddenBid != null &&
                               rowStatus != BiddingPlayerRowStatus.pending;
                           return KeyedSubtree(
@@ -315,13 +314,13 @@ class _LoadedBodyState extends State<_LoadedBody> {
                               isDealer: isDealer,
                               draftBid: isExpanded ? state.draftBid : 0,
                               cardsInRound: state.round.cardsInRound,
-                              forbiddenBid:
-                                  showForbidden ? state.forbiddenBid : null,
+                              forbiddenBid: showForbidden
+                                  ? state.forbiddenBid
+                                  : null,
                               canConfirmBid: state.canConfirmBid,
                               isSubmitting: state.isSubmitting,
                               onActivateEdit:
-                                  rowStatus ==
-                                      BiddingPlayerRowStatus.completed
+                                  rowStatus == BiddingPlayerRowStatus.completed
                                   ? () => context.read<BiddingBloc>().add(
                                       BidEditActivated(playerId),
                                     )
@@ -333,8 +332,7 @@ class _LoadedBodyState extends State<_LoadedBody> {
                                   : null,
                               onBidConfirmed: isExpanded
                                   ? () {
-                                      final bloc =
-                                          context.read<BiddingBloc>();
+                                      final bloc = context.read<BiddingBloc>();
                                       if (rowStatus ==
                                           BiddingPlayerRowStatus.editing) {
                                         bloc.add(

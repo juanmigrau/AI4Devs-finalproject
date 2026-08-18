@@ -49,6 +49,7 @@ class _AddPlayersView extends StatelessWidget {
       },
       child: Scaffold(
         body: SafeArea(
+          top: false,
           child: BlocBuilder<AddPlayersBloc, AddPlayersState>(
             builder: (context, state) {
               if (state is AddPlayersLoading || state is AddPlayersInitial) {
@@ -260,19 +261,13 @@ class _UserSearchBody extends StatelessWidget {
           },
         ),
         Expanded(
-          child: _buildResults(
-            context,
-            showEmptyMessage: showEmptyMessage,
-          ),
+          child: _buildResults(context, showEmptyMessage: showEmptyMessage),
         ),
       ],
     );
   }
 
-  Widget _buildResults(
-    BuildContext context, {
-    required bool showEmptyMessage,
-  }) {
+  Widget _buildResults(BuildContext context, {required bool showEmptyMessage}) {
     if (state.userSearchError != null) {
       return Padding(
         padding: const EdgeInsets.all(24),

@@ -35,12 +35,12 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
     context.read<AuthBloc>().add(
-          SignUpSubmitted(
-            displayName: _displayNameController.text,
-            email: _emailController.text,
-            password: _passwordController.text,
-          ),
-        );
+      SignUpSubmitted(
+        displayName: _displayNameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+      ),
+    );
   }
 
   @override
@@ -63,13 +63,11 @@ class _SignUpPageState extends State<SignUpPage> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         body: SafeArea(
+          top: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PochaAppBar(
-                title: 'Crear cuenta',
-                onBack: () => context.pop(),
-              ),
+              PochaAppBar(title: 'Crear cuenta', onBack: () => context.pop()),
               Expanded(
                 child: BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
@@ -84,8 +82,9 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             child: IntrinsicHeight(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
                                 child: Form(
                                   key: _formKey,
                                   child: Column(
@@ -97,9 +96,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                         'Crea una cuenta',
                                         style: theme.textTheme.headlineSmall
                                             ?.copyWith(
-                                          color: AppTheme.onSurface,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                              color: AppTheme.onSurface,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
@@ -107,8 +106,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                         'historial en la nube',
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                          color: AppTheme.onSurfaceVariant,
-                                        ),
+                                              color: AppTheme.onSurfaceVariant,
+                                            ),
                                       ),
                                       const SizedBox(height: 32),
                                       AuthTextField(
@@ -181,21 +180,23 @@ class _SignUpPageState extends State<SignUpPage> {
                                             '¿Ya tienes cuenta?',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: AppTheme.onSurfaceVariant,
-                                            ),
+                                                  color:
+                                                      AppTheme.onSurfaceVariant,
+                                                ),
                                           ),
                                           TextButton(
                                             onPressed: isLoading
                                                 ? null
-                                                : () => context
-                                                    .push('/auth/sign-in'),
+                                                : () => context.push(
+                                                    '/auth/sign-in',
+                                                  ),
                                             child: Text(
                                               'Inicia sesión',
                                               style: theme.textTheme.bodySmall
                                                   ?.copyWith(
-                                                color: AppTheme.primary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                                    color: AppTheme.primary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ),
                                         ],

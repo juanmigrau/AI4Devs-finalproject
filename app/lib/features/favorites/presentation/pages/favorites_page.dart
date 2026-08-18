@@ -41,62 +41,56 @@ class _FavoritesView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PochaAppBar(
-              title: 'Mis favoritos',
-              onBack: () => context.pop(),
-            ),
+            PochaAppBar(title: 'Mis favoritos', onBack: () => context.pop()),
             Expanded(
               child: BlocBuilder<FavoritesBloc, FavoritesState>(
                 builder: (context, state) {
                   return switch (state) {
-                    FavoritesInitial() || FavoritesLoading() =>
-                      const Center(child: CircularProgressIndicator()),
+                    FavoritesInitial() || FavoritesLoading() => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
                     FavoritesEmpty() => const _EmptyFavoritesView(),
                     FavoritesFailure(:final message) => Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            message,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(color: AppTheme.onSurfaceVariant),
-                          ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: AppTheme.onSurfaceVariant),
                         ),
                       ),
+                    ),
                     FavoritesLoaded(:final favorites) => RefreshIndicator(
-                        onRefresh: () async {
-                          context
-                              .read<FavoritesBloc>()
-                              .add(const FavoritesRefreshed());
-                          await context
-                              .read<FavoritesBloc>()
-                              .stream
-                              .firstWhere(
-                                (state) =>
-                                    state is FavoritesLoaded ||
-                                    state is FavoritesEmpty ||
-                                    state is FavoritesFailure,
-                              );
+                      onRefresh: () async {
+                        context.read<FavoritesBloc>().add(
+                          const FavoritesRefreshed(),
+                        );
+                        await context.read<FavoritesBloc>().stream.firstWhere(
+                          (state) =>
+                              state is FavoritesLoaded ||
+                              state is FavoritesEmpty ||
+                              state is FavoritesFailure,
+                        );
+                      },
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
+                        itemCount: favorites.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final favorite = favorites[index];
+                          return DeleteFavoriteSlidable(
+                            favorite: favorite,
+                            onDeleteRequested: () =>
+                                _requestDelete(context, favorite),
+                          );
                         },
-                        child: ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
-                          itemCount: favorites.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final favorite = favorites[index];
-                            return DeleteFavoriteSlidable(
-                              favorite: favorite,
-                              onDeleteRequested: () =>
-                                  _requestDelete(context, favorite),
-                            );
-                          },
-                        ),
                       ),
+                    ),
                   };
                 },
               ),
@@ -128,17 +122,17 @@ class _EmptyFavoritesView extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Sin favoritos',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Guarda jugadores frecuentes para añadirlos rápido a tus partidas.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.onSurfaceVariant,
-                  ),
+                color: AppTheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(

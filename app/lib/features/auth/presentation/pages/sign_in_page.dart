@@ -34,11 +34,11 @@ class _SignInPageState extends State<SignInPage> {
       return;
     }
     context.read<AuthBloc>().add(
-          SignInSubmitted(
-            email: _emailController.text,
-            password: _passwordController.text,
-          ),
-        );
+      SignInSubmitted(
+        email: _emailController.text,
+        password: _passwordController.text,
+      ),
+    );
   }
 
   @override
@@ -67,13 +67,11 @@ class _SignInPageState extends State<SignInPage> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         body: SafeArea(
+          top: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PochaAppBar(
-                title: 'Iniciar sesión',
-                onBack: () => context.pop(),
-              ),
+              PochaAppBar(title: 'Iniciar sesión', onBack: () => context.pop()),
               Expanded(
                 child: BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
@@ -88,8 +86,9 @@ class _SignInPageState extends State<SignInPage> {
                             ),
                             child: IntrinsicHeight(
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
                                 child: Form(
                                   key: _formKey,
                                   child: Column(
@@ -101,17 +100,17 @@ class _SignInPageState extends State<SignInPage> {
                                         'Bienvenido de nuevo',
                                         style: theme.textTheme.headlineSmall
                                             ?.copyWith(
-                                          color: AppTheme.onSurface,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                              color: AppTheme.onSurface,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
                                         'Inicia sesión para acceder a tu historial',
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                          color: AppTheme.onSurfaceVariant,
-                                        ),
+                                              color: AppTheme.onSurfaceVariant,
+                                            ),
                                       ),
                                       const SizedBox(height: 32),
                                       AuthTextField(
@@ -140,8 +139,7 @@ class _SignInPageState extends State<SignInPage> {
                                         autocorrect: false,
                                         onFieldSubmitted: (_) => _submit(),
                                         validator: (value) {
-                                          if (value == null ||
-                                              value.isEmpty) {
+                                          if (value == null || value.isEmpty) {
                                             return 'Introduce tu contraseña';
                                           }
                                           return null;
@@ -154,16 +152,16 @@ class _SignInPageState extends State<SignInPage> {
                                           onPressed: isLoading
                                               ? null
                                               : () => showForgotPasswordDialog(
-                                                    context,
-                                                    initialEmail:
-                                                        _emailController.text,
-                                                  ),
+                                                  context,
+                                                  initialEmail:
+                                                      _emailController.text,
+                                                ),
                                           child: Text(
                                             '¿Olvidaste tu contraseña?',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: AppTheme.primary,
-                                            ),
+                                                  color: AppTheme.primary,
+                                                ),
                                           ),
                                         ),
                                       ),
@@ -189,21 +187,23 @@ class _SignInPageState extends State<SignInPage> {
                                             '¿No tienes cuenta?',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                              color: AppTheme.onSurfaceVariant,
-                                            ),
+                                                  color:
+                                                      AppTheme.onSurfaceVariant,
+                                                ),
                                           ),
                                           TextButton(
                                             onPressed: isLoading
                                                 ? null
-                                                : () => context
-                                                    .push('/auth/sign-up'),
+                                                : () => context.push(
+                                                    '/auth/sign-up',
+                                                  ),
                                             child: Text(
                                               'Regístrate',
                                               style: theme.textTheme.bodySmall
                                                   ?.copyWith(
-                                                color: AppTheme.primary,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                                    color: AppTheme.primary,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ),
                                         ],
