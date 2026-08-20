@@ -25,30 +25,19 @@ part 'add_players_state.dart';
 
 class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
   AddPlayersBloc({
-    required GetGameByIdUseCase getGameById,
-    required GetFavoritesUseCase getFavorites,
-    required GetCurrentUserUseCase getCurrentUser,
-    required AddPlayerUseCase addPlayer,
-    required AddPlayerFromFavoriteUseCase addPlayerFromFavorite,
-    required AddRegisteredPlayerUseCase addRegisteredPlayer,
-    required SearchUsersUseCase searchUsers,
-    required RemovePlayerUseCase removePlayer,
-    required UpdatePlayerNameUseCase updatePlayerName,
-    required AddFavoriteUseCase addFavorite,
-    required RemoveFavoriteUseCase removeFavorite,
+    required this._getGameById,
+    required this._getFavorites,
+    required this._getCurrentUser,
+    required this._addPlayer,
+    required this._addPlayerFromFavorite,
+    required this._addRegisteredPlayer,
+    required this._searchUsers,
+    required this._removePlayer,
+    required this._updatePlayerName,
+    required this._addFavorite,
+    required this._removeFavorite,
     Connectivity? connectivity,
-  }) : _getGameById = getGameById,
-       _getFavorites = getFavorites,
-       _getCurrentUser = getCurrentUser,
-       _addPlayer = addPlayer,
-       _addPlayerFromFavorite = addPlayerFromFavorite,
-       _addRegisteredPlayer = addRegisteredPlayer,
-       _searchUsers = searchUsers,
-       _removePlayer = removePlayer,
-       _updatePlayerName = updatePlayerName,
-       _addFavorite = addFavorite,
-       _removeFavorite = removeFavorite,
-       _connectivity = connectivity ?? Connectivity(),
+  }) : _connectivity = connectivity ?? Connectivity(),
        super(const AddPlayersInitial()) {
     on<AddPlayersStarted>(_onStarted);
     on<FavoriteChipTapped>(_onFavoriteChipTapped);
@@ -448,7 +437,9 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
       return;
     }
 
-    emit(afterDelay.copyWith(userSearchLoading: true, clearUserSearchError: true));
+    emit(
+      afterDelay.copyWith(userSearchLoading: true, clearUserSearchError: true),
+    );
     try {
       final results = await _searchUsers(
         event.query,
@@ -483,7 +474,8 @@ class AddPlayersBloc extends Bloc<AddPlayersEvent, AddPlayersState> {
       if (latest is! AddPlayersLoaded) {
         return;
       }
-      final isTimeout = error is TimeoutException ||
+      final isTimeout =
+          error is TimeoutException ||
           error.toString().contains('TimeoutException');
       emit(
         latest.copyWith(

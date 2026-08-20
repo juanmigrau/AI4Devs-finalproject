@@ -125,7 +125,7 @@ class _FakeGameRepository implements GameRepository {
 }
 
 class _FakeConnectivity implements Connectivity {
-  _FakeConnectivity({this.results = const [ConnectivityResult.wifi]});
+  _FakeConnectivity() : results = const [ConnectivityResult.wifi];
 
   List<ConnectivityResult> results;
 
@@ -925,11 +925,7 @@ void main() {
     act: (bloc) => bloc.add(const UserSearchQueryChanged(query: 'an')),
     wait: const Duration(milliseconds: 350),
     expect: () => [
-      isA<AddPlayersLoaded>().having(
-        (s) => s.userSearchQuery,
-        'query',
-        'an',
-      ),
+      isA<AddPlayersLoaded>().having((s) => s.userSearchQuery, 'query', 'an'),
       isA<AddPlayersLoaded>().having(
         (s) => s.userSearchLoading,
         'loading',
@@ -938,11 +934,7 @@ void main() {
       isA<AddPlayersLoaded>()
           .having((s) => s.userSearchLoading, 'loading', false)
           .having((s) => s.userSearchResults, 'results', hasLength(1))
-          .having(
-            (s) => s.userSearchResults.first.displayName,
-            'name',
-            'Ana',
-          ),
+          .having((s) => s.userSearchResults.first.displayName, 'name', 'Ana'),
     ],
     verify: (_) {
       expect(userSearchRepository.callCount, 1);
@@ -968,11 +960,7 @@ void main() {
     act: (bloc) => bloc.add(const UserSearchQueryChanged(query: 'an')),
     wait: const Duration(milliseconds: 350),
     expect: () => [
-      isA<AddPlayersLoaded>().having(
-        (s) => s.userSearchQuery,
-        'query',
-        'an',
-      ),
+      isA<AddPlayersLoaded>().having((s) => s.userSearchQuery, 'query', 'an'),
       isA<AddPlayersLoaded>().having(
         (s) => s.userSearchError,
         'error',
