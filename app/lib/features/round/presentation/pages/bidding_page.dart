@@ -270,35 +270,6 @@ class _LoadedBodyState extends State<_LoadedBody> {
             controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    const Expanded(flex: 3, child: SizedBox()),
-                    SizedBox(
-                      width: 48,
-                      child: Text(
-                        'Total',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 48,
-                      child: Text(
-                        'Apuesta',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 4),
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.surface,

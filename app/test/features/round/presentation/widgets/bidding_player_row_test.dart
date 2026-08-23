@@ -41,25 +41,28 @@ void main() {
     );
   }
 
-  testWidgets('shows total score on a completed bid row', (tester) async {
+  testWidgets('completed row shows avatar, name and bid circle', (tester) async {
     await pumpRow(tester, status: BiddingPlayerRowStatus.completed, bid: 2);
 
-    expect(find.text('42 pts'), findsOneWidget);
+    expect(find.text('Ana'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
     expect(find.byType(BidInputStepper), findsNothing);
+    expect(find.text('42 pts'), findsNothing);
   });
 
-  testWidgets('shows total score on the active bidding row', (tester) async {
+  testWidgets('active row shows avatar, name and bid stepper', (tester) async {
     await pumpRow(tester, status: BiddingPlayerRowStatus.active, draftBid: 1);
 
-    expect(find.text('42 pts'), findsOneWidget);
+    expect(find.text('Ana'), findsOneWidget);
     expect(find.byType(BidInputStepper), findsOneWidget);
+    expect(find.text('42 pts'), findsNothing);
   });
 
-  testWidgets('shows total score on a pending row', (tester) async {
+  testWidgets('pending row shows faded avatar and name only', (tester) async {
     await pumpRow(tester, status: BiddingPlayerRowStatus.pending);
 
-    expect(find.text('42 pts'), findsOneWidget);
+    expect(find.text('Ana'), findsOneWidget);
     expect(find.byType(BidInputStepper), findsNothing);
+    expect(find.text('42 pts'), findsNothing);
   });
 }
