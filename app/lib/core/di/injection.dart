@@ -54,6 +54,7 @@ import 'package:la_pocha/features/round/domain/usecases/finish_game_usecase.dart
 import 'package:la_pocha/features/round/domain/usecases/get_round_result_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_round_play_state_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/get_game_scorecard_usecase.dart';
+import 'package:la_pocha/features/round/domain/usecases/get_game_stats_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/load_bidding_context_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/revert_round_to_bidding_usecase.dart';
 import 'package:la_pocha/features/round/domain/usecases/revert_round_to_playing_usecase.dart';
@@ -464,6 +465,13 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<GetGameScorecardUseCase>(
     () => GetGameScorecardUseCase(
+      getIt<GameRepository>(),
+      getIt<RoundRepository>(),
+    ),
+  );
+
+  getIt.registerFactory<GetGameStatsUseCase>(
+    () => GetGameStatsUseCase(
       getIt<GameRepository>(),
       getIt<RoundRepository>(),
     ),
