@@ -1,5 +1,15 @@
 # Notas técnicas
 
+keytool -genkey -v -keystore app/android/la-pocha.keystore -alias la-pocha -keyalg RSA -keysize 2048 -validity 10000
+K4nk4m9s4p!
+Juanmi Grau
+Almussafes
+Valencia
+ES
+
+
+
+
 ## Identidad de usuario — decisión de producto
 
 **Fecha:** 14/08/2026
